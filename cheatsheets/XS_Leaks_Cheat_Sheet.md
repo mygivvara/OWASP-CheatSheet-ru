@@ -1,102 +1,102 @@
-# Cross-site leaks Cheat Sheet
+# Шпаргалка по межсайтовым утечкам
 
-## Introduction
+## Вступление
 
-This article describes examples of attacks and defenses against cross-site leaks vulnerability (XS Leaks). Since this vulnerability is based on the core mechanism of modern web browsers, it's also called a browser side-channel attack. XS-Leaks attacks seek to exploit the fact of seemingly insignificant information that is exchanged in cross-site communications between sites. This information infers answers to the previously asked questions about the victim's user account. Please take a look at the examples provided below:
+В этой статье описаны примеры атак и средств защиты от уязвимости, связанной с межсайтовыми утечками (XS Leaks). Поскольку эта уязвимость основана на основном механизме современных веб-браузеров, ее также называют атакой по стороннему каналу браузера. Атаки XS-Leaks направлены на использование, казалось бы, незначительной информации, которой обмениваются в ходе межсайтовых коммуникаций между сайтами. Эта информация содержит ответы на ранее заданные вопросы об учетной записи пользователя жертвы. Пожалуйста, ознакомьтесь с примерами, представленными ниже:
 
-- Is the user currently logged in?
-- Is the user ID 1337?
-- Is the user an administrator?
-- Does the user have a person with a particular email address in their contact list?
+- Залогинин ли пользователь в данный момент?
+- Идентификатор пользователя 1337?
+- Является ли пользователь администратором?
+- Есть ли у пользователя в списке контактов человек с определенным адресом электронной почты?
 
-On the basis of such questions, the attacker might try to deduce the answers, depending on the application's context. In most cases, the answers will be in binary form (yes or no). The impact of this vulnerability depends strongly on the application's risk profile. Despite this, XS Leaks may pose a real threat to user privacy and anonymity.
+На основе таких вопросов злоумышленник может попытаться получить ответы в зависимости от контекста приложения. В большинстве случаев ответы будут в двоичной форме ("да" или "нет"). Воздействие этой уязвимости сильно зависит от профиля риска приложения. Несмотря на это, утечки данных XS могут представлять реальную угрозу конфиденциальности и анонимности пользователей.
 
-## Attack vector
+## Вектор атаки
 
-![XS Leaks Attack Vector](../assets/XS_Attack_Vector.png)
+![Вектор атаки XS-утечек](../assets/XS_Attack_Vector.png)
 
-- The entire attack takes place on the victim's browser side - just like an XSS attack
-- In some cases, the victim must remain on the attacker's site longer for the attack to succeed.
+- Вся атака выполняется на стороне браузера жертвы - так же, как и XSS-атака
+- В некоторых случаях жертва должна оставаться на сайте злоумышленника дольше, чтобы атака была успешной.
 
-## Same Origin Policy (SOP)
+## Same Origin Policy (SOP) Политика одинакового происхождения 
 
-Before describing attacks, it's good to understand one of the most critical security mechanisms in browsers - The Same-origin Policy. A few key aspects:
+Прежде чем описывать атаки, полезно разобраться с одним из наиболее важных механизмов безопасности в браузерах - политикой одинакового источника. Несколько ключевых аспектов:
 
-- Two URLs are considered as **same-origin** if their **protocol**, **port**, and **host** are the same
-- Any origin can send a request to another source, but due to the Same-origin Policy, they will not be able to read the response directly
-- Same Origin Policy may be relaxed by [Cross Origin Resource Sharing (CORS)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS).
+- Два URL-адреса считаются ** одного происхождения**, если их **протокол**, **порт** и **хост** совпадают
+- Любой источник может отправить запрос другому источнику, но из-за политики того же источника они не смогут прочитать ответ напрямую
+- Политика того же источника может быть смягчена с помощью [Совместного использования ресурсов разных источников Cross Origin Resource Sharing (CORS)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS).
 
-| Origin A              | Origin B                  | Same origin?                   |
+| Происхождение A            | Происхождение B                 | Того же происхождения?                 |
 | -------------         | -------------             | -------------                  |
-| `https://example.com` | `http://sub.example.com`  | No, different hosts             |
-| `https://example.com` | `https://example.com:443` | Yes! Implicit port in Origin A |
+| `https://example.com` | `http://sub.example.com`  | Нет, разные хосты             |
+| `https://example.com` | `https://example.com:443` | Да! Неявный порт в Происхождении A|
 
-Although the SOP principle protects us from accessing information in cross-origin communication, XS-Leaks attacks based on residual data can infer some information.
+Хотя принцип SOP защищает нас от доступа к информации при передаче данных из одного источника в другой, атаки XS-Leaks, основанные на остаточных данных, могут вывести некоторую информацию.
 
-## SameSite Cookies
+## Кукки с атрибутом SameSite
 
-The SameSite attribute of a cookie tells the browser whether it should include the cookie in the request from the other site. The SameSite attribute takes the following values:
+Атрибут SameSite в файле cookie сообщает браузеру, должен ли он включать файл cookie в запрос с другого сайта. Атрибут SameSite принимает следующие значения:
 
-- `None` -  the cookie will be attached to a request from another site, but it must be sent over a secure HTTPS channel
-- `Lax` - the cookie will be appended to the request from another page if the request method is GET and the request is made to top-level navigation (i.e. the navigation changes the address in the browser top bar)
-- `Strict` - the cookie will never be sent from another site
+- `None` - cookie будет прикреплен к запросу с другого сайта, но он должен быть отправлен по защищенному каналу HTTPS
+- `Lax` - cookie будет добавлен к запросу с другой страницы, если методом запроса является GET и запрос выполняется для навигации верхнего уровня (т.е. при навигации изменяется адрес в верхней строке браузера).
+- `Strict` - cookie никогда не будет отправлен с другого сайта
 
-It is worth mentioning here the attitude of Chromium based browsers in which cookies without SameSite attribute set by default are treated as Lax.
+Здесь стоит упомянуть отношение браузеров на базе Chromium, в которых файлы cookie без того же атрибута сайта, установленного по умолчанию, рассматриваются как Lax.
 
-SameSite cookies are a strong **defense-in-depth** mechanism against **some** classes of XS Leaks and [CSRF attacks](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html), which can significantly reduce the attack surface, but may not completely cut them (see, e.g., [window-based XS Leak](https://soheilkhodayari.github.io/same-site-wiki/docs/attacks/xs-leaks.html) attacks like [frame counting](https://xsleaks.dev/docs/attacks/frame-counting/) and [navigation](https://xsleaks.dev/docs/attacks/navigations/)).
+SameSite атрибут куки это мощный механизм **углубленной защиты** от **некоторых**  классов утечек XS и [CSRF атак](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html), что может значительно сократить площадь атаки, но не может полностью ее сократить (см., например, [window-based XS Leak](https://soheilkhodayari.github.io/same-site-wiki/docs/attacks/xs-leaks.html) атаки, такие как [frame counting](https://xsleaks.dev/docs/attacks/frame-counting/) и [navigation](https://xsleaks.dev/docs/attacks/navigations/)).
 
-### How do we know that two sites are SameSite?
+### Откуда мы знаем, что два сайта - это один и тот же сайт?
 
-![XS Leaks eTLD explanation](../assets/XS_Leaks_eTLD.png)
+![Объяснение утечек XS в eTLD](../assets/XS_Leaks_eTLD.png)
 
-In the context of the SameSite attribute, we consider the site to be the combination of the TLD (top-level domain) and the domain name before it. For example:
+В контексте того же атрибута сайта мы рассматриваем сайт как комбинацию TLD (домена верхнего уровня) и доменного имени, стоящего перед ним. Например:
 
-| Full URL                                      | Site (eTLD+1)             |
+| Полный URL                                      | Сайт (eTLD+1)             |
 | --------------------------------------------  | ------------------------  |
 | `https://example.com:443/data?query=test`     | `example.com`             |
 
-Why are we talking about eTLD+1 and not just TLD+1? It's because of domains like `.github.io` or `.eu.org`. Such parts are not atomic enough to be compared well. For this reason, a list of "effective" TLDs (eTLDs) was created and can be found [here](https://publicsuffix.org/list/public_suffix_list.dat).
+Почему мы говорим о eTLD+1, а не только о TLD+1? Это из-за таких доменов, как ".github.io` или `.eu.org`. Такие части недостаточно атомарны, чтобы их можно было хорошо сравнивать. По этой причине был создан список "действующих" доменов верхнего уровня (TLD), с которым можно ознакомиться [здесь](https://publicsuffix.org/list/public_suffix_list.dat).
 
-Sites that have the same eTLD+1 are considered SameSite, examples:
+Сайты, имеющие один и тот же eTLD+1, считаются одним и тем же сайтом, примеры:
 
-| Origin A                  | Origin B                   | SameSite?                    |
+| Происхождение А           | Происхождение B            | SameSite?                    |
 | ------------------------- | -------------------------- | ---------------------        |
-| `https://example.com`     | `http://example.com`       | Yes, schemes don't matter    |
-| `https://evil.net`        | `https://example.com`      | No, different eTLD+1          |
-| `https://sub.example.com` | `https://data.example.com` | Yes, subdomains don't matter |
+| `https://example.com`     | `http://example.com`       | Да, схемы не имеют значения    |
+| `https://evil.net`        | `https://example.com`      | Нет, другой eTLD+1          |
+| `https://sub.example.com` | `https://data.example.com` | Да, поддомены не имеют значения |
 
-For more information about SameSite, see the excellent article [Understanding "same-site"](https://web.dev/same-site-same-origin/).
+Для получения дополнительной информации об этом сайте смотрите отличную статью [Понимание понятия "same-site"](https://web.dev/same-site-same-origin/).
 
-## Attacks using the element ID attribute
+## Атаки с использованием атрибута element ID
 
-Elements in the DOM can have an ID attribute that is unique within the document. For example:
+Элементы в DOM могут иметь атрибут ID, который является уникальным в пределах документа. Например:
 
 ```html
 <button id="pro">Pro account</button>
 ```
 
-The browser will automatically focus on an element with a given ID if we append a hash to the URL, e.g. `https://example.com#pro`. What's more, the JavaScript [focus event](https://developer.mozilla.org/en-US/docs/Web/API/Element/focus_event) gets fired. The attacker may try to embed the application in the iframe with specific source on its own controlled page:
+Браузер автоматически сфокусируется на элементе с заданным идентификатором, если мы добавим хэш к URL, например, `https://example.com#pro`. Более того, запускается JavaScript [focus event](https://developer.mozilla.org/en-US/docs/Web/API/Element/focus_event). Злоумышленник может попытаться внедрить приложение в iframe с определенным источником на своей собственной контролируемой странице:
 
 ![XS-Leaks-ID](../assets/XS_Leaks_ID.png)
 
-then add listener in main document for [blur event](https://developer.mozilla.org/en-US/docs/Web/API/Element/blur_event) (the opposite of focus). When the victim visits the attackers site, the blur event gets fired. The attacker will be able to conclude that the victim has a pro account.
+Затем добавьте прослушиватель в основной документ для [blur event](https://developer.mozilla.org/en-US/docs/Web/API/Element/blur_event) (противоположность фокусу). Когда жертва посещает сайт злоумышленников, запускается событие размытия. Злоумышленник сможет сделать вывод, что у жертвы есть учетная запись pro.
 
-### Defense
+### Защита
 
-#### Framing protection
+#### Защита кадра
 
-If you don't need other origins to embed your application in a frame, you can consider using one of two mechanisms:
+Если вам не нужны другие источники для встраивания вашего приложения во фрейм, вы можете рассмотреть возможность использования одного из двух механизмов:
 
-- **Content Security Policy frame ancestors** directive. [Read more about syntax](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/frame-src).
-- **X-Frame-Options**  - mainly if you want to support old browsers.
+- **Content Security Policy предки фрейма** директива. [Узнайте больше о синтаксисе](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/frame-src).
+- **X-Frame-Options** - в основном, если вы хотите поддерживать старые браузеры.
 
-Setting up framing protection efficiently blocks the ability to embed your application in a frame on the attacker-controlled origin and protects from other attacks like [Clickjacking](https://cheatsheetseries.owasp.org/cheatsheets/Clickjacking_Defense_Cheat_Sheet.html).
+Настройка защиты от фрейминга эффективно блокирует возможность встраивания вашего приложения во фрейм в источнике, контролируемом злоумышленником, и защищает от других атак, таких как [Clickjacking](https://cheatsheetseries.owasp.org/cheatsheets/Clickjacking_Defense_Cheat_Sheet.html).
 
-#### Fetch metadata (Sec-Fetch-Dest)
+#### Выборка метаданных (Sec-Fetch-Dest)
 
-Sec-Fetch-Dest header provides us with a piece of information about what is the end goal of the request. This header is included automatically by the browser and is one of the headers within the Fetch Metadata standard.
+Заголовок Sec-Fetch-Dest предоставляет нам информацию о том, какова конечная цель запроса. Этот заголовок автоматически включается браузером и является одним из заголовков в стандарте Fetch Metadata.
 
-With Sec-Fetch-Dest you can build effective own resource isolation policies, for example:
+С помощью Sec-Fetch-Dest вы можете создавать эффективные собственные политики изоляции ресурсов, например:
 
 ```javascript
 app.get('/', (req, res) => {
@@ -109,22 +109,22 @@ app.get('/', (req, res) => {
 });
 ```
 
-![XS Leaks Sec-Fetch-Dest](../assets/XS_Leaks_Sec_Fetch_Dest.png)
+![XS утечки Sec-Fetch-Dest](../assets/XS_Leaks_Sec_Fetch_Dest.png)
 
-If you want to use headers from the Fetch Metadata standard, make sure that your users' browsers support this standard (you can check it [here](https://caniuse.com/?search=sec-fetch)). Also, think about using the appropriate fallback in code if the Sec-Fetch-* header is not included in the request.
+Если вы хотите использовать заголовки из стандарта Fetch Metadata, убедитесь, что браузеры ваших пользователей поддерживают этот стандарт (вы можете проверить это [здесь](https://caniuse.com/?search=sec-fetch)).  Кроме того, подумайте об использовании соответствующего резервного варианта в коде, если заголовок Sec-Fetch-* не включен в запрос.
 
-## Attacks based on error events
+## Атаки, основанные на событиях ошибки
 
-Embedding from resources from other origins is generally allowed. For example, you can embed an image from another origin or even script on your page. What is not permitted is reading cross-origin resource due the SOP policy.
+Использование ресурсов из других источников, как правило, разрешено. Например, вы можете вставить изображение из другого источника или даже сценарий на свою страницу. Что запрещено, так это чтение ресурсов из разных источников из-за политики SOP.
 
-When the browser sends a request for a resource, the server processes the request and decides on the response e.g. (200 OK or 404 NOT FOUND). The browser receives the HTTP response and based on that, the appropriate JavaScript event is fired (onload or onerror).
+Когда браузер отправляет запрос на ресурс, сервер обрабатывает запрос и принимает решение об ответе, например (200 ОК или 404 НЕ НАЙДЕНО). Браузер получает HTTP-ответ, и на основании этого запускается соответствующее событие JavaScript (onload или onerror).
 
-In this way, we can try to load resources and, based on the response status, infer whether they exist or not in the context of the logged-in victim. Let's look at the following situation:
+Таким образом, мы можем попытаться загрузить ресурсы и, основываясь на статусе ответа, определить, существуют они или нет в контексте жертвы, вошедшей в систему. Давайте рассмотрим следующую ситуацию:
 
-- `GET /api/user/1234` - 200 OK - currently logged-in user is 1234 because we successfully loaded resource ([onload](https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers/onload) event fired)
-- `GET /api/user/1235` - 401 Unauthorized  - 1235 is not the ID of the currently logged in user ([onerror](https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers/onerror) event will be triggered)
+- `GET /api/user/1234` - 200 OK - в настоящее время зарегистрированный пользователь - 1234, потому что мы успешно загрузили ресурс ([onload](https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers/onload) event fired)
+- `GET /api/user/1235` - 401 Unauthorized  - 1235 - это не идентификатор текущего пользователя, вошедшего в систему ([onerror](https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers/onerror) event will be triggered)
 
-Given the above example, an attacker can use JavaScript on his controlled origin to guess the victim's ID by enumerating over all the values in a simple loop.
+Учитывая приведенный выше пример, злоумышленник может использовать JavaScript в своем контролируемом источнике, чтобы угадать идентификатор жертвы, перебирая все значения в простом цикле.
 
 ```javascript
 function checkId(id) {
@@ -146,33 +146,33 @@ for (const id of ids) {
 }
 ```
 
-Note that the attacker here does not care about reading the response body even though it would not be able to due to solid isolation mechanisms in browsers such as [Cross-Origin Resource Blocking](https://www.chromium.org/Home/chromium-security/corb-for-developers). All it needs is the success information it receives when the `onload` event fires.
+Обратите внимание, что злоумышленник в данном случае не заботится о чтении текста ответа, даже если он не смог бы этого сделать из-за надежных механизмов изоляции в браузерах, таких как [Cross-Origin Resource Blocking](https://www.chromium.org/Home/chromium-security/corb-for-developers). Все, что ему нужно - это информация об успешном завершении, которую он получает, когда срабатывает событие `onload`.
 
-### Defense
+### Защита
 
-#### SubResource protection
+#### Защита субресурсов
 
-In some cases, mechanism of special unique tokens may be implemented to protect our sensitive endpoints.
+В некоторых случаях для защиты наших конфиденциальных конечных точек может быть реализован механизм специальных уникальных токенов.
 
 ```
 /api/users/1234?token=be930b8cfb5011eb9a030242ac130003
 ```
 
-- Token should be long and unique
-- The back-end must correctly validate the token passed in the request
+- Токен должен быть длинным и уникальным
+- Серверная часть должна правильно подтвердить токен, переданный в запросе
 
-Although it is pretty effective, the solution generates a significant overhead in proper implementation.
+Несмотря на то, что это довольно эффективное решение, при его правильной реализации возникают значительные накладные расходы.
 
-#### Fetch metadata (Sec-Fetch-Site)
+#### Извлечение метаданных (Sec-Fetch-Site)
 
-This header specifies where the request was sent from, and it takes the following values:
+Этот заголовок указывает, откуда был отправлен запрос, и принимает следующие значения:
 
 - `cross-site`
 - `same-origin`
 - `same-site`
-- `none` - user directly reached the page
+- `none` - пользователь напрямую перешел на страницу
 
-Like Sec-Fetch-Dest, this header is automatically appended by the browser to each request and is part of the Fetch Metadata standard. Example usage:
+Как и Sec-Fetch-Dest, этот заголовок автоматически добавляется браузером к каждому запросу и является частью стандарта Fetch Metadata. Пример использования:
 
 ```javascript
 app.get('/api/users/:id', authorization, (req, res) => {
@@ -186,19 +186,19 @@ app.get('/api/users/:id', authorization, (req, res) => {
 });
 ```
 
-#### Cross-Origin-Resource-Policy (CORP)
+#### Cross-Origin-Resource-Policy (CORP) Политика в отношении перекрестного происхождения ресурсов
 
-If the server returns this header with the appropriate value, the browser will not load resources from our site or origin (even static images) in another application. Possible values:
+Если сервер вернет этот заголовок с соответствующим значением, браузер не будет загружать ресурсы с нашего сайта или источника (даже статические изображения) в другое приложение. Возможные значения:
 
 - `same-site`
 - `same-origin`
 - `cross-origin`
 
-Read more about CORP [here](https://resourcepolicy.fyi/).
+Узнайте больше о CORP [здесь](https://resourcepolicy.fyi/).
 
-## Attacks on postMessage communication
+## Атаки на почтовые сообщения
 
-Sometimes in controlled situations we would like, despite SOP, to exchange information between different origins. We can use the postMessage mechanism. See below example:
+Иногда в контролируемых ситуациях нам хотелось бы, несмотря на SOP, обмениваться информацией между разными источниками. Мы можем использовать механизм почтовых сообщений. Смотрите пример ниже:
 
 ```javascript
 // Origin: http://example.com
@@ -212,11 +212,11 @@ window.addEventListener('message', e => {
 });
 ```
 
-### Defense
+### Защита
 
-#### Specify strict targetOrigin
+#### Укажите строгий целевой параметр Origin
 
-To avoid situations like the one above, where an attacker manages to get the reference for a window to receive a message, always specify the exact `targetOrigin` in postMessage. Passing to the `targetOrigin` wildcard `*` causes any origin to receive the message.
+Чтобы избежать ситуаций, подобных описанной выше, когда злоумышленнику удается получить ссылку на окно для получения сообщения, всегда указывайте точный `targetOrigin` в postMessage. Переход к подстановочному знаку `targetOrigin` `*` приводит к тому, что сообщение получает любой источник.
 
 ```javascript
 // Origin: http://example.com
@@ -230,42 +230,42 @@ window.addEventListener('message', e => {
 });
 ```
 
-## Frame counting attacks
+## Атаки с подсчетом кадров
 
-Information about the number of loaded frames in a window can be a source of leakage. Take for example an application that loads search results into a frame, if the results are empty then the frame does not appear.
+Информация о количестве загруженных кадров в окне может быть источником утечки. Возьмем, к примеру, приложение, которое загружает результаты поиска во фрейм, если результаты пустые, то фрейм не отображается.
 
 ![XS-Leaks-Frame-Counting](../assets/XS_Leaks_Frame_Counting.png)
 
-An attacker can get information about the number of loaded frames in a window by counting the number of frames in a `window.frames` object.
+Злоумышленник может получить информацию о количестве загруженных кадров в окне, подсчитав количество кадров в объекте `window.frames`.
 
-So finally, an attacker can obtain the email list and, in a simple loop, open subsequent windows and count the number of frames. If the number of frames in the opened window is equal to 1, the email is in the client's database of the application used by the victim.
+Таким образом, злоумышленник может получить список адресов электронной почты и, используя простой цикл, открывать последующие окна и подсчитывать количество кадров. Если количество кадров в открывшемся окне равно 1, электронное письмо находится в клиентской базе данных приложения, используемого жертвой.
 
-### Defense
+### Защита
 
-#### Cross-Origin-Opener-Policy (COOP)
+#### Cross-Origin-Opener-Policy (COOP) Политика перекрестного доступа
 
-Setting this header will prevent cross-origin documents from opening in the same browsing context group. This solution ensures that document A opening another document will not have access to the `window` object. Possible values:
+Установка этого заголовка предотвратит открытие документов из разных источников в одной и той же группе контекстов просмотра. Это решение гарантирует, что документ А, открывающий другой документ, не будет иметь доступа к объекту `window`. Возможные значения:
 
 - `unsafe-none`
 - `same-origin-allow-popups`
 - `same-origin`
 
-In case the server returns for example `same-origin` COOP header, the attack fails:
+В случае, если сервер возвращает, например, COOP заголовок `same-origin` атака завершается неудачей:
 
 ```javascript
 const win = window.open('https://example.com/admin/customers?search=john%40example.com');
 console.log(win.frames.length) // Cannot read property 'length' of null
 ```
 
-## Attacks using browser cache
+## Атаки с использованием кэша браузера
 
-Browser cache helps to significantly reduce the time it takes for a page to load when revisited. However, it can also pose a risk of information leakage. If an attacker is able to detect whether a resource was loaded from the cache after the load time, he will be able to draw some conclusions based on it.
+Кэш браузера помогает значительно сократить время, необходимое для загрузки страницы при повторном просмотре. Однако он также может создавать риск утечки информации. Если злоумышленник сможет определить, был ли ресурс загружен из кэша по истечении времени загрузки, он сможет сделать на его основе некоторые выводы.
 
-The principle is simple, a resource loaded from cache memory will load incomparably faster than from the server.
+Принцип прост, ресурс, загруженный из кэш-памяти, будет загружаться несравнимо быстрее, чем с сервера.
 
-![XS Leaks Cache Attack](../assets/XS_Leaks_Cache_Attack.png)
+![Атака на утечку кэша XS](../assets/XS_Leaks_Cache_Attack.png)
 
-An attacker can embed a resource on their site that is only accessible to a user with the admin role. Then, using JavaScript, read the load time of a particular resource and, based on this information, deduce whether the resource is in cache or not.
+Злоумышленник может внедрить на свой сайт ресурс, доступный только пользователю с ролью администратора. Затем, используя JavaScript, считывает время загрузки определенного ресурса и, основываясь на этой информации, определяет, находится ли ресурс в кэше или нет.
 
 ```javascript
     // Threshold above which we consider a resource to have loaded from the server
@@ -280,53 +280,53 @@ An attacker can embed a resource on their site that is only accessible to a user
     }
 ```
 
-### Defense
+### Защита
 
-#### Unpredictable tokens for images
+#### Непредсказуемые токены для изображений
 
-This technique is accurate when the user wants the resources to still be cached, while an attacker will not be able to find out about it.
+Этот метод эффективен, когда пользователь хочет, чтобы ресурсы по-прежнему оставались в кэше, в то время как злоумышленник не сможет узнать об этом.
 
 ```
 /avatars/admin.svg?token=be930b8cfb5011eb9a030242ac130003
 ```
 
-- Tokens should be unique in context of each user
-- If an attacker cannot guess this token, it will not be able to detect whether the resource was loaded from cache
+- Токены должны быть уникальными в контексте каждого пользователя
+- Если злоумышленник не сможет угадать этот токен, он не сможет определить, был ли ресурс загружен из кэша
 
-#### Using the Cache-Control header
+#### Использование заголовка Cache-Control 
 
-You can disable the cache mechanism if you accept the degraded performance related to the necessity of reloading resources from the server every time a user visits the site. To disable caching for resources you want to protect, set the response header `Cache-Control: no-store`.
+Вы можете отключить механизм кэширования, если согласны с ухудшением производительности, связанным с необходимостью перезагрузки ресурсов с сервера при каждом посещении сайта пользователем. Чтобы отключить кэширование ресурсов, которые вы хотите защитить, задайте заголовок ответа `Cache-Control: no-store`.
 
-## Quick recommendations
+## Краткие рекомендации
 
-- If your application uses cookies, make sure to set the appropriate [SameSite attribute](#samesite-cookies).
-- Think about whether you really want to allow your application to be embedded in frames. If not, consider using the mechanisms described in the [framing protection](#framing-protection) section.
-- To strengthen the isolation of your application between other origins, use [Cross Origin Resource Policy](#cross-origin-resource-policy-corp) and [Cross Origin Opener Policy](#cross-origin-opener-policy-coop) headers with appropriate values.
-- Use the headers available within Fetch Metadata to build your own resource isolation policy.
+- Если ваше приложение использует файлы cookie, обязательно установите соответствующий [атрибут SameSite](#samesite-cookies).
+- Подумайте, действительно ли вы хотите, чтобы ваше приложение было встроено во фреймы. Если нет, рассмотрите возможность использования механизмов, описанных в разделе [защита от фрейминга] (#framing-protection).
+- Чтобы усилить изоляцию вашего приложения от других источников, используйте заголовки [Политика использования ресурсов разных источников] (#cross-origin-resource-policy-corp) и [Политика использования ресурсов разных источников] (#cross-origin-opener-policy-coop) с соответствующими значениями.
+- Используйте заголовки, доступные в метаданных Fetch, чтобы создать свою собственную политику изоляции ресурсов.
 
-## References
+## Рекомендации
 
-### XS Leaks
+### Утечки XS
 
 - [XS Leaks Wiki](https://xsleaks.dev/)
 - [XS Leaks Attacks & Prevention](https://www.appsecmonkey.com/blog/xs-leaks)
 
-### Fetch Metadata
+### Извлечение метаданных
 
-- [Fetch Metadata and Isolation Policies](https://www.appsecmonkey.com/blog/fetch-metadata)
-- [Protect your resources from attacks with Fetch Metadata](https://web.dev/fetch-metadata/)
+- [Извлечение метаданных и политики изоляции](https://www.appsecmonkey.com/blog/fetch-metadata)
+- [Защитите свои ресурсы от атак с помощью извлечения метаданных](https://web.dev/fetch-metadata/)
 
-### Framing protection
+### Защита кадра
 
-- [Preventing framing with policies](https://pragmaticwebsecurity.com/articles/securitypolicies/preventing-framing-with-policies.html)
-- [CSP 'frame-ancestors' policy](https://content-security-policy.com/frame-ancestors/)
+- [Предотвращение формирования структуры с помощью политик](https://pragmaticwebsecurity.com/articles/securitypolicies/preventing-framing-with-policies.html)
+- [Политика CSP "фрейм-предки"](https://content-security-policy.com/frame-ancestors/)
 
 ### SameSite
 
-- [SameSite cookies explained](https://web.dev/samesite-cookies-explained/)
-- [SameSite cookies recipes](https://web.dev/samesite-cookie-recipes/)
+- [Объясненные SamaSite cookie](https://web.dev/samesite-cookies-explained/)
+- [Словарь SameSite cookies recipes](https://web.dev/samesite-cookie-recipes/)
 
-### COOP and CORP header
+### Заголовки COOP и CORP 
 
-- [Making your site "cross-origin isolated"](https://web.dev/coop-coep/)
-- [MDN Web Docs about CORP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cross-Origin_Resource_Policy_%28CORP%29)
+- [Сделать ваш сайт "изолированным от других источников"](https://web.dev/coop-coep/)
+- [Веб-документы MDN о CORP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cross-Origin_Resource_Policy_%28CORP%29)
