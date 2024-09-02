@@ -97,10 +97,10 @@
 
 Убедитесь, что вы проверяете входные данные и рассматриваете их так, как если бы они находились под контролем пользователя (потому что так оно и есть!).
 
-#### Avoid building XML or JSON by hand, use the framework
+#### Избегайте ручного построения XML или JSON, используйте фреймворк
 
-Use the framework and be safe, do it by hand and have security issues.
+Используйте фреймворк, и будьте в безопасности. Ручное построение приведёт к проблемам с безопасностью.
 
-#### Use JSON And XML Schema for Webservices
+#### Используйте схемы JSON и XML для веб-сервисов
 
-You need to use a third-party library to validate web services.
+Необходимо использовать стороннюю библиотеку для валидации веб-сервисов.
