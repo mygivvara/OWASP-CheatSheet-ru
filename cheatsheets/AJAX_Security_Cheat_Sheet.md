@@ -1,103 +1,101 @@
-# AJAX Security Cheat Sheet123
+# Шпаргалка по безопасности AJAX
 
-## Introduction
+## Введение
 
-This document will provide a starting point for AJAX security and will hopefully be updated and expanded reasonably often to provide more detailed information about specific frameworks and technologies.
+Данный документ поставит стартовую точку в безопасности AJAX и, мы надеемся, будет обновляться и расширяться достаточно часто, для предоставления более подробной информации о некоторых фреймворках и технологиях.
 
-### Client Side (JavaScript)
+### Клиентская сторона (JavaScript)
 
-#### Use `.innerText` instead of `.innerHTML`
+#### Используйте `.innerText` вместо `.innerHTML`
 
-The use of `.innerText` will prevent most XSS problems as it will automatically encode the text.
+Использование `.innerText` предотвратит большинство проблем связанных с XSS, поскольку оно будет кодировать текст автоматически.
 
-#### Don't use `eval()`, `new Function()` or other code evaluation tools
+#### Не используйте `eval()`, `new Function()` и другие инструменты оценки кода
 
-`eval()` function is evil, never use it. Needing to use eval usually indicates a problem in your design.
+`eval()` является вредной функцией, никогда её не используйте. Необходимость её использования зачастую показывает проблемы в дизайне приложения.
 
-#### Canonicalize data to consumer (read: encode before use)
+#### Канонизируйте данные отправляемые потребителю (кодируйте перед использованием)
 
-When using data to build HTML, script, CSS, XML, JSON, etc. make sure you take into account how that data must be presented in a literal sense to keep its logical meaning.
+Когда вы используете данные для сборки HTML, скриптов, CSS, XML, JSON, и т.д. убедитесь что вы принимаете во внимание, что эти данные должны быть представленные в буквальном смысле, чтобы сохранить её логическое значение.
 
-Data should be properly encoded before used in this manner to prevent injection style issues, and to make sure the logical meaning is preserved.
+Данные должны быть закодированы перед использованием, для предотвращения проблем с разного рода инъекциями, и чтобы удостовериться в том, что логический смысл сохранён.
 
-[Check out the OWASP Java Encoder Project.](https://owasp.org/www-project-java-encoder/)
+[Ознакомьтесь с проектом Java кодировщика OWASP.](https://owasp.org/www-project-java-encoder/)
 
-#### Don't rely on client logic for security
+#### Не полагайтесь на клиентскую логику в вопросах безопасности
 
-Don't forget that the user controls the client-side logic. A number of browser plugins are available to set breakpoints, skip code, change values, etc. Never rely on client logic for security.
+Не забывайте, что пользователь управляет логикой клиентской стороны. Существуют различные плагины для браузера, с помощью которых можно устанавливать точки остановки, пропускать код, изменять значения и т. д. Никогда не полагайтесь на клиентскую логику в вопросах безопасности.
 
-#### Don't rely on client business logic
+#### Никогда не полагайтесь на клиентскую бизнес-логику
 
-Just like the security one, make sure any interesting business rules/logic is duplicated on the server side lest a user bypasses needed logic and does something silly, or worse, costly.
+Так же как и в вопросах безопасности, убедитесь, что все важные бизнес-правила и логика дублируются на серверной стороне, чтобы пользователь не смог обойти необходимую логику и не сделать чего-то глупого или, что хуже, дорогостоящего.
 
-#### Avoid writing serialization code
+#### Избегайте написания кода сериализации.
 
-This is hard and even a small mistake can cause large security issues. There are already a lot of frameworks to provide this functionality.
+Это сложно, и даже небольшая ошибка может привести к серьёзным проблемам с безопасностью. Уже существует множество фреймворков, предоставляющих эту функциональность.
 
-Take a look at the [JSON page](http://www.json.org/) for links.
+Обратитесь к [странице JSON](http://www.json.org/) для ссылок.
 
-#### Avoid building XML or JSON dynamically
+#### Избегайте динамического построения XML или JSON
 
-Just like building HTML or SQL you will cause XML injection bugs, so stay away from this or at least use an encoding library or safe JSON or XML library to make attributes and element data safe.
+Так же как при построении HTML или SQL, это может привести к уязвимостям, связанным с внедрением XML. Поэтому лучше воздержитесь от этого или, по крайней мере, используйте библиотеку кодирования или безопасную библиотеку JSON или XML, чтобы обеспечить безопасность атрибутов и данных элементов.
 
-- [XSS (Cross Site Scripting) Prevention](Cross_Site_Scripting_Prevention_Cheat_Sheet.md)
-- [SQL Injection Prevention](SQL_Injection_Prevention_Cheat_Sheet.md)
+- [Предотвращение XSS (Cross Site Scripting)](Cross_Site_Scripting_Prevention_Cheat_Sheet.md)
+- [Предотвращение SQL инъекций](SQL_Injection_Prevention_Cheat_Sheet.md)
 
-#### Never transmit secrets to the client
+#### Никогда не передавайте секреты клиенту
 
-Anything the client knows the user will also know, so keep all that secret stuff on the server please.
+Всё что знает клиент, будет знать и пользователь. Так что пожалуйста, держите секреты на сервере.
 
-#### Don't perform encryption in client side code
+#### Не проводите шифрование на стороне клиента
 
-Use TLS/SSL and encrypt on the server!
+Используйте TLS/SSL и шифруйте данные на сервере!
 
-#### Don't perform security impacting logic on client side
+#### Не выполняйте влияющую на безопасность логику на стороне клиента
 
-This is the overall one that gets me out of trouble in case I missed something :)
+Это общее правило, которое выручает меня, если я что-то упустил. :)
 
-### Server Side
+### Серверная сторона
 
-#### Use CSRF Protection
+#### Используйте защиту от CSRF
 
-Take a look at the [Cross-Site Request Forgery (CSRF) Prevention](Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md) cheat sheet.
+Ознакомьтесь со шпаргалкой [Предотвращение Cross-Site Request Forgery (CSRF)](Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md).
 
-#### Protect against JSON Hijacking for Older Browsers
+#### Защищайте от перехвата JSON для старых браузеров
+##### Ознакомьтесь с механизмом защиты от перехвата JSON в AngularJS
 
-##### Review AngularJS JSON Hijacking Defense Mechanism
+Ссылка на требуемую секцию документации AngularJS [JSON Vulnerability Protection](https://docs.angularjs.org/api/ng/service/$http#json-vulnerability-protection).
 
-See the [JSON Vulnerability Protection](https://docs.angularjs.org/api/ng/service/$http#json-vulnerability-protection) section of the AngularJS documentation.
+##### Всегда возвращайте JSON с объектом снаружи
 
-##### Always return JSON with an Object on the outside
+Всегда используйте объект в качестве внешнего примитива для JSON-строк:
 
-Always have the outside primitive be an object for JSON strings:
-
-**Exploitable:**
+**Уязвимо:**
 
 ```json
 [{"object": "inside an array"}]
 ```
 
-**Not exploitable:**
+**Не уязвимо:**
 
 ```json
 {"object": "not inside an array"}
 ```
 
-**Also not exploitable:**
+**Также не уязвимо:**
 
 ```json
 {"result": [{"object": "inside an array"}]}
 ```
 
-#### Avoid writing serialization code Server Side
+#### Избегайте написания кода сериализации на стороне сервера
 
-Remember ref vs. value types! Look for an existing library that has been reviewed.
+Помните о ссылочных и значимых типах! Ищите существующую библиотеку, которая была проверена.
 
-#### Services can be called by users directly
+Сервисы могут вызываться пользователями напрямую
+Даже если вы ожидаете, что только клиентский AJAX-код будет вызывать эти сервисы, пользователи тоже могут это делать.
 
-Even though you only expect your AJAX client side code to call those services the users can too.
-
-Make sure you validate inputs and treat them like they are under user control (because they are!).
+Убедитесь, что вы проверяете входные данные и рассматриваете их так, как если бы они находились под контролем пользователя (потому что так оно и есть!).
 
 #### Avoid building XML or JSON by hand, use the framework
 
