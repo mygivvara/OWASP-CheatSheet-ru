@@ -1,72 +1,65 @@
-# Abuse Case Cheat Sheet
+# Шпаргалка по злоупотреблению
 
-## Introduction
+## Введение
 
-Often when the security level of an application is mentioned in requirements, the following *expressions* are met:
+Часто, при указании уровня безопасности приложения, в требованиях можно встретить следующие пункты:
 
-- *The application must be secure*.
-- *The application must defend against all attacks targeting this category of application*.
-- *The application must defend against attacks from the OWASP TOP 10*
+- *Приложение должно быть безопасным*.
+- *Приложение должно быть защищено от всех атак, нацеленных на эту категорию приложений*.
+- *Приложение должно быть защищено от атак из списка OWASP TOP 10*.
 - ...
 
-These security requirements are too generic, and thus useless for a development team...
+Эти требования слишком общие, и, следовательно, бесполезны для команды разработки.
 
-In order to build a secure application, from a pragmatic point of view, it is important to identify the attacks which the application must defend against, according to its business and technical context.
+Чтобы создать безопасное приложение с практической точки зрения, важно идентфицировать атаки, от которых приложение должно защищаться, в зависимости от его бизнес- и технического контекста.
 
-### Objective
+### Цель
 
-The objective of this cheat sheet is to provide an explanation of what an **Abuse Case** is, why abuse cases are important when considering the security of an application, and finally to provide a proposal for a pragmatic approach to building  a list of abuse cases and tracking them for every feature planned for implementation as part of an application. The cheat sheet may be used for this purpose regardless of the project methodology used (waterfall or agile).
+Цель этой шпаргалки - предоставить объяснение того, что такое **Злоупотребление**, почему злоупотребления важны при рассмотрении безопасности приложения, и, наконец, предложить прагматический подход к созданию списка злоупотреблений и отслеживанию их для каждой функции, планируемой для реализации в приложении. Данную шпаргалку можно использовать для этой цели независимо от используемой методики проекта (водопад или гибкая).
 
-**Important note about this Cheat Sheet:**
-
-```text
-The main objective is to provide a pragmatic approach in order to allow a company or a project team
-to start building and handling the list of abuse cases and then customize the elements
-proposed to its context/culture in order to, finally, build its own method.
-
-This cheat sheet can be seen as a getting-started tutorial.
-```
-
-### Context & approach
-
-#### Why clearly identify the attacks
-
-Clearly identifying the attacks against which the application must defend is essential in order to enable the following steps in a project or sprint:
-
-- Evaluate the business risk for each of the identified attacks in order to perform a selection according to the business risk and the project/sprint budget.
-- Derive security requirements and add them into the project specification or sprint's user stories and acceptance criteria.
-- Estimate the overhead of provision in the initial project/sprint charge that will be necessary to implement the countermeasures.
-- About countermeasures: Allow the project team to define them, and to determine in which location they are appropriate (network, infrastructure, code...) to be located.
-
-#### Notion of Abuse Case
-
-In order to help build the list of attacks, the notion of **Abuse Cases** is helpful.
-
-An **Abuse Case** can be defined as:
+**Важное примечание:**
 
 ```text
-A way to use a feature that was not expected by the implementer,
-allowing an attacker to influence the feature or outcome of use of
-the feature based on the attacker action (or input).
+Основная цель этой шпаргалки - предоставить прагматический подход, чтобы позволить компании или команде проекта начать создавать и обрабатывать список злоупотреблений, а затем адаптировать предложенные элементы к своему контексту/культуре с целью создания собственной методики.
+
+Эту шпаргалку можно рассматривать как руководство по началу работы.
 ```
 
-Synopsis defines an **Abuse Case** like this:
+### Контекст и подход
+
+#### Почему важно чётко идентифицировать атаки
+
+Чёткая идентификация атак, отк которых приложение должно защищаться, является важной составляющей для выполнения следующих шагов в проекте или спринте:
+
+- Оценить бизнес-риски для каждой из идентифицированных атак, чтобы выполнить отбор в зависимости от бизнес-риска и бюджета проекта/спринта.
+- Вывести требования безопасности и добавить их в спецификацию проекта или пользовательские истории и критерии приёмки спринта.
+- Оценить дополнительные затраты на первоначальном этапе проекта/спринта, которые будут необходимы для реализации контрмер.
+- Что касается контрмер: позволить команде проекта определить их и установить, в каком месте они должны быть расположены (сеть, инфраструктура, код и т.д.).
+
+#### Понятие злоупотребления
+
+Чтобы помочь в создании списк атак, полезна концепция **Злоупотреблений**.
+
+**Злоупотребление** можно определить как:
 
 ```text
-Misuse and abuse cases describe how users misuse or exploit the weaknesses
-of controls in software features to attack an application.
-
-This can lead to tangible business impact when a direct attack against
-business functionalities, which may bring in revenue or provide
-positive user experience, are attacked.
-
-Abuse cases can also be an effective way to drive security requirements
-that lead to proper protection of these critical business use cases.
+Способ использования функции, который не был ожидаем разработчиком, что позволяет злоумышленнику влиять на функциональность или результат использования функции на основе действий (или ввода) злоумышленника.
 ```
 
-[Synopsis source](https://www.synopsys.com/blogs/software-security/abuse-cases-can-drive-security-requirements.html)
+Synopsys определяют **Злоупотребление** следующим образом:
 
-#### How to define the list of Abuse Cases
+```text
+Злоупотребления и случаи неправильного использования описывают, как пользователи злоупотребляют
+или эксплуатируют слабости в контролях программных функций для атаки на приложение.
+
+Это может привести к реальному бизнес-импакту, когда напрямую атакуются бизнес-функциональности, что может привести к потерям или негативному пользовательскому опыту.
+
+Случаи злоупотребления также могут быть эффективным способом формирования требований безопасности, которые приведут к надлежащей защите этих критически важных бизнес-кейсов.
+```
+
+[Источник Synopsys](https://www.synopsys.com/blogs/software-security/abuse-cases-can-drive-security-requirements.html)
+
+#### Как определить список злоупотреблений
 
 There are many different ways to define the list of abuse cases for a feature (that can be mapped to a user story in agile projects).
 
