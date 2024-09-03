@@ -131,308 +131,308 @@ Synopsys определяют **Злоупотребление** следующ�
 
 Лист *ФУНКЦИИ*:
 
-| Идентификатор функции | Имя функции |           Краткое описание функции           |
-|:-----------------:|:---------------------:|:---------------------------------------------:|
-| FEATURE_001       | DocumentUploadFeature | Позволяет пользователю загрузить документ вместе с сообщением |
+| Идентификатор функции |      Имя функции      |                    Краткое описание функции                   |
+|:---------------------:|:---------------------:|:-------------------------------------------------------------:|
+| FEATURE_001           | DocumentUploadFeature | Позволяет пользователю загрузить документ вместе с сообщением |
 
-*COUNTERMEASURES* sheet:
+Лист *КОНТРМЕРЫ*:
 
-| Countermeasure unique ID | Countermeasure short description                       | Countermeasure help/hint                                |
-|--------------------------|--------------------------------------------------------|---------------------------------------------------------|
-| DEFENSE_001              | Validate the uploaded file by loading it into a parser | Use advice from the OWASP Cheat Sheet about file upload |
+| Идентификатор контрмеры  | Краткое описание контрмеры                             | Подсказка к контрмере                                       |
+|--------------------------|--------------------------------------------------------|-------------------------------------------------------------|
+| DEFENSE_001              | Валидируйте загруженный файл загрузив его в парсер     | Используйте советы из OWASP Cheat Sheet про загрузку файлов |
 
-*ABUSE CASES* sheet:
+Лист *СЛУЧАИ ЗЛОУПОТРЕБЛЕНИЯ*:
 
-| Abuse case unique ID | Feature ID impacted |                     Abuse case's attack description                     | Attack referential ID (if applicable) | CVSS V3 risk rating (score) |                CVSS V3 string                | Kind of abuse case | Countermeasure ID applicable | Handling decision (To Address or Risk Accepted) |
+| Идентификатор случая злоупотребления | Идентификатор функции, на которую оказано воздействие |                     Описание атаки злоупотреблением                     | Идентификатор атаки (если применимо) | Оценка по CVSS V3 |                CVSS V3 string                | Вид злоупотребления | Применимая контрмера | Решение о действии (устранить или принять риск) |
 |:--------------------:|:-------------------:|:-----------------------------------------------------------------------:|:-------------------------------------:|:---------------------------:|:--------------------------------------------:|:------------------:|:----------------------------:|:-----------------------------------------------:|
-| ABUSE_CASE_001       | FEATURE_001         | Upload Office file with malicious macro in charge of dropping a malware | CAPEC-17                              | HIGH (7.7)                  | CVSS:3.0/AV:N/AC:H/PR:L/UI:R/S:C/C:N/I:H/A:H | Technical          | DEFENSE_001                  | To Address                                      |
+| ABUSE_CASE_001       | FEATURE_001         | Загрузка файла Office с вредоносным макросом, который загружает вредоносное ПО | CAPEC-17                              | HIGH (7.7)                  | CVSS:3.0/AV:N/AC:H/PR:L/UI:R/S:C/C:N/I:H/A:H | Technical          | DEFENSE_001                  | Устранить                                      |
 
-#### Step 2: During the workshop
+#### Шаг 2: Во время воркшопа
 
-Use the spreadsheet to review all the features.
+Используйте электронную таблицу для обзора всех функций.
 
-For each feature, follow this flow:
+Для каждой функции следуйте следующему алгоритму:
 
-1. Key business people explain the current feature from a business point of view.
-2. Penetration testers propose and explain a set of attacks that they can perform against the feature.
-3. For each attack proposed:
-    1. Appsec proposes a countermeasure and a preferred set up location (infrastructure, network, code, design...).
-    2. Technical people give feedback about the feasibility of the proposed countermeasure.
-    3. Penetration testers use the CVSS v3 (or other standard) calculator to determine a risk rating. (ex: [CVSS V3 calculator](https://www.first.org/cvss/calculator/3.0))
-    4. Risk leaders should accept or modify the risk rating to determine the final risk score which accurately reflects the real business impact for the company.
+1. Ключевые бизнес-сотрудники объясняют текущую функцию с точки зрения бизнеса.
+2. Пентестеры предлагают и объясняют набор атак, которые они могут выполнить против данной функции.
+3. Для каждой предложенной атаки:
+    1. Специалисты по безопасности приложений (AppSec) предлагают контрмеру и предпочтительное место ее реализации (инфраструктура, сеть, код, дизайн и т.д.).
+    2. Технические специалисты дают отзыв о возможности реализации предложенной контрмеры.
+    3. Пентестеры используют калькулятор CVSS v3 (или другой стандарт) для определения уровня риска. (например: [CVSS V3 калькулятор](https://www.first.org/cvss/calculator/3.0))
+    4. Лидеры по управлению рисками должны принять или изменить рейтинг риска, чтобы определить окончательный балл риска, который точно отражает реальное влияние на бизнес компании.
 
-4. Business, Risk, and Technical leaders should find a consensus and filter the list of abuses for the current feature to keep the ones that must be addressed, and then flag them accordingly in the *ABUSE CASES* sheet (**if risk is accepted then add a comment to explain why**).
-5. Pass to next feature...
+4. Бизнес-лидеры, лидеры по управлению рисками и технические лидеры должны прийти к консенсусу и отфильтровать список злоупотреблений для текущей функции, оставив только те, которые необходимо устранить, и отметить их соответствующим образом в листе *СЛУЧАИ ЗЛОУПОТРЕБЛЕНИЯ* (**если риск принимается, добавьте комментарий, объясняющий причину**).
+5. Перейти к следующей функции...
 
-If the presence of penetration testers is not possible then you can use the following references to identify the applicable attacks on your features:
+Если присутствие пентестеров невозможно, можно использовать следующие ресурсы для идентификации применимых атак на ваши функции:
 
-- [OWASP Automated Threats to Web Applications](https://owasp.org/www-project-automated-threats-to-web-applications/)
-- [OWASP Testing Guide](https://owasp.org/www-project-web-security-testing-guide/stable/)
-- [OWASP Mobile Testing Guide](https://github.com/OWASP/owasp-mstg)
-- [Common Attack Pattern Enumeration and Classification (CAPEC)](https://capec.mitre.org/)
+- [Автоматизированные угрозы для веб-приложений OWASP](https://owasp.org/www-project-automated-threats-to-web-applications/)
+- [Руководство по тестированию OWASP](https://owasp.org/www-project-web-security-testing-guide/stable/)
+- [Руководство по тестированию мобильных приложений OWASP](https://github.com/OWASP/owasp-mstg)
+- [Общая классификация и нумерация шаблонов атак (CAPEC)](https://capec.mitre.org/)
 
 Important note on attacks and countermeasure knowledge base(s):
 
 ```text
-With time and experience across projects, you will obtain your own dictionary of attacks and countermeasures
-that are applicable to the kind of application in your business domain.
+Со временем и с опытом, накопленным в различных проектах, вы создадите собственный словарь атак и контрмер,
+которые применимы к приложениям в вашей бизнес-области.
 
-This dictionary will speed up the future workshops in a significant way.
+Этот словарь значительно ускорит проведение будущих воркшопов.
 
-To promote the creation of this dictionary, you can, at the end of the project/sprint, gather the list
-of attacks and countermeasures identified in a central location (wiki, database, file...) that will be
-used during the next workshop in combination with input from penetration testers.
+Для содействия созданию этого словаря, вы можете в конце проекта/спринта собрать список атак и контрмер 
+в центральном месте (вики, база данных, файл...), который будет использоваться во время следующего воркшопа
+в сочетании с данными от пентестеров.
 ```
 
-#### Step 3: After the workshop
+#### Шаг 3: После воркшопа
 
-The spreadsheet contains (at this stage) the list of all abuse cases that must be handled and, potentially (depending on the capacity) corresponding countermeasures.
+На данном этапе в таблице содержится список всех случаев злоупотреблений, которые необходимо учесть, а также, возможно (в зависимости от возможностей), соответствующие контрмеры.
 
-Now, there are two remaining task:
+Теперь остаются две задачи:
 
-1. Key business people must update the specification of each feature (waterfall) or the User Story of each feature (agile) to include the associated abuse cases as Security Requirements (waterfall) or Acceptance Criteria (agile).
-2. Key technical people must evaluate the overhead in terms of expense/effort to take into account the countermeasure.
+1. Ключевые бизнес-специалисты должны обновить спецификацию каждой функции (Waterfall) или User Story каждой функции (Agile), чтобы включить связанные случаи злоупотреблений в качестве Требований к безопасности (Waterfall) или Критериев приемки (Agile).
+2. Ключевые технические специалисты должны оценить затраты и усилия, необходимые для учета контрмер.
 
-#### Step 4: During implementation - Abuse cases handling tracking
+#### Шаг 4: В процессе реализации - Отслеживание обработки случаев злоупотреблений
 
-In order to track the handling of all the abuse cases, the following approach can be used:
+Для отслеживания обработки всех случаев злоупотреблений можно использовать следующий подход:
 
-If one or several abuse cases are handled at:
+Если один или несколько случаев злоупотреблений обрабатываются на уровне:
 
-- **Design, Infrastructure or Network level**
-    - Make a note in the documentation or schema to indicate that *This design/network/infrastructure takes into account the abuse cases ABUSE_CASE_001, ABUSE_CASE_002, ABUSE_CASE_xxx*.
-- **Code level**
-    - Put a special comment in the classes/scripts/modules to indicate that *This class/module/script takes into account the abuse cases ABUSE_CASE_001, ABUSE_CASE_002, ABUSE_CASE_xxx*.
-    - Dedicated annotation like `@AbuseCase(ids={"ABUSE_CASE_001","ABUSE_CASE_002"})` can be used to facilitate tracking and allow identification into integrated development environment.
+- **Проектирования, инфраструктуры или сети**
+    - Сделайте пометку в документации или схеме, указывающую, что *Этот проект/сеть/инфраструктура учитывает случаи злоупотреблений ABUSE_CASE_001, ABUSE_CASE_002, ABUSE_CASE_xxx*.
+- **Кода**
+    - Разместите специальный комментарий в классах/скриптах/модулях, указывающий, что *Этот класс/модуль/скрипт учитывает случаи злоупотреблений ABUSE_CASE_001, ABUSE_CASE_002, ABUSE_CASE_xxx*.
+    - Можно использовать специальную аннотацию, такую как `@AbuseCase(ids={"ABUSE_CASE_001","ABUSE_CASE_002"})`, чтобы облегчить отслеживание и идентификацию в интегрированной среде разработки.
 
-Using this way, it becomes possible (via some minor scripting) to identify where abuse cases are addressed.
+Такой подход позволяет (с помощью небольшого скриптинга) определить, где именно обрабатываются случаи злоупотреблений.
 
-#### Step 5: During implementation - Abuse cases handling validation
+#### Шаг 5: В процессе реализации - Проверка обработки случаев злоупотреблений
 
-As abuse cases are defined, it is possible to put in place automated or manual validations to ensure that:
+Поскольку случаи злоупотреблений определены, можно установить автоматизированные или ручные проверки для обеспечения того, чтобы:
 
-- All the selected abuse cases are handled.
-- An abuse case is correctly/completely handled.
+- Все выбранные случаи злоупотреблений были обработаны.
+- Случай злоупотребления был корректно/полностью обработан.
 
-Validations can be of the following varieties:
+Проверки могут быть следующими:
 
-- Automated (run regularly at commit, daily or weekly in the Continuous Integration Jobs of the project):
-    - Custom audit rules in Static Application Security Testing (SAST) or Dynamic Application Security Testing (DAST) tools.
-    - Dedicated unit, integration or functional security oriented tests.
+- Автоматизированные (выполняемые регулярно при коммите, ежедневно или еженедельно в заданиях непрерывной интеграции проекта):
+    - Пользовательские правила аудита в инструментах статического анализа безопасности приложений (SAST) или динамического анализа безопасности приложений (DAST).
+    - Специальные модульные, интеграционные или функциональные тесты, ориентированные на безопасность.
     - ...
-- Manual:
-    - Security code review between project's peers during the design or implementation.
-    - Provide the list of all abuse cases addressed to pentesters so that they may validate the protection efficiency for each abuse case during an intrusion test against the application (the pentester will validate that the attacks identified are no longer effective and will also try to find other possible attacks).
+- Ручные:
+    - Ревизия кода на безопасность между коллегами проекта в процессе проектирования или реализации.
+    - Предоставление списка всех обработанных случаев злоупотреблений пентестерам, чтобы они могли оценить эффективность защиты для каждого случая злоупотребления во время тестирования на проникновение (пентестер проверит, что выявленные атаки больше неэффективны и попытается найти другие возможные атаки).
     - ...
 
-Adding automated tests also allow teams to track the effectiveness of countermeasures against abuse cases and determine if the countermeasures are still in place during a maintenance or bug fixing phase of a project (to prevent accidental removal/disabling). It is also useful when a [Continuous Delivery](https://continuousdelivery.com/) approach is used, to ensure that all abuse cases protections are in place before opening access to the application.
+Добавление автоматизированных тестов также позволяет командам отслеживать эффективность контрмер против случаев злоупотреблений и определять, сохранились ли контрмеры на месте во время фазы обслуживания или исправления ошибок проекта (чтобы предотвратить случайное удаление/отключение). Это также полезно при использовании подхода [Непрерывного развёртывания](https://continuousdelivery.com/) чтобы обеспечить наличие всех защит от случаев злоупотреблений перед открытием доступа к приложению.
 
-### Example of derivation of Abuse Cases as User Stories
+### Пример вывода случаев злоупотреблений в User Stories
 
-The following section shows an example of derivation of Abuse Cases as User Stories, here using the [OWASP TOP 10](https://owasp.org/www-project-top-ten/) as input source.
+В следующем разделе представлен пример вывода случаев злоупотреблений в User Stories, используя в качестве исходного источника [OWASP TOP 10](https://owasp.org/www-project-top-ten/).
 
-Threat Oriented Personas:
+Персоны, ориентированные на угрозы:
 
-- Malicious User
-- Abusive User
-- Unknowing User
+- Злоумышленник
+- Обычный пользователь, злоупотребляющий системой
+- Неосведомленный пользователь
 
 #### A1:2017-Injection
 
 *Epic:*
 
-Almost any source of data can be an injection vector, environment variables, parameters, external and internal web services, and all types of users. [Injection](https://owasp.org/www-community/Injection_Flaws) flaws occur when an attacker can send hostile data to an interpreter.
+Практически любой источник данных может быть вектором для внедрения, включая переменные окружения, параметры, внешние и внутренние веб-сервисы и всех типов пользователей. Уязвимости типа внедрение возникают, когда злоумышленник может отправить в интерпретатор враждебные данные.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I will perform an injection attack (SQL, LDAP, XPath, or NoSQL queries, OS commands, XML parsers, SMTP headers, expression languages, and ORM queries) against input fields of the User or API interfaces
+Как злоумышленник, я буду выполнять атаки внедрения (SQL, LDAP, XPath, или NoSQL запросы, команды ОС, XML парсеры, SMTP заголовки, языки выражений и ORM запросы) против полей ввода пользовательских или API интерфейсов.
 
 #### A2:2017-Broken Authentication
 
 *Epic:*
 
-Attackers have access to hundreds of millions of valid username and password combinations for credential stuffing, default administrative account lists, automated brute force, and dictionary attack tools. Session management attacks are well understood, particularly in relation to unexpired session tokens.
+Злоумышленники имеют доступ к сотням миллионов действительных комбинаций имен пользователей и паролей для атак на основе подделки учетных данных, списков административных учетных записей по умолчанию, автоматизированных атак грубой силы и словарных атак. Атаки на управление сеансами хорошо известны, особенно в отношении неистекших токенов сеансов.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I have access to hundreds of millions of valid username and password combinations for credential stuffing.
+Как злоумышленник, я имею доступ к сотням миллионов действительных комбинаций имен пользователей и паролей для атак на основе подделки учетных данных.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I have default administrative account lists, automated brute force, and dictionary attack tools I use against login areas of the application and support systems.
+Как злоумышленник, я имею списки административных учетных записей по умолчанию, инструменты для автоматизированных атак грубой силы и словарные атаки, которые использую против областей входа в приложение и систем поддержки.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I manipulate session tokens using expired and fake tokens to gain access.
+Как злоумышленник, я манипулирую токенами сеансов, используя истекшие и поддельные токены для получения доступа.
 
 #### A3:2017-Sensitive Data Exposure
 
 *Epic:*
 
-Rather than directly attacking crypto, attackers steal keys, execute man-in-the-middle attacks, or steal clear text data off the server, while in transit, or from the user's client, e.g. browser. A manual attack is generally required. Previously retrieved password databases could be brute forced by Graphics Processing Units (GPUs).
+Вместо того чтобы напрямую атаковать криптографию, злоумышленники крадут ключи, проводят атаки "человек посередине" или похищают данные в открытом виде с сервера, во время передачи или с клиента пользователя, например, браузера. Обычно требуется ручная атака. Ранее извлеченные базы данных паролей могут быть взломаны с помощью графических процессоров (GPU).
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I steal keys that were exposed in the application to get unauthorized access to the application or system.
+Как злоумышленник, я краду ключи, которые были раскрыты в приложении, чтобы получить несанкционированный доступ к приложению или системе.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I execute man-in-the-middle attacks to get access to traffic and leverage it to obtain sensitive data and possibly get unauthorized access to the application.
+Как злоумышленник, я провожу атаки "человек посередине", чтобы получить доступ к трафику и использовать его для получения конфиденциальных данных и возможно, чтобы получить несанкционированный доступ к приложению.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I steal clear text data off the server, while in transit, or from the user's client, e.g. browser to get unauthorized access to the application or system.
+Как злоумышленник, я краду данные в открытом виде с сервера, во время передачи или с клиента пользователя, например, браузера, чтобы получить несанкционированный доступ к приложению или системе.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I find and target old or weak cryptographic algorithms by capturing traffic and breaking the encryption.
+Как злоумышленник, я нахожу и нацеливаюсь на старые или слабые криптографические алгоритмы, захватывая трафик и взламывая шифрование.
 
 #### A4:2017-XML External Entities (XXE)
 
 *Epic:*
 
-Attackers can exploit vulnerable XML processors if they can upload XML or include hostile content in an XML document, exploiting vulnerable code, dependencies or integrations.
+Злоумышленники могут эксплуатировать уязвимые XML-процессоры, если они могут загружать XML или включать враждебный контент в XML-документ, используя уязвимый код, зависимости или интеграции.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I exploit vulnerable areas of the application where the user or system can upload XML to extract data, execute a remote request from the server, scan internal systems, perform a denial-of-service attack, as well as execute other attacks.
+Как злоумышленник, я использую уязвимые области приложения, где пользователь или система могут загружать XML, чтобы извлечь данные, выполнить удаленный запрос с сервера, сканировать внутренние системы, провести атаку на отказ в обслуживании, а также выполнить другие атаки.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I include hostile content in an XML document which is uploaded to the application or system to extract data, execute a remote request from the server, scan internal systems, perform a denial-of-service attack, as well as execute other attacks.
+Как злоумышленник, я включаю враждебный контент в XML-документ, который загружается в приложение или систему, чтобы извлечь данные, выполнить удаленный запрос с сервера, сканировать внутренние системы, провести атаку на отказ в обслуживании, а также выполнить другие атаки.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I include malicious XML code to exploit vulnerable code, dependencies or integrations to extract data, execute a remote request from the server, scan internal systems, perform a denial-of-service attack (e.g. Billion Laughs attack), as well as execute other attacks.
+Как злоумышленник, я включаю вредоносный XML-код для эксплуатации уязвимого кода, зависимостей или интеграций, чтобы извлечь данные, выполнить удаленный запрос с сервера, сканировать внутренние системы, провести атаку на отказ в обслуживании (например, атаку "Billion Laughs"), а также выполнить другие атаки.
 
 #### A5:2017-Broken Access Control
 
 *Epic:*
 
-Exploitation of access control is a core skill of attackers. Access control is detectable using manual means, or possibly through automation for the absence of access controls in certain frameworks.
+Эксплуатация управления доступом является ключевым навыком злоумышленников. Управление доступом можно обнаружить с помощью ручных методов или, возможно, через автоматизацию для выявления отсутствия управления доступом в некоторых фреймворках.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I bypass access control checks by modifying the URL, internal application state, or the HTML page, or simply using a custom API attack tool.
+Как злоумышленник, я обхожу проверки управления доступом, изменяя URL, внутреннее состояние приложения или HTML-страницу, или просто используя инструмент атаки на API.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I manipulate the primary key and change it to access another's users record, allowing viewing or editing someone else's account.
+Как злоумышленник, я манипулирую первичным ключом и изменяю его, чтобы получить доступ к записям других пользователей, позволяя просматривать или редактировать учетную запись другого человека.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I manipulate sessions, access tokens, or other access controls in the application to act as a user without being logged in, or acting as an admin/privileged user when logged in as a user.
+Как злоумышленник, я манипулирую сеансами, токенами доступа или другими средствами управления доступом в приложении, чтобы действовать как пользователь без входа в систему или как администратор/привилегированный пользователь, будучи вошедшим в систему как обычный пользователь.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I leverage metadata manipulation, such as replaying or tampering with a JSON Web Token (JWT) access control token or a cookie or hidden field manipulated to elevate privileges or abusing JWT invalidation.
+Как злоумышленник, я использую манипуляцию метаданными, такие как повторное использование или подделка токена доступа JSON Web Token (JWT) или куки-файла или скрытого поля, чтобы повысить привилегии или использовать недействительность JWT.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I exploit Cross-Origin Resource Sharing CORS misconfiguration allowing unauthorized API access.
+Как злоумышленник, я эксплуатирую неправильную настройку Cross-Origin Resource Sharing (CORS), что позволяет несанкционированный доступ к API.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I force browsing to authenticated pages as an unauthenticated user or to privileged pages as a standard user.
+Как злоумышленник, я принудительно просматриваю страницы, требующие аутентификации, как неаутентифицированный пользователь, или привилегированные страницы как стандартный пользователь.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I access APIs with missing access controls for POST, PUT and DELETE.
+Как злоумышленник, я получаю доступ к API с отсутствующим управлением доступом для POST, PUT и DELETE запросов.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I target default crypto keys in use, weak crypto keys generated or re-used, or keys where rotation is missing.
+Как злоумышленник, я нацеливаюсь на ключи криптографии по умолчанию, слабые ключи криптографии, которые были сгенерированы или повторно использованы, или ключи, для которых отсутствует ротация.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I find areas where the user agent (e.g. app, mail client) does not verify if the received server certificate is valid and perform attacks where I get unauthorized access to data.
+Как злоумышленник, я нахожу области, где пользовательский агент (например, приложение, почтовый клиент) не проверяет, является ли полученный сертификат сервера действительным, и провожу атаки, в результате которых получаю несанкционированный доступ к данным.
 
 #### A6:2017-Security Misconfiguration
 
 *Epic:*
 
-Attackers will often attempt to exploit unpatched flaws or access default accounts, unused pages, unprotected files and directories, etc to gain unauthorized access or knowledge of the system.
+Злоумышленники часто пытаются эксплуатировать незапатченные уязвимости или получать доступ к учетным записям по умолчанию, неиспользуемым страницам, незащищенным файлам и каталогам и т.д., чтобы получить несанкционированный доступ или информацию о системе.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I find and exploit missing appropriate security hardening configurations on any part of the application stack, or improperly configured permissions on cloud services.
+Как злоумышленник, я нахожу и эксплуатирую отсутствие соответствующих настроек безопасности в любой части стека приложения или неправильно настроенные разрешения на облачных сервисах.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I find unnecessary features which are enabled or installed (e.g. unnecessary ports, services, pages, accounts, or privileges) and attack or exploit the weakness.
+Как злоумышленник, я нахожу ненужные функции, которые включены или установлены (например, ненужные порты, сервисы, страницы, учетные записи или привилегии), и атакую или эксплуатирую их слабости.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I use default accounts and their passwords to access systems, interfaces, or perform actions on components which I should not be able to.
+Как злоумышленник, я использую учетные записи по умолчанию и их пароли для доступа к системам, интерфейсам или выполнения действий на компонентах, к которым я не должен иметь доступ.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I find areas of the application where error handling reveals stack traces or other overly informative error messages I can use for further exploitation.
+Как злоумышленник, я нахожу области приложения, где обработка ошибок раскрывает трассировки стека или другие чрезмерно информативные сообщения об ошибках, которые я могу использовать для дальнейшей эксплуатации.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I find areas where upgraded systems, latest security features are disabled or not configured securely.
+Как злоумышленник, я нахожу области, где обновленные системы или последние функции безопасности отключены или не настроены безопасно.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I find security settings in the application servers, application frameworks (e.g. Struts, Spring, ASP.NET), libraries, databases, etc. not set to secure values.
+Как злоумышленник, я нахожу настройки безопасности на серверах приложений, фреймворках приложений (например, Struts, Spring, ASP.NET), библиотеках, базах данных и т.д., которые не установлены на безопасные значения.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I find the server does not send security headers or directives or are set to insecure values.
+Как злоумышленник, я нахожу, что сервер не отправляет заголовки безопасности или директивы или они установлены на небезопасные значения.
 
 #### A7:2017-Cross-Site Scripting (XSS)
 
 *Epic:*
 
-XSS is the second most prevalent issue in the OWASP Top 10, and is found in around two-thirds of all applications.
+XSS — это вторая по распространенности проблема в OWASP Top 10 и встречается примерно в двух третях всех приложений.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I perform reflected XSS where the application or API includes unvalidated and unescaped user input as part of HTML output. My successful attack can allow the attacker to execute arbitrary HTML and JavaScript in my victim's browser. Typically the victim will need to interact with some malicious link that points to an attacker-controlled page, such as malicious watering hole websites, advertisements, or similar.
+Как злоумышленник, я провожу отраженный XSS, когда приложение или API включает непроверенный и неэкранированный пользовательский ввод в часть HTML-вывода. Моя успешная атака может позволить злоумышленнику выполнить произвольный HTML и JavaScript в браузере жертвы. Обычно жертве нужно взаимодействовать с какой-то вредоносной ссылкой, которая указывает на страницу, контролируемую злоумышленником, такую как вредоносные сайты, реклама или подобное.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I perform stored XSS where the application or API stores unsanitized user input that is viewed at a later time by another user or an administrator.
+Как злоумышленник, я провожу сохраненный XSS, когда приложение или API сохраняет неочищенный пользовательский ввод, который просматривается позднее другим пользователем или администратором.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I perform DOM XSS where JavaScript frameworks, single-page applications, and APIs that dynamically include attacker-controllable data to a page is vulnerable to DOM XSS.
+Как злоумышленник, я провожу DOM XSS, когда JavaScript-фреймворки, одностраничные приложения и API, которые динамически включают данные, контролируемые злоумышленником, на страницу, уязвимы к DOM XSS.
 
 #### A8:2017-Insecure Deserialization
 
 *Epic:*
 
-Exploitation of deserialization is somewhat difficult, as off-the-shelf exploits rarely work without changes or tweaks to the underlying exploit code.
+Эксплуатация десериализации несколько сложна, так как готовые эксплойты редко работают без изменений или доработок кода эксплойта.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I find areas of the application and APIs where deserialization of hostile or tampered objects can be supplied. As a result, I can focus on an object and data structure related attacks where the attacker modifies application logic or achieves arbitrary remote code execution if there are classes available to the application that can change behavior during or after deserialization. Or I focus on data tampering attacks such as access-control-related attacks where existing data structures are used but the content is changed.
+Как злоумышленник, я нахожу области приложения и API, где можно передать враждебные или измененные объекты для десериализации. В результате, я могу сосредоточиться на атаках на объект и структуру данных, где злоумышленник модифицирует логику приложения или достигает произвольного удаленного выполнения кода, если в приложении есть классы, которые могут изменить поведение во время или после десериализации. Либо я сосредоточусь на атаках на изменение данных, таких как атаки, связанные с управлением доступом, где используются существующие структуры данных, но изменяется их содержимое.
 
 #### A9:2017-Using Components with Known Vulnerabilities
 
 *Epic:*
 
-While it is easy to find already-written exploits for many known vulnerabilities, other vulnerabilities require concentrated effort to develop a custom exploit.
+Хотя легко найти готовые эксплойты для многих известных уязвимостей, другие уязвимости требуют сосредоточенных усилий для разработки кастомного эксплойта.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I find common open source or closed source packages with weaknesses and perform attacks against vulnerabilities and exploits which are disclosed
+Как злоумышленник, я нахожу общие пакеты с открытым или закрытым исходным кодом с уязвимостями и провожу атаки против уязвимостей и эксплойтов, которые были раскрыты.
 
 #### A10:2017-Insufficient Logging & Monitoring
 
 *Epic:*
 
-Exploitation of insufficient logging and monitoring is the bedrock of nearly every major incident. Attackers rely on the lack of monitoring and timely response to achieve their goals without being detected. In 2016, identifying a breach took an [average of 191 days](https://www-01.ibm.com/common/ssi/cgi-bin/ssialias?htmlfid=SEL03130WWEN) allowing substancial chance for damage to be inflicted.
+Эксплуатация недостаточной регистрации и мониторинга является основой почти каждого крупного инцидента. Злоумышленники полагаются на отсутствие мониторинга и своевременного реагирования для достижения своих целей, оставаясь незамеченными. В 2016 году обнаружение нарушения занимало [в среднем 191 день](https://www-01.ibm.com/common/ssi/cgi-bin/ssialias?htmlfid=SEL03130WWEN), что давало значительный шанс на нанесение ущерба.
 
-*Abuse Case:*
+*Злоупотребление:*
 
-As an attacker, I attack an organization and the logs, monitoring systems, and teams do not see or respond to my attacks.
+Как злоумышленник, я атакую организацию, и журналы, системы мониторинга и команды не замечают или не реагируют на мои атаки.
 
 ## Sources of the schemas
 
-All figures were created using <https://www.draw.io/> site and exported (as PNG image) for integration into this article.
+Все фигуры были созданы с использованием <https://www.draw.io/>, и экспортированы в формате PNG для этого документа.
 
-All XML descriptor files for each schema are available below (using XML description, modification of the schema is possible using DRAW.IO site):
+Все XML дескрипторы для каждой схемы доступны ниже (используя XML описания, модификация схем возможна при использовании DRAW.IO):
 
-[Schemas descriptors archive](../assets/Abuse_Case_Cheat_Sheet_SchemaBundle.zip)
+[Архив дескрипторов для схем](../assets/Abuse_Case_Cheat_Sheet_SchemaBundle.zip)
