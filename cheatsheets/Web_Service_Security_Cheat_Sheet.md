@@ -1,130 +1,130 @@
-# Web Service Security Cheat Sheet
+# Шпаргалка по безопасности веб-сервиса
 
-## Introduction
+## Вступление
 
-This article is focused on providing guidance for securing web services and preventing web services related attacks.
+Эта статья посвящена руководству по обеспечению безопасности веб-сервисов и предотвращению атак, связанных с веб-сервисами.
 
-Please notice that due to the difference in implementation between different frameworks, this cheat sheet is kept at a high level.
+Пожалуйста, обратите внимание, что из-за различий в реализации различных платформ, эта шпаргалка составлена на высоком уровне.
 
-## Transport Confidentiality
+## Транспортная конфиденциальность
 
-Transport confidentiality protects against eavesdropping and man-in-the-middle attacks against web service communications to/from the server.
+Конфиденциальность передачи данных защищает от подслушивания и атак типа "человек посередине" (mitm), направленных против обмена данными между веб-сервисами и сервером.
 
-**Rule**: All communication with and between web services containing sensitive features, an authenticated session, or transfer of sensitive data must be encrypted using well-configured [TLS](https://en.wikipedia.org/wiki/Transport_Layer_Security). This is recommended even if the messages themselves are encrypted because [TLS](https://en.wikipedia.org/wiki/Transport_Layer_Security) provides numerous benefits beyond traffic confidentiality including integrity protection, replay defenses, and server authentication. For more information on how to do this properly see the [Transport Layer Security Cheat Sheet](Transport_Layer_Security_Cheat_Sheet.md).
+**Правило**: Все сообщения с веб-службами и между ними, содержащие конфиденциальные функции, аутентифицированный сеанс или передачу конфиденциальных данных, должны быть зашифрованы с использованием правильно настроенного [TLS](https://en.wikipedia.org/wiki/Transport_Layer_Security). Это рекомендуется делать, даже если сами сообщения зашифрованы, поскольку [TLS](https://en.wikipedia.org/wiki/Transport_Layer_Security) обеспечивает множество преимуществ, помимо конфиденциальности трафика, включая защиту целостности, защиту от повторного воспроизведения и аутентификацию сервера. Дополнительную информацию о том, как это сделать правильно, смотрите в [Руководстве по безопасности транспортного уровня](Transport_Layer_Security_Cheat_Sheet.md).
 
-## Server Authentication
+## Аутентификация на сервере
 
-**Rule**: TLS must be used to authenticate the service provider to the service consumer. The service consumer should verify the server certificate is issued by a trusted provider, is not expired, is not revoked, matches the domain name of the service, and that the server has proven that it has the private key associated with the public key certificate (by properly signing something or successfully decrypting something encrypted with the associated public key).
+**Правило**: TLS должен использоваться для аутентификации поставщика услуг перед потребителем услуг. Потребитель услуги должен убедиться, что сертификат сервера выдан надежным провайдером, срок действия которого не истек, не отозван, соответствует доменному имени сервиса и что сервер доказал, что у него есть закрытый ключ, связанный с сертификатом открытого ключа (путем правильной подписи чего-либо или успешной расшифровки чего-либо, зашифрованного с помощью связанный с ним открытый ключ).
 
-## User Authentication
+## Аутентификация пользователя
 
-User authentication verifies the identity of the user or the system trying to connect to the service. Such authentication is usually a function of the container of the web service.
+Аутентификация пользователя проверяет личность пользователя или системы, пытающейся подключиться к сервису. Такая аутентификация обычно является функцией контейнера веб-сервиса.
 
-**Rule**: If used, Basic Authentication must be conducted over [TLS](https://en.wikipedia.org/wiki/Transport_Layer_Security), but Basic Authentication is not recommended because it discloses secrets in plan text (base64 encoded) in HTTP Headers.
+**Правило**: Если используется, базовая аутентификация должна выполняться по протоколу [TLS](https://en.wikipedia.org/wiki/Transport_Layer_Security), но базовая аутентификация не рекомендуется, поскольку она раскрывает секреты в виде текста (в кодировке base64) в заголовках HTTP.
 
-**Rule**: Client Certificate Authentication using [Mutual-TLS](https://en.wikipedia.org/wiki/Transport_Layer_Security) is a common form of authentication that is recommended where appropriate. See: [Authentication Cheat Sheet](Authentication_Cheat_Sheet.md).
+**Правило**: Проверка подлинности по сертификату клиента с использованием [Mutual-TLS](https://en.wikipedia.org/wiki/Transport_Layer_Security) является распространенной формой проверки подлинности, которая рекомендуется при необходимости. Смотрите: [Шпаргалка по проверке подлинности](Authentication_Cheat_Sheet.md).
 
-## Transport Encoding
+## Транспортное кодирование
 
-[SOAP](https://en.wikipedia.org/wiki/SOAP) encoding styles are meant to move data between software objects into XML format and back again.
+[SOAP](https://en.wikipedia.org/wiki/SOAP) стили кодирования предназначены для перемещения данных между программными объектами в формат XML и обратно.
 
-**Rule**: Enforce the same encoding style between the client and the server.
+**Правило**: Применяйте один и тот же стиль кодирования между клиентом и сервером.
 
-## Message Integrity
+## Целостность сообщения
 
-This is for data at rest. The integrity of data in transit can easily be provided by [TLS](https://en.wikipedia.org/wiki/Transport_Layer_Security).
+Это для данных, находящихся в состоянии покоя. Целостность передаваемых данных может быть легко обеспечена с помощью [TLS](https://en.wikipedia.org/wiki/Transport_Layer_Security).
 
-When using [public key cryptography](https://en.wikipedia.org/wiki/Public-key_cryptography), encryption does guarantee confidentiality but it does not guarantee integrity since the receiver's public key is public. For the same reason, encryption does not ensure the identity of the sender.
+При использовании [криптографии с открытым ключом] (https://en.wikipedia.org/wiki/Public-key_cryptography) шифрование гарантирует конфиденциальность, но не целостность, поскольку открытый ключ получателя является открытым. По той же причине шифрование не гарантирует идентификацию отправителя.
 
-**Rule**: For XML data, use XML digital signatures to provide message integrity using the sender's private key. This signature can be validated by the recipient using the sender's digital certificate (public key).
+**Правило**: Для данных в формате XML используйте цифровые подписи в формате XML для обеспечения целостности сообщения с использованием закрытого ключа отправителя. Эта подпись может быть проверена получателем с помощью цифрового сертификата отправителя (открытого ключа).
 
-## Message Confidentiality
+## Конфиденциальность сообщений
 
-Data elements meant to be kept confidential must be encrypted using a strong encryption cipher with an adequate key length to deter brute-forcing.
+Элементы данных, которые должны оставаться конфиденциальными, должны быть зашифрованы с использованием надежного шифра с достаточной длиной ключа для предотвращения несанкционированного доступа.
 
-**Rule**: Messages containing sensitive data must be encrypted using a strong encryption cipher. This could be transport encryption or message encryption.
+**Правило**: Сообщения, содержащие конфиденциальные данные, должны быть зашифрованы с использованием надежного шифрования. Это может быть транспортное шифрование или шифрование сообщений.
 
-**Rule**: Messages containing sensitive data that must remain encrypted at rest after receipt must be encrypted with strong data encryption, not just transport encryption.
+**Правило**: Сообщения, содержащие конфиденциальные данные, которые должны оставаться зашифрованными после получения, должны быть зашифрованы с использованием надежного шифрования данных, а не только транспортного шифрования.
 
-## Authorization
+## Авторизация
 
-Web services need to authorize web service clients the same way web applications authorize users. A web service needs to make sure a web service client is authorized to perform a certain action (coarse-grained) on the requested data (fine-grained).
+Веб-службам необходимо авторизовывать клиентов веб-служб так же, как веб-приложения авторизуют пользователей. Веб-службе необходимо убедиться, что клиент веб-службы авторизован для выполнения определенного действия (грубого (coarse-grained)) с запрошенными данными (мелкого (fine-grained)).
 
-**Rule**: A web service should authorize its clients whether they have access to the method in question. Following an authentication challenge, the web service should check the privileges of the requesting entity whether they have access to the requested resource. This should be done on every request, and a challenge-response Authorization mechanism added to sensitive resources like password changes, primary contact details such as email, physical address, payment or delivery instructions.
+**Правило**: Веб-служба должна авторизовать своих клиентов, независимо от того, имеют ли они доступ к данному методу. После проверки подлинности веб-служба должна проверить привилегии запрашивающего объекта, есть ли у него доступ к запрошенному ресурсу. Это должно выполняться при каждом запросе, и к конфиденциальным ресурсам, таким как смена пароля, основные контактные данные, такие как электронная почта, физический адрес, инструкции по оплате или доставке, добавлен механизм авторизации "запрос-ответ".
 
-**Rule**: Ensure access to administration and management functions within the Web Service Application is limited to web service administrators. Ideally, any administrative capabilities would be in an application that is completely separate from the web services being managed by these capabilities, thus completely separating normal users from these sensitive functions.
+**Правило**: Убедитесь, что доступ к функциям администрирования и управления в приложении веб-службы ограничен администраторами веб-служб. В идеале любые административные возможности должны быть в приложении, которое полностью отделено от веб-служб, управляемых этими возможностями, что полностью отделяет обычных пользователей от этих важных функций.
 
-## Schema Validation
+## Проверка подлинности схемы
 
-Schema validation enforces constraints and syntax defined by the schema.
+Проверка схемы обеспечивает соблюдение ограничений и синтаксиса, определенных схемой.
 
-**Rule**: Web services must validate [SOAP](https://en.wikipedia.org/wiki/SOAP) payloads against their associated XML schema definition ([XSD](https://www.w3schools.com/xml/schema_intro.asp)).
+**Правило**: Веб-службы должны проверять полезную нагрузку [SOAP](https://en.wikipedia.org/wiki/SOAP) на соответствие соответствующему определению XML-схемы ([XSD](https://www.w3schools.com/xml/schema_intro.asp)).
 
-**Rule**: The [XSD](https://www.w3schools.com/xml/schema_intro.asp) defined for a [SOAP](https://en.wikipedia.org/wiki/SOAP) web service should, at a minimum, define the maximum length and character set of every parameter allowed to pass into and out of the web service.
+**Правило**: Параметр [XSD](https://www.w3schools.com/xml/schema_intro.asp), определенный для веб-сервиса [SOAP](https://en.wikipedia.org/wiki/SOAP), должен, как минимум, определять максимальную длину и набор символов для каждого параметра, который разрешается передавать в веб-сервис и из веб-сервиса.
 
-**Rule**: The [XSD](https://www.w3schools.com/xml/schema_intro.asp) defined for a [SOAP](https://en.wikipedia.org/wiki/SOAP) web service should define strong (ideally allow-list) validation patterns for all fixed format parameters (e.g., zip codes, phone numbers, list values, etc.).
+**Правило**: [XSD](https://www.w3schools.com/xml/schema_intro.asp), определенный для веб-службы [SOAP](https://en.wikipedia.org/wiki/SOAP), должен определять строгие шаблоны проверки (в идеале, разрешать список) для всех параметров фиксированного формата (например, почтовых индексов, телефонных номеров, значений списка и т.д.).
 
-## Content Validation
+## Проверка содержимого
 
-**Rule**: Like any web application, web services need to validate input before consuming it. Content validation for XML input should include:
+**Правило**: Как и любое веб-приложение, веб-службы должны проверять вводимые данные перед их использованием. Проверка содержимого для ввода в формате XML должна включать:
 
-- Validation against malformed XML entities.
-- Validation against [XML Bomb attacks](https://en.wikipedia.org/wiki/Billion_laughs_attack).
-- Validating inputs using a strong allowlist.
-- Validating against [external entity attacks](https://owasp.org/www-community/vulnerabilities/XML_External_Entity_%28XXE%29_Processing).
+- Проверка на наличие искаженных XML-объектов.
+- Проверка на [атаки с использованием XML-бомб (XML Bomb attacks)](https://en.wikipedia.org/wiki/Billion_laughs_attack).
+- Проверка входных данных с использованием строгого списка разрешений.
+- Проверка на [атаки с использованием внешних объектов (external entity attacks)](https://owasp.org/www-community/vulnerabilities/XML_External_Entity_%28XXE%29_Processing).
 
-## Output Encoding
+## Выходное кодирование
 
-Web services need to ensure that the output sent to clients is encoded to be consumed as data and not as scripts. This gets pretty important when web service clients use the output to render HTML pages either directly or indirectly using AJAX objects.
+Веб-службы должны гарантировать, что выходные данные, отправляемые клиентам, закодированы для использования в виде данных, а не в виде сценариев. Это становится очень важным, когда клиенты веб-служб используют выходные данные для отображения HTML-страниц прямо или косвенно с помощью объектов AJAX.
 
-**Rule**: All the rules of output encoding applies as per [Cross Site Scripting Prevention Cheat Sheet](Cross_Site_Scripting_Prevention_Cheat_Sheet.md).
+**Правило**: Все правила кодирования выходных данных применяются в соответствии с [Шпаргалкой по предотвращению межсайтового скриптинга](Cross_Site_Scripting_Prevention_Cheat_Sheet.md).
 
-## Virus Protection
+## Защита от вирусов
 
-[SOAP](https://en.wikipedia.org/wiki/SOAP) provides the ability to attach files and documents to [SOAP](https://en.wikipedia.org/wiki/SOAP) messages. This gives the opportunity for hackers to attach viruses and malware to these [SOAP](https://en.wikipedia.org/wiki/SOAP) messages.
+[SOAP](https://en.wikipedia.org/wiki/SOAP) предоставляет возможность прикреплять файлы и документы к сообщениям [SOAP](https://en.wikipedia.org/wiki/SOAP). Это дает хакерам возможность прикреплять вирусы и вредоносные программы к этим сообщениям [SOAP](https://en.wikipedia.org/wiki/SOAP).
 
-**Rule**: Ensure Virus Scanning technology is installed and preferably inline so files and attachments could be checked before being saved on disk.
+**Правило**: Убедитесь, что установлена технология проверки на вирусы, желательно в режиме онлайн, чтобы файлы и вложения можно было проверять перед сохранением на диске.
 
-**Rule**: Ensure Virus Scanning technology is regularly updated with the latest virus definitions/rules.
+**Правило**: Убедитесь, что технология проверки на вирусы регулярно обновляется с учетом последних определений вирусов/правил.
 
-## Message Size
+## Размер сообщения
 
-Web services like web applications could be a target for DOS attacks by automatically sending the web services thousands of large size [SOAP](https://en.wikipedia.org/wiki/SOAP) messages. This either cripples the application making it unable to respond to legitimate messages or it could take it down entirely.
+Веб-службы, такие как веб-приложения, могут стать мишенью для DOS-атак, поскольку они автоматически отправляют веб-службам тысячи сообщений большого размера [SOAP](https://en.wikipedia.org/wiki/SOAP). Это либо выводит приложение из строя, делая его неспособным отвечать на легитимные сообщения, либо может привести к его полному отключению.
 
-**Rule**: [SOAP](https://en.wikipedia.org/wiki/SOAP) Messages size should be limited to an appropriate size limit. Larger size limit (or no limit at all) increases the chances of a successful DoS attack.
+**Правило**: [SOAP](https://en.wikipedia.org/wiki/SOAP) Размер сообщений должен быть ограничен соответствующим пределом размера. Большее ограничение размера (или его полное отсутствие) увеличивает шансы на успешную DoS-атаку.
 
-## Availability
+## Доступность
 
-### Resources Limiting
+### Ограничение ресурсов
 
-During regular operation, web services require computational power such as CPU cycles and memory. Due to malfunctioning or while under attack, a web service may required too much resources, leaving the host system unstable.
+Во время обычной работы веб-сервисам требуются вычислительные мощности, такие как циклы процессора и память. Из-за сбоев в работе или во время атаки веб-сервису может потребоваться слишком много ресурсов, что приводит к нестабильной работе хост-системы.
 
-**Rule**: Limit the amount of CPU cycles the web service can use based on expected service rate, in order to have a stable system.
+**Правило**: Ограничьте количество циклов процессора, которое может использовать веб-служба, исходя из ожидаемой скорости обслуживания, чтобы обеспечить стабильную работу системы.
 
-**Rule**: Limit the amount of memory the web service can use to avoid system running out of memory. In some cases the host system may start killing processes to free up memory.
+**Правило**: Ограничьте объем памяти, который может использовать веб-служба, чтобы избежать нехватки памяти в системе. В некоторых случаях хост-система может начать отключать процессы, чтобы освободить память.
 
-**Rule**: Limit the number of simultaneous open files, network connections and started processes.
+**Правило**: Ограничьте количество одновременно открытых файлов, сетевых подключений и запущенных процессов.
 
-### Message Throughput
+### Пропускная способность сообщений
 
-Throughput represents the number of web service requests served during a specific amount of time.
+Пропускная способность представляет собой количество запросов к веб-сервисам, обработанных за определенный промежуток времени.
 
-**Rule**: Configuration should be optimized for maximum message throughput to avoid running into DoS-like situations.
+**Правило**: Конфигурация должна быть оптимизирована для обеспечения максимальной пропускной способности передачи сообщений, чтобы избежать возникновения ситуаций, подобных DoS.
 
-### XML Denial of Service Protection
+### Защита от отказа в обслуживании в формате XML (XML DoS)
 
-XML Denial of Service is probably the most serious attack against web services. So the web service must provide the following validation:
+Отказ в обслуживании в формате XML, вероятно, является наиболее серьезной атакой на веб-службы. Таким образом, веб-служба должна обеспечить следующую проверку:
 
-**Rule**: Validation against recursive payloads.
+**Правило**: Проверка на соответствие рекурсивным пейлоадам.
 
-**Rule**: Validation against oversized payloads.
+**Правило**: Проверка на соответствие чрезмерно большим пейлоадам.
 
-**Rule**: Protection against [XML entity expansion](https://www.ws-attacks.org/XML_Entity_Expansion).
+**Правило**: Защита от [расширения XML-объекта (XML entity expansion)](https://www.ws-attacks.org/XML_Entity_Expansion).
 
-**Rule**: Validating against overlong element names. If you are working with [SOAP](https://en.wikipedia.org/wiki/SOAP)-based Web Services, the element names are those [SOAP](https://en.wikipedia.org/wiki/SOAP) Actions.
+**Правило**: Проверка на соответствие чрезмерно длинным именам элементов. Если вы работаете с веб-службами, основанными на [SOAP](https://en.wikipedia.org/wiki/SOAP), имена элементов будут соответствовать действиям [SOAP](https://en.wikipedia.org/wiki/SOAP).
 
-This protection should be provided by your XML parser/schema validator. To verify, build test cases to make sure your parser to resistant to these types of attacks.
+Эта защита должна быть обеспечена вашим анализатором XML/средством проверки схемы. Для проверки создайте тестовые примеры, чтобы убедиться, что ваш анализатор устойчив к этим типам атак.
 
-## Endpoint Security Profile
+## Профиль безопасности конечных точек
 
-**Rule**: Web services must be compliant with [Web Services-Interoperability (WS-I)](https://en.wikipedia.org/wiki/Web_Services_Interoperability) Basic Profile at minimum.
+**Правило**: Веб-службы должны соответствовать [Web Services-Interoperability (WS-I)] (https://en.wikipedia.org/wiki/Web_Services_Interoperability) как минимум базовому профилю.

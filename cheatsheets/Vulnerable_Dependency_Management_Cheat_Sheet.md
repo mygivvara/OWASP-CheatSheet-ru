@@ -1,256 +1,258 @@
-# Vulnerable Dependency Management Cheat Sheet
+# Шпаргалка по управлению уязвимыми зависимостями
 
-## Introduction
+## Вступление
 
-The objective of the cheat sheet is to provide a proposal of approach regarding the handling of vulnerable third-party dependencies when they are detected, and this, depending on different situation.
+Цель шпаргалки состоит в том, чтобы предложить подход к обработке уязвимых сторонних зависимостей при их обнаружении, и это в зависимости от конкретной ситуации.
 
-The cheat sheet is not tools oriented but it contains a [tools](#Tools) section informing the reader about free and commercial solutions that can be used to detect vulnerable dependencies, depending on the level of support on the technologies at hand
+Шпаргалка не ориентирована на инструменты, но содержит раздел [инструменты] (#Tools), информирующий читателя о бесплатных и коммерческих решениях, которые могут быть использованы для обнаружения уязвимых зависимостей, в зависимости от уровня поддержки используемых технологий
 
-**Note:**
+**Примечание:**
 
-Proposals mentioned in this cheat sheet are not silver-bullet (recipes that work in all situations) yet can be used as a foundation and adapted to your context.
+Предложения, упомянутые в этой шпаргалке, не являются универсальными (рецепты, которые работают во всех ситуациях), но могут быть использованы в качестве основы и адаптированы к вашему контексту.
 
-## Context
+## Контекст
 
-Most of the projects use third-party dependencies to delegate handling of different kind of operations, _e.g._ generation of document in a specific format, HTTP communications, data parsing of a specific format, etc.
+Большинство проектов используют сторонние зависимости для делегирования обработки различного рода операций, например, генерации документа в определенном формате, обмена HTTP-сообщениями, анализа данных определенного формата и т.д.
 
-It's a good approach because it allows the development team to focus on the real application code supporting the expected business feature. The dependency brings forth an expected downside where the security posture of the real application is now resting on it.
+Это хороший подход, поскольку он позволяет команде разработчиков сосредоточиться на реальном коде приложения, поддерживающем ожидаемую бизнес-функцию. Зависимость приводит к ожидаемому недостатку, от которого теперь зависит безопасность реального приложения.
 
-This aspect is referenced in the following projects:
+Этот аспект рассматривается в следующих проектах:
 
-- [OWASP TOP 10 2017](https://owasp.org/www-project-top-ten/OWASP_Top_Ten_2017/) under the point *[A9 - Using Components with Known Vulnerabilities](https://owasp.org/www-project-top-ten/OWASP_Top_Ten_2017/Top_10-2017_A9-Using_Components_with_Known_Vulnerabilities.html)*.
-- [OWASP Application Security Verification Standard Project](https://owasp.org/www-project-application-security-verification-standard/) under the section *V14.2 Dependency*.
+- [OWASP TOP 10 2017](https://owasp.org/www-project-top-ten/OWASP_Top_Ten_2017/) в соответствии с пунктом *[A9 - Использование компонентов с известными Vulnerabilities](https://owasp.org/www-project-top-ten/OWASP_Top_Ten_2017/Top_10-2017_A9-Using_Components_with_Known_Vulnerabilities.html)*.
+- [Стандартный проект проверки безопасности приложений OWASP](https://owasp.org/www-project-application-security-verification-standard/) в соответствии с разделом *V14.2 Dependency*.
 
-Based on this context, it's important for a project to ensure that all the third-party dependencies implemented are clean of any security issue, and if they happen to contain any security issues, the development team needs to be aware of it and apply the required mitigation measures to secure the affected application.
+Исходя из этого контекста, для проекта важно убедиться, что все реализованные сторонние зависимости не содержат каких-либо проблем с безопасностью, и если они содержат какие-либо проблемы с безопасностью, команда разработчиков должна знать об этом и применять необходимые меры по устранению проблем для защиты уязвимого приложения.
 
-It's highly recommended to perform automated analysis of the dependencies from the birth of the project. Indeed, if this task is added at the middle or end of the project, it can imply a huge amount of work to handle all the issues identified and that will in turn impose a huge burden on the development team and might to blocking the advancement of the project at hand.
+Настоятельно рекомендуется выполнить автоматический анализ зависимостей с момента создания проекта. Действительно, если эта задача добавляется в середине или в конце проекта, это может повлечь за собой огромный объем работы по устранению всех выявленных проблем, что, в свою очередь, ляжет огромной нагрузкой на команду разработчиков и может привести к блокированию продвижения текущего проекта.
 
-**Note:**
+**Примечание:**
 
-In the rest of the cheat sheet, when we refer to *development team* then we assume that the team contains a member with the required application security skills or can refer to someone in the company having these kind of skills to analyse the vulnerability impacting the dependency.
+В остальной части шпаргалки, когда мы ссылаемся на "команду разработчиков", мы предполагаем, что в команде есть сотрудник, обладающий необходимыми навыками в области безопасности приложений, или можем сослаться на кого-то в компании, обладающего такими навыками, чтобы проанализировать уязвимость, влияющую на зависимость.
 
-## Remark about the detection
+## Замечание по поводу обнаружения
 
-It's important to keep in mind the different ways in which a security issue is handled after its discovery.
+Важно помнить о различных способах устранения проблемы безопасности после ее обнаружения.
 
-### 1. Responsible disclosure
+### 1. Ответственное раскрытие информации
 
-See a description [here](https://en.wikipedia.org/wiki/Responsible_disclosure).
+Смотрите описание [здесь](https://en.wikipedia.org/wiki/Responsible_disclosure).
 
-A researcher discovers a vulnerability in a component, and after collaboration with the component provider, they issue a [CVE](https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures) (sometimes a specific vulnerability identifier to the provider is created but generally a CVE identifier is preferred) associated to the issue allowing the public referencing of the issue as well as the available fixation/mitigation.
+Исследователь обнаруживает уязвимость в компоненте, и после совместной работы с поставщиком компонентов он выдает [CVE](https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures) (иногда для поставщика создается конкретный идентификатор уязвимости, но обычно предпочтительнее использовать идентификатор CVE), связанный с проблемой, что позволяет публиковать ссылки на проблему, а также на информацию о уязвимости. доступная фиксация/смягчение последствий.
 
-If in case the provider doesn't properly cooperate with the researcher, the following results are expected:
+Если поставщик услуг должным образом не сотрудничает с исследователем, ожидаются следующие результаты:
 
-- CVE gets accepted by the vendor yet the provider [refuses to fix the issue](https://www.excellium-services.com/cert-xlm-advisory/cve-2019-7161/).
-- Most of the time, if the researcher doesn't receive back a response in 30 days, they go ahead and do a [full disclosure](#2.-full-disclosure) of the vulnerability.
+- CVE принимается поставщиком, но поставщик [отказывается устранять проблему] (https://www.excellium-services.com/cert-xlm-advisory/cve-2019-7161/).
+- В большинстве случаев, если исследователь не получает ответа в течение 30 дней, он продолжает работу и делает [полное раскрытие] (#2.полное раскрытие) уязвимости.
 
 Here, the vulnerability is always referenced in the [CVE global database](https://nvd.nist.gov/vuln/data-feeds) used, generally, by the detection tools as one of the several input sources used.
 
-### 2. Full disclosure
+### 2. Полное раскрытие информации
 
-See a description [here](https://en.wikipedia.org/wiki/Full_disclosure), into the section named **Computers** about **Computer Security**.
+Смотрите описание [здесь](https://en.wikipedia.org/wiki/Full_disclosure) в разделе **Computers**, посвященном **компьютерной безопасности**.
 
-The researcher decides to release all the information including exploitation code/method on services like [Full Disclosure mailing list](https://seclists.org/fulldisclosure/), [Exploit-DB](https://www.exploit-db.com).
+Исследователь принимает решение опубликовать всю информацию, включая код/метод использования, в таких сервисах, как [Список рассылки с полным раскрытием информации](https://seclists.org/fulldisclosure/), [Exploit-DB](https://www.exploit-db.com).
 
-Here a CVE is not always created then the vulnerability is not always in the CVE global database causing the detection tools to be potentially blind about unless the tools use other input sources.
+В этом случае CVE создается не всегда, тогда уязвимость не всегда находится в глобальной базе данных CVE, что приводит к потенциальной слепоте средств обнаружения, если только они не используют другие источники входных данных.
 
-## Remark about the security issue handling decision
+## Замечание о решении по решению проблемы безопасности
 
-When a security issue is detected, it's possible to decide to accept the risk represented by the security issue. However, this decision must be taken by the [Chief Risk Officer](https://en.wikipedia.org/wiki/Chief_risk_officer) (fallback possible to [Chief Information Security Officer](https://en.wikipedia.org/wiki/Chief_information_security_officer)) of the company based on technical feedback from the development team that have analyzed the issue (see the *[Cases](#cases)* section) as well as the CVEs [CVSS](https://www.first.org/cvss/user-guide) score indicators.
+При обнаружении проблемы с безопасностью можно принять решение о принятии риска, связанного с этой проблемой. Однако это решение должно быть принято [Главным специалистом по рискам](https://en.wikipedia.org/wiki/Chief_risk_officer) (возможен вариант с [Главным специалистом по информационной безопасности](https://en.wikipedia.org/wiki/Chief_information_security_officer)) компании на основе технической обратной связи от команды разработчиков, которая проанализировала проблему (см. раздел *[Случаи](#cases)*), а также оценочные показатели CVEs [CVSS](https://www.first.org/cvss/user-guide).
 
-## Cases
+## Случаи
 
-When a security issue is detected, the development team can meet one of the situations (named *Case* in the rest of the cheat sheet) presented in the sub sections below.
+При обнаружении проблемы с безопасностью команда разработчиков может столкнуться с одной из ситуаций (названных "Случай" в остальной части шпаргалки), представленных в подразделах ниже.
 
-If the vulnerably impact a [transitive dependency](https://en.wikipedia.org/wiki/Transitive_dependency) then the action will be taken on the direct dependency of the project because acting on a transitive dependency often impact the stability of the application.
+Если уязвимость влияет на [транзитивную зависимость](https://en.wikipedia.org/wiki/Transitive_dependency), то действие будет предпринято в отношении прямой зависимости проекта, поскольку действия в отношении транзитивной зависимости часто влияют на стабильность приложения.
 
-Acting on a on a transitive dependency require the development team to fully understand the complete relation/communication/usage from the project first level dependency until the dependency impacted by the security vulnerability, this task is very time consuming.
+Работа с переходной зависимостью требует от команды разработчиков полного понимания всей взаимосвязи/взаимодействия/использования, начиная с зависимости первого уровня проекта и заканчивая зависимостью, на которую влияет уязвимость в системе безопасности, эта задача требует очень много времени.
 
-### Case 1
+### Случай 1
 
-#### Context
+#### Контекст
 
-Patched version of the component has been released by the provider.
+Поставщик выпустил исправленную версию компонента.
 
-#### Ideal condition of application of the approach
+#### Идеальные условия применения подхода
 
-Set of automated unit or integration or functional or security tests exist for the features of the application using the impacted dependency allowing to validate that the feature is operational.
+Существует набор автоматизированных модульных, интеграционных, функциональных тестов или тестов безопасности для функций приложения с использованием затронутой зависимости, позволяющих проверить работоспособность функции.
 
-#### Approach
+#### Подход
 
-**Step 1:**
+**Шаг 1:**
 
-Update the version of the dependency in the project on a testing environment.
+Обновите версию зависимости в проекте в среде тестирования.
 
-**Step 2:**
+**Шаг 2:**
 
-Prior to running the tests, 2 output paths are possible:
+Перед запуском тестов возможны 2 пути вывода:
 
-- All tests succeed, and thus the update can be pushed to production.
-- One or several tests failed, several output paths are possible:
-    - Failure is due to change in some function calls (_e.g._ signature, argument, package, etc.). The development team must update their code to fit the new library. Once that is done, re-run the tests.
-    - Technical incompatibility of the released dependency (_e.g._ require a more recent runtime version) which leads to the following actions:
-    1. Raise the issue to the provider.
-    2. Apply [Case 2](#case-2) while waiting for the provider's feedback.
+- Все тесты завершаются успешно, и, таким образом, обновление может быть запущено в производство.
+- Один или несколько тестов завершились неудачей, возможно несколько путей вывода:
+    - Сбой происходит из-за изменений в некоторых вызовах функций (например, в сигнатуре, аргументе, пакете и т.д.). Команда разработчиков должна обновить свой код, чтобы он соответствовал новой библиотеке. Как только это будет сделано, повторно запустите тесты.
+    - Техническая несовместимость выпущенной зависимости (например, требуется более свежая версия среды выполнения), которая приводит к следующим действиям:
+    1. Обратитесь с этим вопросом к поставщику услуг.
+    2. Примените [Случай 2] (#Случай-2), ожидая ответа от поставщика.
 
-### Case 2
+### Случай 2
 
-#### Context
+#### Контекст
 
-Provider informs the team that it will take a while to fix the issue and, so, a patched version will not be available before months.
+Поставщик сообщает команде, что для устранения проблемы потребуется некоторое время, и поэтому исправленная версия будет доступна не раньше, чем через несколько месяцев.
 
-#### Ideal condition of application of the approach
+#### Идеальные условия применения подхода
 
-Provider can share any of the below with the development team:
+Поставщик может поделиться любым из приведенных ниже сведений с командой разработчиков:
 
-- The exploitation code.
-- The list of impacted functions by the vulnerability.
-- A workaround to prevent the exploitation of the issue.
+- Используемый код.
+- Список функций, на которые влияет уязвимость.
+- Способ предотвращения использования проблемы.
 
-#### Approach
+#### Подход
 
-**Step 1:**
+**Шаг 1:**
 
-If a workaround is provided, it should be applied and validated on the testing environment, and thereafter deployed to production.
+Если предлагается обходной путь, его следует применить и проверить в среде тестирования, а затем внедрить в рабочую среду.
 
-If the provider has given the team a list of the impacted functions, protective code must wrap the calls to these functions to ensure that the input and the output data is safe.
+Если поставщик предоставил команде список затронутых функций, защитный код должен обернуть вызовы этих функций, чтобы гарантировать безопасность входных и выходных данных.
 
-Moreover, security devices, such as the Web Application Firewall (WAF), can handle such issues by protecting the internal applications through parameter validation and by generating detection rules for those specific libraries. Yet, in this cheat sheet, the focus is set on the application level in order to patch the vulnerability as close as possible to the source.
+Более того, устройства безопасности, такие как брандмауэр веб-приложений (WAF), могут справиться с такими проблемами, защищая внутренние приложения с помощью проверки параметров и генерируя правила обнаружения для этих конкретных библиотек. Тем не менее, в этой шпаргалке основное внимание уделяется прикладному уровню, чтобы устранить уязвимость как можно ближе к источнику.
 
-*Example using java code in which the impacted function suffers from a [Remote Code Execution](https://www.netsparker.com/blog/web-security/remote-code-evaluation-execution/) issue:*
+*Пример использования java-кода, в котором затронутая функция страдает от проблемы [удаленного выполнения кода (RCE)](https://www.netsparker.com/blog/web-security/remote-code-evaluation-execution/).:*
 
 ```java
 public void callFunctionWithRCEIssue(String externalInput){
-    //Apply input validation on the external input using regex
+    //Примените проверку ввода к внешнему входу с помощью регулярного выражения
     if(Pattern.matches("[a-zA-Z0-9]{1,50}", externalInput)){
-        //Call the flawed function using safe input
+        //Вызов ошибочной функции с использованием безопасного ввода
         functionWithRCEIssue(externalInput);
     }else{
-        //Log the detection of exploitation
+        //Регистрируйте обнаружение эксплуатации
         SecurityLogger.warn("Exploitation of the RCE issue XXXXX detected !");
-        //Raise an exception leading to a generic error send to the client...
+        //Вызывайте исключение, приводящее к отправке клиенту общей ошибки...
     }
 }
 ```
 
-If the provider has provided nothing about the vulnerability, [Case 3](#-case-3) can be applied skipping the *step 2* of this case. We assume here that, at least, the [CVE](https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures) has been provided.
+Если поставщик ничего не сообщил об уязвимости, можно применить [Случай 3](#-случай-3), пропустив *шаг 2* этого случая. Здесь мы предполагаем, что, по крайней мере, [CVE](https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures) был предоставлен.
 
-**Step 2:**
+**Шаг 2:**
 
-If the provider has provided the team with the exploitation code, and the team made a security wrapper around the vulnerable library/code, execute the exploitation code in order to ensure that the library is now secure and doesn't affect the application.
+Если поставщик предоставил команде эксплуатационный код, и команда создала защитную оболочку для уязвимой библиотеки/кода, выполните эксплуатационный код, чтобы убедиться, что библиотека теперь защищена и не влияет на работу приложения.
 
-If you have a set of automated unit or integration or functional or security tests that exist for the application, run them to verify that the protection code added does not impact the stability of the application.
+Если у вас есть набор автоматизированных модульных, интеграционных, функциональных тестов или тестов безопасности для приложения, запустите их, чтобы убедиться, что добавленный код защиты не влияет на стабильность приложения.
 
-Add a comment in the project *README* explaining that the issue (specify the related [CVE](https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures)) is handled during the waiting time of a patched version because the detection tool will continue to raise an alert on this dependency.
+Добавьте комментарий в проект *README*, объясняющий, что проблема (укажите соответствующий [CVE](https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures)) решается во время ожидания исправленной версии, поскольку средство обнаружения будет продолжать выдавать предупреждение об этой зависимости.
 
-**Note:** You can add the dependency to the ignore list but the ignore scope for this dependency must only cover the [CVE](https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures) related to the vulnerability because a dependency can be impacted by several vulnerabilities having each one its own [CVE](https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures).
+**Примечание:** Вы можете добавить зависимость в список игнорируемых, но область игнорирования для этой зависимости должна охватывать только [CVE](https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures), связанную с уязвимостью, поскольку на зависимость может воздействовать несколько уязвимостей, каждая из которых имеет свой собственный [CVE](https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures).
 
-### Case 3
+### Случай 3
 
-#### Context
+#### Контекст
 
-Provider informs the team that they cannot fix the issue, so no patched version will be released at all (applies also if provider does not want to fix the issue or does not answer at all).
+Провайдер сообщает команде, что они не могут устранить проблему, поэтому исправленная версия вообще не будет выпущена (применяется также в том случае, если провайдер не хочет устранять проблему или вообще не отвечает).
 
-In this case the only information given to the development team is the [CVE](https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures).
+В этом случае единственной информацией, предоставляемой команде разработчиков, является [CVE](https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures).
 
-**Notes:**
+**Примечания:**
 
-- This case is really complex and time consuming and is generally used as last resort.
-- If the impacted dependency is an open source library then we, the development team, can create a patch and create [pull request](https://help.github.com/en/articles/about-pull-requests) - that way we can protect our company/application from the source as well as helping others secure their applications.
+- Это действительно сложное и трудоемкое дело, к которому обычно прибегают в качестве крайней меры.
+- Если затронутая зависимость является библиотекой с открытым исходным кодом, то мы, команда разработчиков, можем создать исправление и создать [Запрос на принятие изменений] (https://help.github.com/en/articles/about-pull-requests) - таким образом, мы можем защитить нашу компанию / приложение от исходного кода, а также помочь другим защитить свои приложения.
 
-#### Ideal condition of application of the approach
+#### Идеальные условия применения подхода
 
-Nothing specific because here we are in a *patch yourself* condition.
+Ничего конкретного, потому что здесь мы находимся в состоянии "исправь себя сам".
 
-#### Approach
+#### Подход
 
-**Step 1:**
+**Шаг 1:**
 
-If we are in this case due to one of the following conditions, it's a good idea to start a parallel study to find another component better maintained or if it's a commercial component with support **then put pressure** on the provider with the help of your [Chief Risk Officer](https://en.wikipedia.org/wiki/Chief_risk_officer) (fallback possible to [Chief Information Security Officer](https://en.wikipedia.org/wiki/Chief_information_security_officer)):
+Если это связано с одним из следующих условий, рекомендуется провести параллельное исследование, чтобы найти другой компонент, который лучше поддерживается, или, если это коммерческий компонент с поддержкой, **оказать давление** на поставщика с помощью вашего [директора по управлению рисками].(https://en.wikipedia.org/wiki/Chief_risk_officer ) (возможно обращение к [Главному специалисту по информационной безопасности](https://en.wikipedia.org/wiki/Chief_information_security_officer)):
 
-- Provider does not want to fix the issue.
-- Provider does not answer at all.
+- Провайдер не хочет устранять проблему.
+- Провайдер вообще не отвечает.
 
-In all cases, here, we need to handle the vulnerability right now.
+В любом случае, здесь нам нужно устранить уязвимость прямо сейчас.
 
-**Step 2:**
+**Шаг 2:**
 
-As we know the vulnerable dependency, we know where it is used in the application (if it's a transitive dependency then we can identify the first level dependency using it using the [IDE](https://en.wikipedia.org/wiki/Integrated_development_environment) built-in feature or the dependency management system used (Maven, Gradle, NuGet, npm, etc.). Note that IDE is also used to identify the calls to the dependency.
+Поскольку мы знаем уязвимую зависимость, мы знаем, где она используется в приложении (если это транзитивная зависимость, то мы можем идентифицировать зависимость первого уровня, используя ее с помощью [IDE](https://en.wikipedia.org/wiki/Integrated_development_environment )) встроенная функция или используемая система управления зависимостями (Maven, Gradle, NuGet, npm, и т.д.). Обратите внимание, что IDE также используется для идентификации вызовов зависимости.
 
-Identifying calls to this dependency is fine but it is the first step. The team still lacks information on what kind of patching needs to be performed.
+Выявление вызовов этой зависимости - это хорошо, но это первый шаг. Команде по-прежнему не хватает информации о том, какие исправления необходимо выполнить.
 
-To obtain these information, the team uses the CVE content to know which kind of vulnerability affects the dependency. The `description` property provides the answer: SQL injection, Remote Code Execution, Cross-Site Scripting, Cross-Site Request Forgery, etc.
+Чтобы получить эту информацию, команда использует содержимое CVE, чтобы узнать, какой тип уязвимости влияет на зависимость. Свойство `description` предоставляет ответ: SQL-инъекция, удаленное выполнение кода, межсайтовый скриптинг, подделка межсайтовых запросов и т.д.
 
-After identifying the above 2 points, the team is aware of the type of patching that needs to be taken ([Case 2](#case-2) with the protective code) and where to add it.
+После определения вышеуказанных 2 пунктов команда знает, какой тип исправления необходимо выполнить ([Случай 2] (#случай-2) с защитным кодом) и куда его добавить.
 
-*Example:*
+*Пример:*
 
-The team has an application using the Jackson API in a version exposed to the [CVE-2016-3720](https://nvd.nist.gov/vuln/detail/CVE-2016-3720).
+У команды есть приложение, использующее Jackson API в версии, доступной для [CVE-2016-3720](https://nvd.nist.gov/vuln/detail/CVE-2016-3720).
 
-The description of the CVE is as follows:
+Описание CVE выглядит следующим образом:
 
 ```text
 XML external entity (XXE) vulnerability in XmlMapper in the Data format extension for Jackson
 (aka jackson-dataformat-xml) allows attackers to have unspecified impact via unknown vectors.
+(Уязвимость XML external entity (XXE) в Xml Mapper в расширении формата данных для Jackson
+(оно же jackson-dataformat-xml) позволяет злоумышленникам оказывать неопределенное воздействие с помощью неизвестных векторов.)
 ```
 
-Based on these information, the team determines that the necessary patching will be to add a [pre-validation of any XML data](XML_External_Entity_Prevention_Cheat_Sheet.md) passed to the Jakson API to prevent [XML external entity (XXE)](https://www.acunetix.com/blog/articles/xml-external-entity-xxe-vulnerabilities/) vulnerability.
+Основываясь на этой информации, команда определяет, что необходимым исправлением будет добавление [предварительной проверки любых XML-данных] (XML_External_Entity_Prevention_Cheat_Sheet.md), передаваемых в Jakson API, для предотвращения уязвимости [XML external entity (XXE)](https://www.acunetix.com/blog/articles/xml-external-entity-xxe-vulnerabilities/).
 
-**Step 3:**
+**Шаг 3:**
 
-If possible, create a unit test that mimics the vulnerability in order to ensure that the patch is effective and have a way to continuously ensure that the patch is in place during the evolution of the project.
+Если возможно, создайте модульный тест, имитирующий уязвимость, чтобы убедиться в эффективности исправления и иметь возможность постоянно обеспечивать его применение в ходе развития проекта.
 
-If you have a set of automated unit or integration or functional or security tests that exists for the application then run them to verify that the patch does not impact the stability of the application.
+Если у вас есть набор автоматизированных модульных, интеграционных, функциональных тестов или тестов безопасности для приложения, запустите их, чтобы убедиться, что исправление не влияет на стабильность приложения.
 
-### Case 4
+### Случай 4
 
-#### Context
+#### Контекст
 
-The vulnerable dependency is found during one of the following situation in which the provider is not aware of the vulnerability:
+Уязвимая зависимость обнаруживается в одной из следующих ситуаций, когда поставщик услуг не знает об уязвимости:
 
-- Via the discovery of a full disclosure post on the Internet.
-- During a penetration test.
+- Обнаружив в Интернете публикацию с полным раскрытием информации.
+- Во время теста на проникновение.
 
-#### Ideal condition of application of the approach
+#### Идеальные условия применения подхода
 
-Provider collaborates with you after being notified of the vulnerability.
+Провайдер сотрудничает с вами после получения уведомления об уязвимости.
 
-#### Approach
+#### Подход
 
-**Step 1:**
+**Шаг 1:**
 
-Inform the provider about the vulnerability by sharing the post with them.
+Сообщите поставщику услуг об уязвимости, поделившись с ним этим сообщением.
 
-**Step 2:**
+**Шаг 2:**
 
-Using the information from the full disclosure post or the pentester's exploitation feedback, if the provider collaborates then apply [Case 2](#case-2), otherwise apply [Case 3](#case-3), and instead of analyzing the CVE information, the team needs to analyze the information from the full disclosure post/pentester's exploitation feedback.
+Используя информацию из публикации с полным раскрытием информации или отзывов пентестера об эксплуатации, если поставщик сотрудничает, примените [Случай 2] (#случай-2), в противном случае примените [Случай 3] (#случай-3), и вместо анализа информации CVE команде необходимо проанализировать информацию из публикации "полное раскрытие информации" / отзыв пентестера об эксплуатации.
 
-## Tools
+## Инструменты
 
-This section lists several tools that can used to analyze the dependencies used by a project in order to detect the vulnerabilities.
+В этом разделе перечислены несколько инструментов, которые можно использовать для анализа зависимостей, используемых проектом, с целью обнаружения уязвимостей.
 
-It's important to ensure, during the selection process of a vulnerable dependency detection tool, that this one:
+В процессе выбора инструмента обнаружения уязвимых зависимостей важно убедиться, что этот инструмент:
 
-- Uses several reliable input sources in order to handle both vulnerability disclosure ways.
-- Support for flagging an issue raised on a component as a [false-positive](https://www.whitehatsec.com/glossary/content/false-positive).
+- Использует несколько надежных источников входных данных, чтобы справиться с обоими способами обнаружения уязвимостей.
+- Возможность помечать проблему, возникшую в компоненте, как [ложноположительную](https://www.whitehatsec.com/glossary/content/false-positive).
 
-- Free
+- Бесплатные
     - [OWASP Dependency Check](https://owasp.org/www-project-dependency-check/):
-        - Full support: Java, .Net.
-        - Experimental support: Python, Ruby, PHP (composer), NodeJS, C, C++.
+        - Полная поддержка: Java, .Net.
+        - Поддерживается эксперементально: Python, Ruby, PHP (composer), NodeJS, C, C++.
     - [NPM Audit](https://docs.npmjs.com/cli/audit)
-        - Full support: NodeJS, JavaScript.
-        - HTML report available via this [module](https://www.npmjs.com/package/npm-audit-html).
-    - [OWASP Dependency Track](https://dependencytrack.org/) can be used to manage vulnerable dependencies across an organization.
+        - Полная поддержка: NodeJS, JavaScript.
+        - HTML-отчет доступен с помощью этого [module](https://www.npmjs.com/package/npm-audit-html).
+    - [OWASP Dependency Track](https://dependencytrack.org/) может использоваться для управления уязвимыми зависимостями в рамках всей организации.
     - [ThreatMapper](https://github.com/deepfence/ThreatMapper)
-        - Full support: Base OS, Java, NodeJS, JavaScript, Ruby, Python
-        - Targets: Kubernetes (nodes and container), Docker (node and containers), Fargate (containers), Bare Metal/VM (Host and app)
-- Commercial
-    - [Snyk](https://snyk.io/) (open source and free option available):
-        - [Full support](https://snyk.io/docs/) for many languages and package manager.
+        - Полная поддержка: Base OS, Java, NodeJS, JavaScript, Ruby, Python
+        - Целевые программы: Kubernetes (узлы и контейнеры), Docker (узлы и контейнеры), Fargate (контейнеры), Bare Metal/VM (хост и приложение)
+- Коммерческие
+    - [Snyk](https://snyk.io/) (доступен бесплатный вариант с открытым исходным кодом):
+        - [Полная поддержка](https://snyk.io/docs/) для многих языков и менеджеров пакетов.
     - [JFrog XRay](https://jfrog.com/xray/):
-        - [Full support](https://jfrog.com/integration/) for many languages and package manager.
-    - [Renovate](https://renovatebot.com) (allow to detect old dependencies):
-        - [Full support](https://renovatebot.com/docs/) for many languages and package manager.
-    - [Requires.io](https://requires.io/) (allow to detect old dependencies - open source and free option available):
-        - [Full support](https://requires.io/features/): Python only.
+        - [Полная поддержка](https://jfrog.com/integration/) для многих языков и менеджеров пакетов.
+    - [Renovate](https://renovatebot.com) (позволяет обнаруживать старые зависимости):
+        - [Полная поддержка](https://renovatebot.com/docs/) для многих языков и менеджеров пакетов.
+    - [Requires.io](https://requires.io/) (позволяет обнаруживать старые зависимости - доступен открытый исходный код и бесплатная опция):
+        - [Полная поддержка](https://requires.io/features/): только на Python .

