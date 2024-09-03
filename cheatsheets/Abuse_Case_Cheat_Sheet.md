@@ -61,79 +61,79 @@ Synopsys определяют **Злоупотребление** следующ�
 
 #### Как определить список злоупотреблений
 
-There are many different ways to define the list of abuse cases for a feature (that can be mapped to a user story in agile projects).
+Существует много различных способов определить список злоупотреблений для функции (которая может быть сопоставлена с пользовательской историей в Agile-проектах)
 
-The project [OWASP Open SAMM](https://owasp.org/www-project-samm/) proposes the following approach in the *Stream B* of the Security Practice *Requirements Driven Testing* for the Maturity level 2:
+Проект [OWASP Open SAMM](https://owasp.org/www-project-samm/) предлагает следующий подход в *Потоке B* к практикам безопасности *тестирования основанного на требованиях* для уровня зрелости 2:
 
 ```text
-Misuse and abuse cases describe unintended and malicious use scenarios of the application, describing how an attacker could do this. Create misuse and abuse cases to misuse or exploit the weaknesses of controls in software features to attack an application. Use abuse-case models for an application to serve as fuel for identification of concrete security tests that directly or indirectly exploit the abuse scenarios.
+Случаи неправильного использования и злоупотребления описывают непреднамеренные и злонамеренные сценарии использования приложения, описывая, как злоумышленник может это сделать. Создайте случаи неправильного использования и злоупотребления для использования или эксплуатации слабостей в контролях функций программного обеспечения для атаки на приложение. Используйте модели злоупотреблений для приложения, чтобы служить источником для идентификации конкретных тестов безопасности, которые напрямую или косвенно эксплуатируют сценарии злоупотреблений.
 
-Abuse of functionality, sometimes referred to as a “business logic attack”, depends on the design and implementation of application functions and features. An example is using a password reset flow to enumerate accounts. As part of business logic testing, identify the business rules that are important for the application and turn them into experiments to verify whether the application properly enforces the business rule. For example, on a stock trading application, is the attacker allowed to start a trade at the beginning of the day and lock in a price, hold the transaction open until the end of the day, then complete the sale if the stock price has risen or cancel if the price dropped?
+Злоупотребление функциональностью, иногда называемое «атакой бизнес-логики», зависит от дизайна и реализации функций и особенностей приложения. Примером является использование процесса сброса пароля для перечисления учетных записей. В рамках тестирования бизнес-логики определите важные бизнес-правила для приложения и превратите их в эксперименты для проверки того, правильно ли приложение применяет бизнес-правило. Например, в приложении для торговли акциями, разрешено ли злоумышленнику начать сделку в начале дня и зафиксировать цену, держать транзакцию открытой до конца дня, а затем завершить продажу, если цена акции возросла, или отменить, если цена упала?
 ```
 
-Open SAMM source: [Verification Requirement Driven Testing Stream B](https://owaspsamm.org/model/verification/requirements-driven-testing/stream-b/)
+Источник Open SAMM: [Verification Requirements Driven Testing Stream B](https://owaspsamm.org/model/verification/requirements-driven-testing/stream-b/)
 
-Another way to achieve the building of the list can be the following (more bottom-up and collaboratively oriented):
+Еще один способ создания списка может быть следующим (более ориентированным на подход «снизу вверх» и сотрудничество):
 
-Make a workshop that includes people with the following profiles:
+Проведите воркшоп с участием людей со следующими профилями:
 
-- **Business analyst**: Will be the business key people that will describe each feature from a business point of view.
-- **Risk analyst**: Will be the company's risk personnel that will evaluate the business risk from a proposed attack (sometimes it is the **Business analyst** depending on the company).
-- **Penetration tester**: Will be the *attacker* that will propose attacks that they can perform on the business feature(s) in question. If the company does not have a person with this profile then it is possible to request the service of an external specialist. If possible, include 2 penetration testers with different backgrounds in order to increase the number of possible attacks that will be identified and considered.
-- **Technical leaders of the projects**: Will be the project technical people and will allow technical exchange about attacks and countermeasures identified during the workshop.
-- **Quality assurance analyst or functional tester**: Personnel that may have a good sense of how the application/functionality is intended to work (positive testing), not work (negative testing), and what things cause it to fail (failure cases).
+- **Бизнес-аналитики**: Ключевые сотрудники, которые будут описывать каждую функцию с точки зрения бизнеса.
+- **Аналитики по рискам**: Сотрудники компании, которые будут оценивать бизнес-риски предлагаемой атаки (иногда это роль выполняет бизнес-аналитик, в зависимости от компании).
+- **Тестировщики на проникновение (пентестеры)**: "Атакующие", которые будут предлагать атаки, которые можно осуществить на рассматриваемые бизнес-функции. Если в компании нет сотрудника с таким профилем, можно запросить услуги внешних специалистов. При возможности включите двух пентестеров с разным опытом, чтобы увеличить количество потенциальных атак, которые будут выявлены и учтены.
+- **Технические лидеры проектов**: Технические специалисты проекта, которые обеспечат технический обмен мнениями по поводу атак и контрмер, выявленных в ходе воркшопа
+- **Аналитики по обеспечению качества или функциональный тестировщик**: Сотрудники, которые могут иметь хорошее представление о том, как приложение или функция должны работать (позитивное тестирование), как они не должны работать (негативное тестирование), и что вызывает их сбои (случаи отказов).
 
-During this workshop (duration will depend on the size of the feature list, but 4 hours is a good start) all business features that will be part of the project or the sprint will be processed. The output of the workshop will be a list of attacks (abuse cases) for all business features. All abuse cases will have a risk rating that allows for filtering and prioritization.
+Во время воркшопа (продолжительность зависит от объема списка функций, но 4 часа — хорошее начало) будут обработаны все бизнес-функции, которые будут включены в проект или спринт. Результатом воркшопа будет список атак (случаев злоупотребления) для всех бизнес-функций. Каждому случаю злоупотребления будет присвоен уровень риска, который позволит фильтровать и расставлять приоритеты.
 
-It is important to take into account **Technical** and **Business** kind of abuse cases and mark them accordingly.
+Важно учитывать как **технические**, так и **бизнесовые** случаи злоупотребления и соответственно их помечать.
 
-*Example:*
+*Пример:*
 
-- Technical flagged abuse case: Add Cross Site Scripting injection into a comment input field.
-- Business flagged abuse case: Ability to arbitrarily modify the price of an article in an online shop prior to passing an order causing the user to pay a lower amount for the wanted article.
+- Технический случай злоупотребления: Добавление Cross-Site-Scripting (XSS) инъекции в поле ввода комментария..
+- Бизнесовый случай злоупотребления: Возможность произвольного изменения цены товара в интернет-магазине перед оформлением заказа, что приводит к тому, что пользователь платит меньшую сумму за желаемый товар.
 
-#### When to define the list of Abuse Cases
+#### Когда определять списокк случаев злоупотребления
 
-In agile projects, the definition workshop must be made after the meeting in which User Stories are included in a Sprint.
+В проектах, реализуемых по методологии Agile, воркшоп по определению должен проводиться после собрания, на котором пользовательские истории (User Stories) включаются в спринт.
 
-In waterfall projects, the definition workshop must be made when the business features to implement are identified and known by the business.
+В проектах, реализуемых по каскадной модели (Waterfall), воркшоп по определению должен проводиться, когда бизнес-функции, которые будут реализованы, уже определены и известны бизнесу.
 
-Whatever the mode of the project used (agile or waterfall), the abuse cases selected to be addressed must become security requirements in each feature specification section (waterfall) or User Story acceptance criteria (agile) in order to allow additional cost/effort evaluation, identification and implementation of the countermeasures.
+Независимо от используемого подхода к проекту (Agile или Waterfall), случаи злоупотребления, которые выбраны для рассмотрения, должны стать требованиями безопасности в каждом разделе спецификации функции (Waterfall) или критериями приемки пользовательской истории (Agile), чтобы позволить оценить дополнительные затраты/усилия, а также идентифицировать и внедрить контрмеры.
 
-Each abuse case must have a unique identifier in order to allow tracking throughout the whole project/sprint (details about this point will be given in the proposal section).
+Каждому случаю злоупотребления должен быть присвоен уникальный идентификатор, чтобы обеспечить его отслеживание на протяжении всего проекта/спринта (подробности по этому пункту будут приведены в разделе предложения).
 
-An example of unique ID format can be **ABUSE_CASE_001**.
+Пример формата уникального идентификатора может быть **ABUSE_CASE_001**.
 
-The following figure provides an overview of the chaining of the different steps involved (from left to right):
+На следующем рисунке показан обзор последовательности различных шагов, задействованных в процессе (слева направо):
 
-![Overview Schema](../assets/Abuse_Case_Cheat_Sheet_Overview.png)
+![Обзорная схема](../assets/Abuse_Case_Cheat_Sheet_Overview.png)
 
-### Proposal
+### Предложение
 
-The proposal will focus on the output of the workshop explained in the previous section.
+Предложение будет сосредоточено на результатах воркшопа, объясненных в предыдущем разделе.
 
-#### Step 1: Preparation of the workshop
+#### Шаг 1: Подготовка к воркшопу
 
-First, even if it seems obvious, the key business people must be sure to know, understand and be able to explain the business features that will be processed during the workshop.
+Во-первых, даже если это кажется очевидным, ключевые бизнес-сотрудники должны быть уверены, что они знают, понимают и могут объяснить бизнес-функции, которые будут обрабатываться во время воркшопа.
 
-Secondly, create a new Microsoft Excel file (you can also use Google Sheets or any other similar software) with the following sheets (or tabs):
+Во-вторых, создайте новый файл Microsoft Excel (вы также можете использовать Google Sheets или любое другое аналогичное программное обеспечение) со следующими листами (или вкладками):
 
-- **FEATURES**
-    - Will contain a table with the list of business features planned for the workshop.
-- **ABUSE CASES**
-    - Will contain a table with all abuse cases identified during the workshop.
-- **COUNTERMEASURES**
-    - Will contain a table with the list of possible countermeasures (light description) imagined for the abuse cases identified.
-    - This sheet is not mandatory, but it can be useful (for an abuse case to know), if a fix is easy to implement and then can impact the risk rating.
-    - Countermeasures can be identified by the AppSec profile during the workshop, because an AppSec person must be able to perform attacks but also to build or identify defenses (it is not always the case for the Pentester profile because this person's focus is generally on the attack side only, so, the combination Pentester + AppSec is very efficient to have a 360 degree view).
+- **ФУНКЦИИ (FEATURES)**
+    - Будет содержать таблицу со списком бизнес-функций, запланированных для воркшопа.
+- **СЛУЧАИ ЗЛОУПОТРЕБЛЕНИЯ (ABUSE CASES)**
+    - Будет содержать таблицу со всеми случаями злоупотребления, выявленными в ходе воркшопа.
+- **КОНТРМЕРЫ (COUNTERMEASURES)**
+    - Будет содержать таблицу со списком возможных контрмер (краткое описание), придуманных для выявленных случаев злоупотребления.
+    - Этот лист не обязателен, но может быть полезным (для каждого случая злоупотребления), если устранение проблемы легко реализуемо и может повлиять на рейтинг риска.
+    - Контрмеры могут быть определены профилем AppSec (специалистом по безопасности приложений) в ходе воркшопа, потому что сотрудник AppSec должен уметь не только совершать атаки, но и строить или определять меры защиты (это не всегда характерно для профиля пентестера, поскольку его основное внимание сосредоточено на атакующей стороне, поэтому комбинация пентестер + AppSec очень эффективна для получения всестороннего обзора).
 
-This is the representation of each sheet along with an example of content that will be filled during the workshop:
+Ниже представлено изображение каждого листа вместе с примером содержания, которое будет заполняться во время воркшопа:
 
-*FEATURES* sheet:
+Лист *ФУНКЦИИ*:
 
-| Feature unique ID |      Feature name     |           Feature short description           |
+| Идентификатор функции | Имя функции |           Краткое описание функции           |
 |:-----------------:|:---------------------:|:---------------------------------------------:|
-| FEATURE_001       | DocumentUploadFeature | Allow user to upload document along a message |
+| FEATURE_001       | DocumentUploadFeature | Позволяет пользователю загрузить документ вместе с сообщением |
 
 *COUNTERMEASURES* sheet:
 
