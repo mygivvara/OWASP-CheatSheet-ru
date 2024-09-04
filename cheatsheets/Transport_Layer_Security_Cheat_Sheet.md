@@ -1,49 +1,49 @@
-# Transport Layer Security Cheat Sheet
+# Шпаргалка по безопасности транспортного уровня
 
-## Introduction
+## Вступление
 
-This cheat sheet provides guidance on implementing transport layer protection for applications using Transport Layer Security (TLS). It primarily focuses on how to use TLS to protect clients connecting to a web application over HTTPS, though much of this guidance is also applicable to other uses of TLS. When correctly implemented, TLS can provide several security benefits:
+В этом руководстве приведены рекомендации по внедрению защиты на транспортном уровне для приложений, использующих протокол Transport Layer Security (TLS). В основном речь идет о том, как использовать протокол TLS для защиты клиентов, подключающихся к веб-приложению по протоколу HTTPS, хотя большая часть этого руководства применима и к другим видам использования протокола TLS. При правильной реализации протокол TLS может обеспечить ряд преимуществ в плане безопасности:
 
-- **Confidentiality**: Provides protection against attackers reading the contents of the traffic.
-- **Integrity**: Provides protection against traffic modification, such as an attacker replaying requests against the server.
-- **[Authentication](Authentication_Cheat_Sheet.md)**: Enables the client to confirm they are connected to the legitimate server. Note that the identity of the client is not verified unless [client certificates](#client-certificates-and-mutual-tls) are employed.
+- **Конфиденциальность**: Обеспечивает защиту от злоумышленников, считывающих содержимое трафика.
+- **Целостность**: Обеспечивает защиту от изменения трафика, например, от повторной отправки злоумышленником запросов на сервер.
+- **[Аутентификация](Authentication_Cheat_Sheet.md)**: Позволяет клиенту подтвердить, что он подключен к законному серверу. Обратите внимание, что идентификация клиента не проверяется, если не используются [клиентские сертификаты] (#client-certificates-and-mutual-tls).
 
 ### SSL vs TLS
 
-Secure Socket Layer (SSL) was the original protocol that was used to provide encryption for HTTP traffic, in the form of HTTPS. There were two publicly released versions of SSL - versions 2 and 3. Both of these have serious cryptographic weaknesses and should no longer be used.
+Протокол Secure Socket Layer (SSL) был первоначальным протоколом, который использовался для обеспечения шифрования HTTP-трафика в форме HTTPS. Было выпущено две общедоступные версии SSL - версии 2 и 3. Обе они имеют серьезные криптографические недостатки и больше не должны использоваться.
 
-For [various reasons](http://tim.dierks.org/2014/05/security-standards-and-name-changes-in.html) the next version of the protocol (effectively SSL 3.1) was named Transport Layer Security (TLS) version 1.0. Subsequently TLS versions 1.1, 1.2 and 1.3 have been released.
+По [различным причинам] (http://tim.dierks.org/2014/05/security-standards-and-name-changes-in.html) следующая версия протокола (фактически SSL 3.1) была названа Transport Layer Security (TLS) версии 1.0. Впоследствии были выпущены версии TLS 1.1, 1.2 и 1.3.
 
-The terms "SSL", "SSL/TLS" and "TLS" are frequently used interchangeably, and in many cases "SSL" is used when referring to the more modern TLS protocol. This cheat sheet will use the term "TLS" except where referring to the legacy protocols.
+Термины "SSL", "SSL/TLS" и "TLS" часто используются как взаимозаменяемые, и во многих случаях "SSL" используется для обозначения более современного протокола TLS. В этой инструкции-шпаргалке будет использоваться термин "TLS", за исключением случаев, когда речь идет о устаревших протоколах.
 
-## Server Configuration
+## Конфигурация сервера
 
-### Only Support Strong Protocols
+### Поддерживайте только надежные протоколы
 
-General purpose web applications should default to **TLS 1.3** (support TLS 1.2 if necessary) with all other protocols disabled.
+Веб-приложения общего назначения должны по умолчанию использовать **TLS 1.3** (при необходимости поддерживать TLS 1.2), а все остальные протоколы должны быть отключены.
 
- In specific and uncommon situations where a web server is required to accommodate legacy clients that depend on outdated and unsecured browsers (like Internet Explorer 10), activating TLS 1.0 may be the only option. However, this approach should be exercised with caution and is generally not advised due to the security implications. Additionally, ["TLS_FALLBACK_SCSV" extension](https://tools.ietf.org/html/rfc7507) should be enabled in order to prevent downgrade attacks against newer clients.
+ В особых и необычных ситуациях, когда требуется веб-сервер для обслуживания устаревших клиентов, которые зависят от устаревших и незащищенных браузеров (например, Internet Explorer 10), активация TLS 1.0 может быть единственным вариантом. Однако к такому подходу следует подходить с осторожностью, и, как правило, он не рекомендуется из-за последствий для безопасности. Кроме того, [расширение "TLS_FALLBACK_SCSV"](https://tools.ietf.org/html/rfc7507) должно быть включено, чтобы предотвратить атаки с понижением версии для новых клиентов.
 
-Note that PCI DSS [forbids the use of legacy protocols such as TLS 1.0](https://www.pcisecuritystandards.org/documents/Migrating-from-SSL-Early-TLS-Info-Supp-v1_1.pdf).
+Обратите внимание, что PCI DSS [forbids the use of legacy protocols such as TLS 1.0](https://www.pcisecuritystandards.org/documents/Migrating-from-SSL-Early-TLS-Info-Supp-v1_1.pdf).
 
-### Only Support Strong Ciphers
+### Поддерживайте только надежные шифры
 
-There are a large number of different ciphers (or cipher suites) that are supported by TLS, that provide varying levels of security. Where possible, only GCM ciphers should be enabled. However, if it is necessary to support legacy clients, then other ciphers may be required. At a minimum, the following types of ciphers should always be disabled:
+Существует большое количество различных шифров (или наборов шифров), поддерживаемых протоколом TLS, которые обеспечивают различные уровни безопасности. По возможности, следует использовать только шифры GCM. Однако, если необходимо поддерживать устаревшие клиенты, могут потребоваться другие шифры. Как минимум, всегда следует отключать следующие типы шифров:
 
 - Null ciphers
 - Anonymous ciphers
 - EXPORT ciphers
 
-The Mozilla Foundation provides an [easy-to-use secure configuration generator](https://ssl-config.mozilla.org/) for web, database and mail servers. This tool allows site administrators to select the software they are using and receive a configuration file that is optimized to balance security and compatibility for a wide variety of browser versions and server software.
+Mozilla Foundation предоставляет [простой в использовании генератор защищенных конфигураций](https://ssl-config.mozilla.org/) для веб-серверов, серверов баз данных и почтовых серверов. Этот инструмент позволяет администраторам сайтов выбирать используемое программное обеспечение и получать файл конфигурации, оптимизированный для обеспечения баланса безопасности и совместимости с широким спектром версий браузеров и серверного программного обеспечения.
 
-### Set the appropriate Diffie-Hellman groups
+### Установите соответствующие группы Диффи-Хеллмана
 
-The practice of earlier than TLS 1.3 protocol versions of Diffie-Hellman parameter generation for use by the ephemeral Diffie-Hellman key exchange (signified by the "DHE" or "EDH" strings in the cipher suite name) had practical issues. For example, the client had no say in the selection of server parameters, meaning it could only unconditionally accept or drop, and the random parameter generation often resulted to denial of service attacks (CVE-2022-40735, CVE-2002-20001).
+Практика генерации параметров Диффи-Хеллмана в более ранних версиях протокола, чем TLS 1.3, для использования при обмене эфемерными ключами Диффи-Хеллмана (обозначаемыми строками "DHE" или "EDH" в названии набора шифров) имела практические проблемы. Например, клиент не имел права голоса при выборе параметров сервера, что означало, что он мог только безоговорочно принимать или отбрасывать их, а случайная генерация параметров часто приводила к атакам типа "отказ в обслуживании" (CVE-2022-40735, CVE-2002-20001).
 
-TLS 1.3 restricts Diffie-Hellman group parameters to known groups via the `supported_groups` extension. The available
-Diffie-Hellman groups are `ffdhe2048`, `ffdhe3072`, `ffdhe4096`, `ffdhe6144`, `ffdhe8192` as specified in [RFC7919](https://www.rfc-editor.org/rfc/rfc7919).
+TLS 1.3 ограничивает групповые параметры Диффи-Хеллмана известными группами с помощью расширения `supported_groups`. Доступные
+Группами Диффи-Хеллмана являются `ffdhe2048`, `ffdhe3072`, `ffdhe4096`, `ffdhe6144`, `ffdhe8192`, как указано в [RFC7919].(https://www.rfc-editor.org/rfc/rfc7919 ).
 
-By default openssl 3.0 enables all the above groups. To modify them ensure that the right Diffie-Hellman group parameters are present in `openssl.cnf`. For example
+По умолчанию openssl 3.0 поддерживает все вышеперечисленные группы. Чтобы изменить их, убедитесь, что в файле `openssl.cnf` присутствуют правильные параметры группы Диффи-Хеллмана. Например
 
 ```text
 openssl_conf = openssl_init
@@ -55,33 +55,33 @@ system_default = tls_system_default
 Groups = x25519:prime256v1:x448:ffdhe2048:ffdhe3072
 ```
 
-An apache configuration would look like
+Конфигурация apache будет выглядеть следующим образом
 
 ```text
 SSLOpenSSLConfCmd Groups x25519:secp256r1:ffdhe3072
 ```
 
-The same group on NGINX would look like the following
+Та же самая группа в NGINX выглядела бы следующим образом
 
 ```text
 ssl_ecdh_curve x25519:secp256r1:ffdhe3072;
 ```
 
-For TLS 1.2 or earlier versions it is recommended not to set Diffie-Hellman parameters.
+Для TLS 1.2 или более ранних версий рекомендуется не устанавливать параметры Диффи-Хеллмана.
 
-### Disable Compression
+### Отключите сжатие
 
-TLS compression should be disabled in order to protect against a vulnerability (nicknamed [CRIME](https://threatpost.com/crime-attack-uses-compression-ratio-tls-requests-side-channel-hijack-secure-sessions-091312/77006/)) which could potentially allow sensitive information such as session cookies to be recovered by an attacker.
+Сжатие TLS должно быть отключено для защиты от уязвимости (называемой [CRIME](https://threatpost.com/crime-attack-uses-compression-ratio-tls-requests-side-channel-hijack-secure-sessions-091312/77006/)), которая потенциально может позволить злоумышленнику восстановить конфиденциальную информацию, такую как файлы cookie сеанса.
 
-### Patch Cryptographic Libraries
+### Исправьте криптографические библиотеки
 
-As well as the vulnerabilities in the SSL and TLS protocols, there have also been a large number of historic vulnerability in SSL and TLS libraries, with [Heartbleed](http://heartbleed.com) being the most well known. As such, it is important to ensure that these libraries are kept up to date with the latest security patches.
+Помимо уязвимостей в протоколах SSL и TLS, существует также большое количество исторических уязвимостей в библиотеках SSL и TLS, наиболее известной из которых является [Heartbleed](http://heartbleed.com). Поэтому важно убедиться, что эти библиотеки постоянно обновляются с помощью последних исправлений безопасности.
 
-### Test the Server Configuration
+### Протестируйте конфигурацию сервера
 
-Once the server has been hardened, the configuration should be tested. The [OWASP Testing Guide chapter on SSL/TLS Testing](https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security) contains further information on testing.
+После того, как сервер будет настроен, следует протестировать конфигурацию. Дополнительная информация о тестировании содержится в главе [Руководство по тестированию OWASP, посвященной SSL/TLS Testing](https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security).
 
-There are a number of online tools that can be used to quickly validate the configuration of a server, including:
+Существует ряд онлайн-инструментов, которые можно использовать для быстрой проверки конфигурации сервера, в том числе:
 
 - [SSL Labs Server Test](https://www.ssllabs.com/ssltest)
 - [CryptCheck](https://cryptcheck.fr/)
@@ -92,7 +92,7 @@ There are a number of online tools that can be used to quickly validate the conf
 - [Stellastra](https://stellastra.com/tls-cipher-suite-check)
 - [OWASP PurpleTeam](https://purpleteam-labs.com/) `cloud`
 
-Additionally, there are a number of offline tools that can be used:
+Кроме того, существует ряд автономных инструментов, которые можно использовать:
 
 - [O-Saft - OWASP SSL advanced forensic tool](https://wiki.owasp.org/index.php/O-Saft)
 - [CipherScan](https://github.com/mozilla/cipherscan)
@@ -103,96 +103,96 @@ Additionally, there are a number of offline tools that can be used:
 - [tls-scan](https://github.com/prbinu/tls-scan)
 - [OWASP PurpleTeam](https://purpleteam-labs.com/) `local`
 
-## Certificates
+## Сертификаты
 
-### Use Strong Keys and Protect Them
+### Используйте надежные ключи и защищайте их
 
-The private key used to generate the cipher key must be sufficiently strong for the anticipated lifetime of the private key and corresponding certificate. The current best practice is to select a key size of at least 2048 bits. Additional information on key lifetimes and comparable key strengths can be found [here](http://www.keylength.com/en/compare/) and in [NIST SP 800-57](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-57pt1r5.pdf).
+Закрытый ключ, используемый для генерации ключа шифрования, должен быть достаточно надежным для обеспечения ожидаемого срока службы закрытого ключа и соответствующего сертификата. В настоящее время рекомендуется выбирать размер ключа не менее 2048 бит. Дополнительную информацию о сроках службы ключей и сопоставимых преимуществах можно найти [здесь] (http://www.keylength.com/en/compare/) и в [NIST SP 800-57](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-57pt1r5.pdf).
 
-The private key should also be protected from unauthorized access using filesystem permissions and other technical and administrative controls.
+Закрытый ключ также должен быть защищен от несанкционированного доступа с помощью разрешений файловой системы и других технических и административных средств контроля.
 
-### Use Strong Cryptographic Hashing Algorithms
+### Используйте надежные криптографические алгоритмы хэширования
 
-Certificates should use SHA-256 for the hashing algorithm, rather than the older MD5 and SHA-1 algorithms. These have a number of cryptographic weaknesses, and are not trusted by modern browsers.
+В сертификатах должен использоваться алгоритм хэширования SHA256, а не более старые алгоритмы MD5 и SHA-1. Они имеют ряд криптографических недостатков, и современные браузеры им не доверяют.
 
-### Use Correct Domain Names
+### Используйте правильные доменные имена
 
-The domain name (or subject) of the certificate must match the fully qualified name of the server that presents the certificate. Historically this was stored in the `commonName` (CN) attribute of the certificate. However, modern versions of Chrome ignore the CN attribute, and require that the FQDN is in the `subjectAlternativeName` (SAN) attribute. For compatibility reasons, certificates should have the primary FQDN in the CN, and the full list of FQDNs in the SAN.
+Доменное имя (или тема) сертификата должно совпадать с полным именем сервера, предоставляющего сертификат. Исторически это имя сохранялось в атрибуте сертификата `commonname` (CN). Однако современные версии Chrome игнорируют атрибут CN и требуют, чтобы полное доменное имя содержалось в атрибуте `subjectAlternativeName` (SAN). По соображениям совместимости сертификаты должны содержать основное полное доменное имя в CN и полный список полных доменных имен в SAN.
 
-Additionally, when creating the certificate, the following should be taken into account:
+Кроме того, при создании сертификата следует учитывать следующее:
 
-- Consider whether the "www" subdomain should also be included.
-- Do not include non-qualified hostnames.
-- Do not include IP addresses.
-- Do not include internal domain names on externally facing certificates.
-    - If a server is accessible using both internal and external FQDNs, configure it with multiple certificates.
+- Подумайте, следует ли также включать поддомен "www".
+- Не включайте имена хостов, не соответствующие требованиям.
+- Не включайте IP-адреса.
+- Не включайте внутренние доменные имена во внешние сертификаты.
+    - Если сервер доступен как с использованием внутреннего, так и с использованием внешнего полного доменного имени, настройте для него несколько сертификатов.
 
-### Carefully Consider the use of Wildcard Certificates
+### Внимательно относитесь к использованию групповых сертификатов
 
-Wildcard certificates can be convenient, however they violate [the principle of least privilege](https://wiki.owasp.org/index.php/Least_privilege), as a single certificate is valid for all subdomains of a domain (such as *.example.org). Where multiple systems are sharing a wildcard certificate, the likelihood that the private key for the certificate is compromised increases, as the key may be present on multiple systems. Additionally, the value of this key is significantly increased, making it a more attractive target for attackers.
+Групповые сертификаты могут быть удобными, однако они нарушают [принцип наименьших привилегий] (https://wiki.owasp.org/index.php/Least_privilege), поскольку один сертификат действителен для всех поддоменов домена (например, *.example.org). Если несколько систем используют общий сертификат wildcard, вероятность того, что закрытый ключ для сертификата будет скомпрометирован, возрастает, поскольку ключ может присутствовать в нескольких системах. Кроме того, ценность этого ключа значительно возрастает, что делает его более привлекательной целью для злоумышленников.
 
-The issues around the use of wildcard certificates are complicated, and there are [various](https://blog.sean-wright.com/wildcard-certs-not-quite-the-star/) other [discussions](https://gist.github.com/joepie91/7e5cad8c0726fd6a5e90360a754fc568) of them online.
+Вопросы, связанные с использованием групповых сертификатов, являются сложными, и в Интернете есть [различные](https://blog.sean-wright.com/wildcard-certs-not-quite-the-star/) другие [обсуждения](https://gist.github.com/joepie91/7e5cad8c0726fd6a5e90360a754fc568) по ним.
 
-When risk assessing the use of wildcard certificates, the following areas should be considered:
+При оценке рисков, связанных с использованием подстановочных сертификатов, следует учитывать следующие области:
 
-- Only use wildcard certificates where there is a genuine need, rather than for convenience.
-    - Consider the use of the [ACME](https://en.wikipedia.org/wiki/Automated_Certificate_Management_Environment) to allow systems to automatically request and update their own certificates instead.
-- Never use a wildcard certificates for systems at different trust levels.
-    - Two VPN gateways could use a shared wildcard certificate.
-    - Multiple instances of a web application could share a certificate.
-    - A VPN gateway and a public web server **should not** share a wildcard certificate.
-    - A public web server and an internal server **should not** share a wildcard certificate.
-- Consider the use of a reverse proxy server which performs TLS termination, so that the wildcard private key is only present on one system.
-- A list of all systems sharing a certificate should be maintained to allow them all to be updated if the certificate expires or is compromised.
-- Limit the scope of a wildcard certificate by issuing it for a subdomain (such as `*.foo.example.org`), or a for a separate domain.
+- Используйте подстановочные сертификаты только в тех случаях, когда в этом действительно есть необходимость, а не для удобства.
+    - Рассмотрите возможность использования [ACME](https://en.wikipedia.org/wiki/Automated_Certificate_Management_Environment), чтобы вместо этого позволить системам автоматически запрашивать и обновлять свои собственные сертификаты.
+- Никогда не используйте групповые сертификаты для систем с разными уровнями доверия.
+    - Два VPN-шлюза могут использовать общий wildcard сертификат.
+    - Несколько экземпляров веб-приложения могут совместно использовать сертификат.
+    - VPN-шлюз и общедоступный веб-сервер **не должны** совместно использовать групповой сертификат.
+    - Общедоступный веб-сервер и внутренний сервер **не должны** совместно использовать групповой сертификат.
+- Рассмотрите возможность использования обратного прокси-сервера, который выполняет завершение работы по протоколу TLS, чтобы закрытый ключ с подстановочным знаком присутствовал только в одной системе.
+- Следует вести список всех систем, совместно использующих сертификат, чтобы все они могли обновляться в случае истечения срока действия сертификата или его компрометации.
+- Ограничьте область действия группового сертификата, выдав его для поддомена (например, `*.foo.example.org`) или для отдельного домена.
 
-### Use an Appropriate Certification Authority for the Application's User Base
+### Используйте соответствующий центр сертификации для базы пользователей приложения
 
-In order to be trusted by users, certificates must be signed by a trusted certificate authority (CA). For Internet facing applications, this should be one of the CAs which are well-known and automatically trusted by operating systems and browsers.
+Чтобы пользователи могли доверять сертификатам, они должны быть подписаны надежным центром сертификации (CA). Для приложений, работающих с Интернетом, это должен быть один из хорошо известных центров сертификации, которым автоматически доверяют операционные системы и браузеры.
 
-The [LetsEncrypt](https://letsencrypt.org) CA provides free domain validated SSL certificates, which are trusted by all major browsers. As such, consider whether there are any benefits to purchasing a certificate from a CA.
+Центр сертификации [LetsEncrypt](https://letsencrypt.org) предоставляет бесплатные SSL-сертификаты, подтвержденные доменом, которым доверяют все основные браузеры. Поэтому подумайте, есть ли какие-либо преимущества в приобретении сертификата у центра сертификации.
 
-For internal applications, an internal CA can be used. This means that the FQDN of the certificate will not be exposed (either to an external CA, or publicly in certificate transparency lists). However, the certificate will only be trusted by users who have imported and trusted the internal CA certificate that was used to sign them.
+Для внутренних приложений можно использовать внутренний центр сертификации. Это означает, что полное доменное имя сертификата не будет доступно (ни внешнему центру сертификации, ни публично в списках прозрачности сертификатов). Однако сертификату будут доверять только те пользователи, которые импортировали внутренний сертификат центра сертификации, который использовался для их подписи, и которым они доверяют.
 
-### Use CAA Records to Restrict Which CAs can Issue Certificates
+### Используйте записи CAA, чтобы ограничить, какие центры сертификации могут выдавать сертификаты
 
-Certification Authority Authorization (CAA) DNS records can be used to define which CAs are permitted to issue certificates for a domain. The records contains a list of CAs, and any CA who is not included in that list should refuse to issue a certificate for the domain. This can help to prevent an attacker from obtaining unauthorized certificates for a domain through a less-reputable CA. Where it is applied to all subdomains, it can also be useful from an administrative perspective by limiting which CAs administrators or developers are able to use, and by preventing them from obtaining unauthorized wildcard certificates.
+Записи DNS центра сертификации (CAA) могут использоваться для определения того, какому классу разрешено выдавать сертификаты для домена. Записи содержат список центров сертификации, и любой центр сертификации, не включенный в этот список, должен отказать в выдаче сертификата для домена. Это может помочь предотвратить получение злоумышленником несанкционированных сертификатов для домена через центр сертификации с низкой репутацией. Если он применяется ко всем поддоменам, он также может быть полезен с административной точки зрения, ограничивая доступ администраторов центров сертификации или разработчиков к ним и предотвращая получение ими несанкционированных групповых сертификатов.
 
-### Consider the Certificate’s Validation Type
+### Учитывайте тип проверки сертификата
 
-Certificates come in different types of validation. Validation is the process the Certificate Authority (CA) uses to make sure you are allowed to have the certificate. This is authorization. The [CA/Browser Forum](https://cabforum.org/working-groups/server/baseline-requirements/documents/) is an organization made of CA and browser vendors, as well as others with an interest in web security. They set the rules which CAs must follow based on the validation type. The base validation is called Domain Validated (DV). All publicly issued certificates must be domain validated. This process involves practical proof of control of the name or endpoint requested in the certificate. This usually involves a challenge and response in DNS, to an official email address, or to the endpoint that will get the certificate.
+Сертификаты могут быть проверены по-разному. Проверка - это процесс, который Центр сертификации (CA) использует, чтобы убедиться, что вам разрешено иметь сертификат. Это авторизация. Форум [CA/Browser Forum](https://cabforum.org/working-groups/server/baseline-requirements/documents/) - это организация, объединяющая центры сертификации и поставщиков браузеров, а также других лиц, заинтересованных в веб-безопасности. Они устанавливают правила, которым должны следовать центры сертификации в зависимости от типа проверки. Базовая проверка называется проверкой домена (DV). Все общедоступные сертификаты должны быть подтверждены доменом. Этот процесс предполагает практическое подтверждение контроля над именем или конечной точкой, запрошенными в сертификате. Обычно это включает запрос и ответ в DNS, на официальный адрес электронной почты или на конечную точку, которая получит сертификат.
 
-Organization Validated (OV) certificates include the requestor’s organization information in the certificates subject. E.g. C = GB, ST = Manchester, **O = Sectigo Limited**, CN = sectigo.com. The process to acquire an OV certificate requires official contact with the requesting company via a method that proves to the CA that they are truly talking to the right company.
+Сертификаты, подтвержденные организацией (OV), содержат информацию об организации заявителя в теме сертификата. Например, C = Великобритания, ST = Манчестер, **O = Section Limited**, CN = sectigo.com. Процесс получения сертификата OV требует официального контакта с запрашивающей компанией с помощью метода, который доказывает центру сертификации, что они действительно обращаются к нужной компании.
 
-Extended validation (EV) certificates provide an even higher level of verification as well as all the DV and OV verifications. This can effectively be viewed as the difference between "This site is really run by Example Company Inc." vs "This domain is really example.org". [Latest Extended Validation Guidelines](https://cabforum.org/working-groups/server/extended-validation/guidelines/)
+Сертификаты расширенной валидации (EV) обеспечивают еще более высокий уровень проверки, а также все проверки DV и OV. Это можно рассматривать как разницу между "Этот сайт действительно принадлежит Example Company Inc." и "Этот домен действительно принадлежит example.org". [Последние расширенные рекомендации по валидации](https://cabforum.org/working-groups/server/extended-validation/guidelines/)
 
-Historically these displayed differently in the browser, often showing the company name or a green icon or background in the address bar. However, as of 2019 no major browser shows EV status like this as they do not believe that EV certificates provide any additional protection. ([Chromium](https://groups.google.com/a/chromium.org/forum/m/#!msg/security-dev/h1bTcoTpfeI/jUTk1z7VAAAJ) Covering Chrome, Edge, Brave, and Opera. [Firefox](https://groups.google.com/forum/m/?fromgroups&hl=en#!topic/firefox-dev/6wAg_PpnlY4) [Safari](https://cabforum.org/2018/06/06/minutes-of-the-f2f-44-meeting-in-london-england-6-7-june-2018/#apple-root-program-update))
+Исторически они отображались в браузере по-разному, часто с указанием названия компании или зеленого значка или фона в адресной строке. Однако с 2019 года ни один крупный браузер не отображает статус EV подобным образом, поскольку они не верят, что сертификаты EV обеспечивают какую-либо дополнительную защиту. ([Chromium](https://groups.google.com/a/chromium.org/forum/m/#!msg/security-dev/h1bTcoTpfeI/jUTk1z7VAAAJ ), охватывающий Chrome, Edge, Brave и Opera. [Firefox](https://groups.google.com/forum/m/?fromgroups&hl=en#!тема/firefox-dev/6wAg_PpnlY4) [Safari](https://cabforum.org/2018/06/06/minutes-of-the-f2f-44-meeting-in-london-england-6-7-june-2018/#apple-root-program-update))
 
-As all browsers and TLS stacks are unaware of the difference between DV, OV, and EV certificates, they are effectively the same in terms of security. An attacker only needs to reach the level of practical control of the domain to get a rogue certificate.  The extra work for an attacker to get an OV or EV certificate in no way increases the scope of an incident. In fact, those actions would likely mean detection. The additional pain in getting OV and EV certificates may create an availability risk and their use should be reviewed with this in mind.
+Поскольку все браузеры и стеки TLS не знают о различиях между сертификатами DV, OV и EV, с точки зрения безопасности они практически одинаковы. Злоумышленнику достаточно достичь уровня практического контроля над доменом, чтобы получить поддельный сертификат.  Дополнительные усилия злоумышленника по получению сертификата OV или EV никоим образом не увеличивают масштаб инцидента. На самом деле, эти действия, скорее всего, будут означать обнаружение. Дополнительные трудности с получением сертификатов OV и EV могут создать угрозу доступности, и их использование следует пересмотреть с учетом этого.
 
-## Application
+## Приложение
 
-### Use TLS For All Pages
+### Используйте TLS Для Всех Страниц
 
-TLS should be used for all pages, not just those that are considered sensitive such as the login page. If there are any pages that do not enforce the use of TLS, these could give an attacker an opportunity to sniff sensitive information such as session tokens, or to inject malicious JavaScript into the responses to carry out other attacks against the user.
+TLS следует использовать для всех страниц, а не только для тех, которые считаются конфиденциальными, таких как страница входа в систему. Если есть какие-либо страницы, которые не поддерживают принудительное использование TLS, это может дать злоумышленнику возможность перехватить конфиденциальную информацию, такую как токены сеанса, или внедрить вредоносный JavaScript в ответы для проведения других атак против пользователя.
 
-For public facing applications, it may be appropriate to have the web server listening for unencrypted HTTP connections on port 80, and then immediately redirecting them with a permanent redirect (HTTP 301) in order to provide a better experience to users who manually type in the domain name. This should then be supported with the [HTTP Strict Transport Security (HSTS)](#use-http-strict-transport-security) header to prevent them accessing the site over HTTP in the future.
+Для общедоступных приложений может оказаться целесообразным, чтобы веб-сервер прослушивал незашифрованные HTTP-соединения через порт 80, а затем немедленно перенаправлял их с помощью постоянной переадресации (HTTP 301), чтобы обеспечить лучший опыт для пользователей, которые вручную вводят доменное имя. Затем это должно быть поддержано заголовком [HTTP Strict Transport Security (HSTS)](#use-http-strict-transport-security), чтобы предотвратить доступ к сайту через HTTP в будущем.
 
-API-only endpoints should disable HTTP altogether and only support encrypted connections. When that is not possible, API endpoints should fail requests made over unencrypted HTTP connections instead of redirecting them.
+Конечные точки, работающие только с API, должны полностью отключать HTTP и поддерживать только зашифрованные соединения. Если это невозможно, конечные точки API должны отклонять запросы, отправленные по незашифрованным HTTP-соединениям, а не перенаправлять их.
 
-### Do Not Mix TLS and Non-TLS Content
+### Не смешивайте TLS- и не-TLS-контент
 
-A page that is available over TLS should not include any resources (such as JavaScript or CSS) files which are loaded over unencrypted HTTP. These unencrypted resources could allow an attacker to sniff session cookies or inject malicious code into the page. Modern browsers will also block attempts to load active content over unencrypted HTTP into secure pages.
+Страница, доступная по протоколу TLS, не должна содержать никаких ресурсов (таких как файлы JavaScript или CSS), которые загружаются по незашифрованному протоколу HTTP. Эти незашифрованные ресурсы могут позволить злоумышленнику перехватить сеансовые файлы cookie или внедрить вредоносный код на страницу. Современные браузеры также блокируют попытки загрузки активного контента по незашифрованному протоколу HTTP на защищенные страницы.
 
-### Use the "Secure" Cookie Flag
+### Используйте флаг "Secure" для Cookie 
 
-All cookies should be marked with the "[Secure](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#Secure_and_HttpOnly_cookies)" attribute, which instructs the browser to only send them over encrypted HTTPS connections, in order to prevent them from being sniffed from an unencrypted HTTP connection. This is important even if the website does not listen on HTTP (port 80), as an attacker performing an active man in the middle attack could present a spoofed web server on port 80 to the user in order to steal their cookie.
+Все файлы cookie должны быть помечены атрибутом "[Secure](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#Secure_and_HttpOnly_cookies)", который предписывает браузеру отправлять их только по зашифрованным HTTPS-соединениям, чтобы предотвратить их перехват по незашифрованному HTTP-соединению. Это важно, даже если веб-сайт не прослушивает HTTP (порт 80), поскольку злоумышленник, выполняющий атаку active man in the middle, может предоставить пользователю поддельный веб-сервер на порту 80, чтобы украсть его cookie.
 
-### Prevent Caching of Sensitive Data
+### Предотвращение кэширования конфиденциальных данных
 
-Although TLS provides protection of data while it is in transit, it does not provide any protection for data once it has reached the requesting system. As such, this information may be stored in the cache of the user's browser, or by any intercepting proxies which are configured to perform TLS decryption.
+Хотя протокол TLS обеспечивает защиту данных во время их передачи, он не обеспечивает никакой защиты данных после того, как они попали в запрашивающую систему. Таким образом, эта информация может храниться в кэше браузера пользователя или любыми перехватывающими прокси-серверами, которые настроены для выполнения расшифровки TLS.
 
-Where sensitive data is returned in responses, HTTP headers should be used to instruct the browser and any proxy servers not to cache the information, in order to prevent it being stored or returned to other users. This can be achieved by setting the following HTTP headers in the response:
+Если в ответах возвращаются конфиденциальные данные, следует использовать HTTP-заголовки, чтобы дать указание браузеру и любым прокси-серверам не кэшировать информацию, чтобы предотвратить ее сохранение или возврат другим пользователям. Этого можно достичь, установив в ответе следующие HTTP-заголовки:
 
 ```text
 Cache-Control: no-cache, no-store, must-revalidate
@@ -200,38 +200,38 @@ Pragma: no-cache
 Expires: 0
 ```
 
-### Use HTTP Strict Transport Security
+### Используйте HTTP Strict Transport Security
 
-HTTP Strict Transport Security (HSTS) instructs the user's browser to always request the site over HTTPS, and also prevents the user from bypassing certificate warnings. See the [HTTP Strict Transport Security Cheat Sheet](HTTP_Strict_Transport_Security_Cheat_Sheet.md) for further information on implementing HSTS.
+HTTP Strict Transport Security (HSTS) предписывает браузеру пользователя всегда запрашивать сайт по протоколу HTTPS, а также не позволяет пользователю обходить предупреждения сертификата. Дополнительную информацию о внедрении HSTS смотрите в [Руководстве по строгой транспортной безопасности HTTP Strict Transport Security](HTTP_Strict_Transport_Security_Cheat_Sheet.md).
 
-### Client Certificates and Mutual TLS
+### Клиентские сертификаты и взаимные TLS
 
-In a typical TLS configuration, a certificate on the server allows the client to verify the server's identity and provides an encrypted connection between them. However, this approach has two main weaknesses:
+В типичной конфигурации TLS сертификат на сервере позволяет клиенту проверить подлинность сервера и обеспечивает зашифрованное соединение между ними. Однако у этого подхода есть два основных недостатка:
 
-- The server lacks a mechanism to verify the client's identity.
-- An attacker, obtaining a valid certificate for the domain, can intercept the connection. This interception is often used by businesses to inspect TLS traffic, by installing a trusted CA certificate on their client systems.
+- На сервере отсутствует механизм проверки личности клиента.
+- Злоумышленник, получив действительный сертификат для домена, может перехватить соединение. Этот перехват часто используется предприятиями для проверки трафика TLS путем установки сертификата доверенного центра сертификации в своих клиентских системах.
 
-Client certificates, central to mutual TLS (mTLS), address these issues. In mTLS, both the client and server authenticate each other using TLS. The client proves their identity to the server with their own certificate. This not only enables strong authentication of the client but also prevents an intermediate party from decrypting TLS traffic, even if they have a trusted CA certificate on the client system.
+Клиентские сертификаты, являющиеся основой mutual TLS (mTLS), решают эти проблемы. В mTLS клиент и сервер аутентифицируют друг друга с помощью TLS. Клиент подтверждает свою личность серверу с помощью своего собственного сертификата. Это не только обеспечивает надежную аутентификацию клиента, но и предотвращает расшифровку трафика TLS промежуточной стороной, даже если у нее есть сертификат доверенного центра сертификации в клиентской системе.
 
-Challenges and Considerations
+Проблемы и соображения
 
-Client certificates are rarely used in public systems due to several challenges:
+Клиентские сертификаты редко используются в общедоступных системах из-за ряда проблем:
 
-- Issuing and managing client certificates involves significant administrative overhead.
-- Non-technical users may find installing client certificates difficult.
-- Organizations' TLS decryption practices can cause client certificate authentication, a key component of mTLS, to fail.
+- Выдача клиентских сертификатов и управление ими сопряжены со значительными административными затратами.
+- Пользователям, не обладающим техническими знаниями, может быть сложно установить клиентские сертификаты.
+- Методы расшифровки TLS в организациях могут привести к сбою проверки подлинности клиентских сертификатов, ключевого компонента mTLS.
 
-Despite these challenges, client certificates and mTLS should be considered for high-value applications or APIs, particularly where users are technically sophisticated or part of the same organization.
+Несмотря на эти проблемы, клиентские сертификаты и tls следует использовать для создания высокопроизводительных приложений или API-интерфейсов, особенно там, где пользователи технически продвинуты или являются частью одной организации.
 
-### Public Key Pinning
+### Закрепление открытого ключа
 
-Public key pinning can be used to provides assurance that the server's certificate is not only valid and trusted, but also that it matches the certificate expected for the server. This provides protection against an attacker who is able to obtain a valid certificate, either by exploiting a weakness in the validation process, compromising a trusted certificate authority, or having administrative access to the client.
+Закрепление открытого ключа может быть использовано для обеспечения гарантии того, что сертификат сервера не только действителен и является надежным, но и соответствует сертификату, ожидаемому для сервера. Это обеспечивает защиту от злоумышленника, который может получить действительный сертификат, воспользовавшись уязвимостью в процессе проверки, скомпрометировав доверенный центр сертификации или получив административный доступ к клиенту.
 
-Public key pinning was added to browsers in the HTTP Public Key Pinning (HPKP) standard. However, due to a number of issues, it has subsequently been deprecated and is no longer recommended or [supported by modern browsers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Public-Key-Pins).
+Привязка открытого ключа была добавлена в браузеры в соответствии со стандартом HTTP Public Key Pinning (HPKP). Однако из-за ряда проблем она впоследствии была признана устаревшей и больше не рекомендуется и [не поддерживается современными браузерами](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Public-Key-Pins).
 
-However, public key pinning can still provide security benefits for mobile applications, thick clients and server-to-server communication. This is discussed in further detail in the [Pinning Cheat Sheet](Pinning_Cheat_Sheet.md).
+Однако закрепление открытого ключа по-прежнему может обеспечить преимущества в плане безопасности для мобильных приложений, "полных" клиентов и взаимодействия между серверами. Более подробно это обсуждается в [Инструкции по закреплению](Pinning_Cheat_Sheet.md).
 
-## Related Articles
+## Статьи по теме
 
 - OWASP - [Testing for Weak TLS](https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security)
 - OWASP - [Application Security Verification Standard (ASVS) - Communication Security Verification Requirements (V9)](https://github.com/OWASP/ASVS/blob/v4.0.1/4.0/en/0x17-V9-Communications.md)
