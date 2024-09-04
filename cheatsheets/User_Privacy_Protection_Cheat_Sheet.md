@@ -1,18 +1,18 @@
-# User Privacy Protection Cheat Sheet
+# Шпаргалка по защите конфиденциальности пользователей
 
-## Introduction
+## Вступление
 
-This OWASP Cheat Sheet introduces mitigation methods that web developers may utilize in order to protect their users from a vast array of potential threats and aggressions that might try to undermine their privacy and anonymity. This cheat sheet focuses on privacy and anonymity threats that users might face by using online services, especially in contexts such as social networking and communication platforms.
+В этой шпаргалке OWASP представлены методы смягчения последствий, которые веб-разработчики могут использовать для защиты своих пользователей от широкого спектра потенциальных угроз и агрессивных действий, которые могут нарушить их конфиденциальность и анонимность. Эта шпаргалка посвящена угрозам конфиденциальности и анонимности, с которыми пользователи могут столкнуться при использовании онлайн-сервисов, особенно в таких контекстах, как социальные сети и коммуникационные платформы.
 
-## Guidelines
+## Методические рекомендации
 
-### Strong Cryptography
+### Надежная криптография
 
-Any online platform that handles user identities, private information or communications must be secured with the use of strong cryptography. User communications must be encrypted in transit and storage. User secrets such as passwords must also be protected using strong, collision-resistant hashing algorithms with increasing work factors, in order to greatly mitigate the risks of exposed credentials as well as proper integrity control.
+Любая онлайн-платформа, которая обрабатывает идентификационные данные пользователей, личную информацию или коммуникации, должна быть защищена с использованием надежной криптографии. Сообщения пользователей должны быть зашифрованы при передаче и хранении. Пользовательские секреты, такие как пароли, также должны быть защищены с помощью надежных алгоритмов хэширования, устойчивых к коллизиям, с увеличивающимися рабочими факторами, чтобы значительно снизить риски раскрытия учетных данных, а также обеспечить надлежащий контроль целостности.
 
-To protect data in transit, developers must use and adhere to TLS/SSL best practices such as verified certificates, adequately protected private keys, usage of strong ciphers only, informative and clear warnings to users, as well as sufficient key lengths. Private data must be encrypted in storage using keys with sufficient lengths and under strict access conditions, both technical and procedural. User credentials must be hashed regardless of whether or not they are encrypted in storage.
+Для защиты передаваемых данных разработчики должны использовать и соблюдать рекомендации TLS/SSL, такие как проверенные сертификаты, надлежащим образом защищенные закрытые ключи, использование только надежных шифров, информативные и четкие предупреждения для пользователей, а также достаточную длину ключей. Личные данные должны быть зашифрованы в хранилище с использованием ключей достаточной длины и при соблюдении строгих условий доступа, как технических, так и процедурных. Учетные данные пользователя должны быть хэшированы независимо от того, зашифрованы они в хранилище или нет.
 
-For detailed guides about strong cryptography and best practices, read the following OWASP references:
+Для получения подробных руководств по надежной криптографии и рекомендациям ознакомьтесь со следующими ссылками на OWASP:
 
 1. [Cryptographic Storage Cheat Sheet](Cryptographic_Storage_Cheat_Sheet.md).
 2. [Authentication Cheat Sheet](Authentication_Cheat_Sheet.md).
@@ -20,98 +20,98 @@ For detailed guides about strong cryptography and best practices, read the follo
 4. [Guide to Cryptography](https://wiki.owasp.org/index.php/Guide_to_Cryptography).
 5. [Testing for TLS/SSL](https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_SSL_TLS_Ciphers_Insufficient_Transport_Layer_Protection.html).
 
-### Support HTTP Strict Transport Security
+### Поддержка HTTP Strict Transport Security
 
-HTTP Strict Transport Security (HSTS) is an HTTP header set by the server indicating to the user agent that only secure (HTTPS) connections are accepted, prompting the user agent to change all insecure HTTP links to HTTPS, and forcing the compliant user agent to fail-safe by refusing any TLS/SSL connection that is not trusted by the user.
+HTTP Strict Transport Security (HSTS) - это HTTP-заголовок, устанавливаемый сервером, указывающий агенту пользователя, что принимаются только безопасные (HTTPS) соединения, побуждающий агента пользователя изменить все небезопасные HTTP-ссылки на HTTPS и заставляющий совместимый пользовательский агент выполнять отказоустойчивую работу, отказывая в любом TLS/SSL-соединении этому пользователь не доверяет.
 
-HSTS has average support on popular user agents, such as Mozilla Firefox and Google Chrome. Nevertheless, it remains very useful for users who are in consistent fear of spying and Man in the Middle Attacks.
+HSTS имеет среднюю поддержку в популярных пользовательских агентах, таких как Mozilla Firefox и Google Chrome. Тем не менее, он остается очень полезным для пользователей, которые постоянно опасаются шпионажа и атак "Человек посередине".
 
-If it is impractical to force HSTS on all users, web developers should at least give users the choice to enable it if they wish to make use of it.
+Если нецелесообразно навязывать HATS всем пользователям, веб-разработчики должны, по крайней мере, предоставить пользователям возможность включить его, если они хотят им воспользоваться.
 
-For more details regarding HSTS, please visit:
+Для получения более подробной информации о HSTS, пожалуйста, посетите:
 
 1. [HTTP Strict Transport Security in Wikipedia](https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security).
 2. [IETF for HSTS RFC](https://tools.ietf.org/html/rfc6797).
 3. [OWASP Appsec Tutorial Series - Episode 4: Strict Transport Security](http://www.youtube.com/watch?v=zEV3HOuM_Vw).
 
-### Digital Certificate Pinning
+### Закрепление цифрового сертификата
 
-Certificate Pinning is the practice of hardcoding or storing a predefined set of information (usually hashes) for digital certificates/public keys in the user agent (be it web browser, mobile app or browser plugin) such that only the predefined certificates/public keys are used for secure communication, and all others will fail, even if the user trusted (implicitly or explicitly) the other certificates/public keys.
+Закрепление сертификата - это практика жесткого кодирования или хранения предопределенного набора информации (обычно хэшей) для цифровых сертификатов/открытых ключей в пользовательском агенте (будь то веб-браузер, мобильное приложение или плагин для браузера) таким образом, что для безопасного обмена данными используются только предопределенные сертификаты/открытые ключи, а все остальные не работают, даже если пользователь доверял (неявно или явно) другим сертификатам/открытым ключам.
 
-Some advantages for pinning are:
+Некоторые преимущества закрепления заключаются в следующем:
 
-- In the event of a CA compromise, in which a compromised CA trusted by a user can issue certificates for any domain, allowing evil perpetrators to eavesdrop on users.
-- In environments where users are forced to accept a potentially-malicious root CA, such as corporate environments or national PKI schemes.
-- In applications where the target demographic may not understand certificate warnings, and is likely to just allow any invalid certificate.
+- В случае компрометации ЦС, при которой скомпрометированный ЦС, которому доверяет пользователь, может выдавать сертификаты для любого домена, позволяя злоумышленникам подслушивать пользователей.
+- В средах, где пользователи вынуждены соглашаться с потенциально вредоносным корневым ЦС, таких как корпоративные среды или национальные схемы PKI.
+- В приложениях, где целевая аудитория может не понимать предупреждений о сертификатах и, скорее всего, просто разрешит использование любого недействительного сертификата.
 
-For details regarding certificate pinning, please refer to the following:
+Для получения подробной информации о закреплении сертификата, пожалуйста, обратитесь к следующему:
 
 1. [OWASP Certificate Pinning Cheat Sheet](Pinning_Cheat_Sheet.md).
 2. [Public Key Pinning Extension for HTTP RFC](https://tools.ietf.org/html/rfc7469).
 3. [Securing the SSL channel against man-in-the-middle attacks: Future technologies - HTTP Strict Transport Security and Pinning of Certs, by Tobias Gondrom](https://owasp.org/www-pdf-archive/OWASP_defending-MITMA_APAC2012.pdf).
 
-### Panic Modes
+### Режимы паники
 
-A panic mode is a mode that threatened users can refer to when they fall under direct threat to disclose account credentials.
+Режим паники - это режим, в который могут обращаться пользователи, которым угрожает опасность, когда они подвергаются прямой угрозе раскрыть учетные данные учетной записи.
 
-Giving users the ability to create a panic mode can help them survive these threats, especially in tumultuous regions around the world. Unfortunately many users around the world are subject to types of threats that most web developers do not know of or take into account.
+Предоставление пользователям возможности создавать режим паники может помочь им справиться с этими угрозами, особенно в неспокойных регионах по всему миру. К сожалению, многие пользователи по всему миру подвержены типам угроз, о которых большинство веб-разработчиков не знают или не принимают во внимание.
 
-Examples of panic modes are modes where distressed users can delete their data upon threat, log into fake inboxes/accounts/systems, or invoke triggers to backup/upload/hide sensitive data.
+Примерами аварийных режимов являются режимы, в которых пользователи, попавшие в беду, могут удалять свои данные в случае угрозы, входить в поддельные почтовые ящики / учетные записи / системы или запускать триггеры для резервного копирования / загрузки / скрытия конфиденциальных данных.
 
-The appropriate panic mode to implement differs depending on the application type. A disk encryption software such as VeraCrypt might implement a panic mode that starts up a fake system partition if the user entered their distressed password.
+Подходящий для реализации аварийный режим зависит от типа приложения. Программное обеспечение для шифрования диска, такое как VeraCrypt, может реализовать режим паники, который запускает поддельный системный раздел, если пользователь ввел свой неверный пароль.
 
-Email providers might implement a panic mode that hides predefined sensitive emails or contacts, allowing reading innocent email messages only, usually as defined by the user, while preventing the panic mode from overtaking the actual account.
+Поставщики услуг электронной почты могут внедрить режим паники, который скрывает предопределенные конфиденциальные электронные письма или контакты, позволяя читать только невинные сообщения электронной почты, как правило, в соответствии с указаниями пользователя, и не допуская, чтобы режим паники распространялся на реальную учетную запись.
 
-An important note about panic modes is that they must not be easily discoverable, if at all. An adversary inside a victim's panic mode must not have any way, or as few possibilities as possible, of finding out the truth. This means that once inside a panic mode, most non-sensitive normal operations must be allowed to continue (such as sending or receiving email), and that further panic modes must be possible to create from inside the original panic mode (If the adversary tried to create a panic mode on a victim's panic mode and failed, the adversary would know they were already inside a panic mode, and might attempt to hurt the victim).
+Важное замечание о режимах паники заключается в том, что их не должно быть легко обнаружить, если вообще возможно. Противник, находящийся в режиме паники жертвы, не должен иметь никакого способа или как можно меньше возможностей узнать правду. Это означает, что после перехода в режим паники необходимо разрешить выполнение большинства обычных операций, не требующих особого внимания (например, отправка или получение электронной почты), и что дополнительные режимы паники можно создавать из исходного режима паники (если злоумышленник пытался создать режим паники на основе паники жертвы режиме и потерпел неудачу, противник понял бы, что он уже находится в состоянии паники, и мог бы попытаться причинить вред жертве).
 
-Another solution would be to prevent panic modes from being generated from the user account, and instead making it a bit harder to spoof by adversaries. For example it could be only created Out Of Band, and adversaries must have no way to know a panic mode already exists for that particular account.
+Другим решением было бы запретить создание режима паники из учетной записи пользователя, что немного усложнило бы его подделку злоумышленниками. Например, он может быть создан только вне зоны доступа, и у злоумышленников не должно быть возможности узнать, что режим паники уже существует для этой конкретной учетной записи.
 
-The implementation of a panic mode must always aim to confuse adversaries and prevent them from reaching the actual accounts/sensitive data of the victim, as well as prevent the discovery of any existing panic modes for a particular account.
+Внедрение режима паники всегда должно быть направлено на то, чтобы сбить с толку злоумышленников и помешать им получить доступ к фактическим учетным записям/конфиденциальным данным жертвы, а также предотвратить обнаружение любых существующих режимов паники для конкретной учетной записи.
 
-For more details regarding VeraCrypt's hidden operating system mode, please refer to:
+Для получения более подробной информации о скрытом режиме операционной системы VeraCrypt, пожалуйста, обратитесь к:
 
 - [VeraCrypt Hidden Operating System](https://www.veracrypt.fr/en/Hidden%20Operating%20System.html).
 
-### Remote Session Invalidation
+### Аннулирование удаленного сеанса
 
-In case user equipment is lost, stolen or confiscated, or under suspicion of cookie theft; it might be very beneficial for users to able to see view their current online sessions and disconnect/invalidate any suspicious lingering sessions, especially ones that belong to stolen or confiscated devices. Remote session invalidation can also helps if a user suspects that their session details were stolen in a Man-in-the-Middle attack.
+В случае утери, кражи или конфискации пользовательского оборудования или при подозрении на кражу файлов cookie пользователям может быть очень полезно иметь возможность просматривать свои текущие онлайн-сеансы и отключать / аннулировать любые подозрительные длительные сеансы, особенно те, которые относятся к украденным или конфискованным устройствам. Удаленное аннулирование сеанса также может помочь, если пользователь подозревает, что данные его сеанса были украдены в результате атаки "Человек посередине".
 
-For details regarding session management, please refer to:
+Для получения более подробной информации об управлении сеансом, пожалуйста, обратитесь к:
 
 - [OWASP Session Management Cheat Sheet](Session_Management_Cheat_Sheet.md).
 
-### Allow Connections from Anonymity Networks
+### Разрешать подключения из анонимных сетей
 
-Anonymity networks, such as the Tor Project, give users in tumultuous regions around the world a golden chance to escape surveillance, access information or break censorship barriers. More often than not, activists in troubled regions use such networks to report injustice or send uncensored information to the rest of the world, especially mediums such as social networks, media streaming websites and email providers.
+Сети анонимности, такие как проект Tor, предоставляют пользователям в неспокойных регионах по всему миру прекрасную возможность избежать слежки, получить доступ к информации или преодолеть цензурные барьеры. Чаще всего активисты в проблемных регионах используют такие сети, чтобы сообщать о несправедливости или отправлять неподцензурную информацию остальному миру, особенно через такие средства массовой информации, как социальные сети, веб-сайты для потоковой передачи МЕДИА и поставщики электронной почты.
 
-Web developers and network administrators must pursue every avenue to enable users to access services from behind such networks, and any policy made against such anonymity networks need to be carefully re-evaluated with respect to impact on people around the world.
+Веб-разработчики и сетевые администраторы должны использовать все возможности, чтобы пользователи могли получать доступ к сервисам из-за таких сетей, и любая политика, направленная против таких сетей анонимности, должна быть тщательно пересмотрена с точки зрения воздействия на людей по всему миру.
 
-If possible, application developers should try to integrate or enable easy coupling of their applications with these anonymity networks, such as supporting SOCKS proxies or integration libraries (e.g. OnionKit for Android).
+Если возможно, разработчикам приложений следует попытаться интегрировать свои приложения с этими сетями анонимности или обеспечить их простое взаимодействие с ними, например, с помощью поддержки SOCKS-прокси или библиотек интеграции (например, OnionKit для Android).
 
-For more information about anonymity networks, and the user protections they provide, please refer to:
+Для получения дополнительной информации о сетях анонимности и средствах защиты пользователей, которые они предоставляют, пожалуйста, обратитесь к:
 
 1. [The Tor Project](https://www.torproject.org).
 2. [I2P Network](http://www.i2p2.de).
 3. [OnionKit: Boost Network Security and Encryption in your Android Apps](https://github.com/guardianproject/OnionKit).
 
-### Prevent IP Address Leakage
+### Предотвращение утечки IP-адреса
 
-Preventing leakage of user IP addresses is of great significance when user protection is in scope. Any application that hosts external third-party content, such as avatars, signatures or photo attachments; must take into account the benefits of allowing users to block third-party content from being loaded in the application page.
+Предотвращение утечки IP-адресов пользователей имеет большое значение, когда речь идет о защите пользователей. Любое приложение, в котором размещается внешний контент третьих лиц, такой как аватары, подписи или вложенные фотографии, должно учитывать преимущества, которые дает возможность пользователям блокировать загрузку стороннего контента на странице приложения.
 
-If it was possible to embed 3rd-party, external domain images, for example, in a user's feed or timeline; an adversary might use it to discover a victim's real IP address by hosting it on his domain and watch for HTTP requests for that image.
+Если бы было возможно встроить сторонние изображения из внешнего домена, например, в ленту или временную шкалу пользователя, злоумышленник мог бы использовать это, чтобы узнать реальный IP-адрес жертвы, разместив его в своем домене, и отслеживать HTTP-запросы для этого изображения.
 
-Many web applications need user content to operate, and this is completely acceptable as a business process; however web developers are advised to consider giving users the option of blocking external content as a precaution. This applies mainly to social networks and forums, but can also apply to web-based e-mail, where images can be embedded in HTML-formatted emails.
+Многим веб-приложениям для работы требуется пользовательский контент, и это вполне приемлемо в качестве бизнес-процесса; однако веб-разработчикам рекомендуется рассмотреть возможность предоставления пользователям возможности блокировать внешний контент в качестве меры предосторожности. Это относится в основном к социальным сетям и форумам, но также может быть применимо к электронной почте в Интернете, где изображения могут быть встроены в электронные письма в формате HTML.
 
-A similar issue exists in HTML-formatted emails that contain third-party images, however most email clients and providers block loading of third-party content by default; giving users better privacy and anonymity protection.
+Аналогичная проблема существует в электронных письмах в формате HTML, содержащих изображения сторонних производителей, однако большинство почтовых клиентов и провайдеров по умолчанию блокируют загрузку стороннего контента, обеспечивая пользователям лучшую защиту конфиденциальности и анонимности.
 
-### Honesty & Transparency
+### Честность и прозрачность
 
-If the web application cannot provide enough legal or political protections to the user, or if the web application cannot prevent misuse or disclosure of sensitive information such as logs, the truth must be told to the users in a clear understandable form, so that users can make an educated choice about whether or not they should use that particular service.
+Если веб-приложение не может обеспечить достаточную юридическую или политическую защиту пользователя, или если веб-приложение не может предотвратить неправильное использование или раскрытие конфиденциальной информации, такой как логи, пользователям должна быть сообщена правда в ясной и понятной форме, чтобы пользователи могли сделать осознанный выбор относительно того, следует ли им это делать. воспользуйтесь именно этой услугой.
 
-If it doesn't violate the law, inform users if their information is being requested for removal or investigation by external entities.
+Если это не нарушает закон, сообщите пользователям, запрашивается ли их информация для удаления или расследования внешними организациями.
 
-Honesty goes a long way towards cultivating a culture of trust between a web application and its users, and it allows many users around the world to weigh their options carefully, preventing harm to users in various contrasting regions around the world.
+Честность во многом способствует развитию культуры доверия между веб-приложением и его пользователями, и это позволяет многим пользователям по всему миру тщательно взвешивать свои варианты, предотвращая причинение вреда пользователям в различных регионах мира.
 
-More insight regarding secure logging can be found at:
+Более подробную информацию о безопасном ведении журнала можно найти на сайте:
 
 - [OWASP Logging Cheat Sheet](Logging_Cheat_Sheet.md)
