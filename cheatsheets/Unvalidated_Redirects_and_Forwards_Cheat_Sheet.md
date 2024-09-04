@@ -1,14 +1,14 @@
-# Unvalidated Redirects and Forwards Cheat Sheet
+# Шпаргалка по непроверенным перенаправлениям и форвардам
 
-## Introduction
+## Вступление
 
-Unvalidated redirects and forwards are possible when a web application accepts untrusted input that could cause the web application to redirect the request to a URL contained within untrusted input. By modifying untrusted URL input to a malicious site, an attacker may successfully launch a phishing scam and steal user credentials.
+Неподтвержденные переадресации возможны, когда веб-приложение принимает ненадежные входные данные, что может привести к перенаправлению запроса веб-приложением на URL-адрес, содержащийся в ненадежных входных данных. Изменяя ненадежные входные данные URL-адреса на вредоносный сайт, злоумышленник может успешно запустить фишинговую программу и украсть учетные данные пользователя.
 
-Because the server name in the modified link is identical to the original site, phishing attempts may have a more trustworthy appearance. Unvalidated redirect and forward attacks can also be used to maliciously craft a URL that would pass the application's access control check and then forward the attacker to privileged functions that they would normally not be able to access.
+Поскольку имя сервера в измененной ссылке идентично исходному сайту, попытки фишинга могут выглядеть более правдоподобно. Неподтвержденные атаки перенаправления и переадресации также могут быть использованы для злонамеренного создания URL-адреса, который прошел бы проверку контроля доступа приложения, а затем перенаправил бы злоумышленника к привилегированным функциям, к которым он обычно не смог бы получить доступ.
 
-## Safe URL Redirects
+## Безопасное перенаправление URL-адресов
 
-When we want to redirect a user automatically to another page (without an action of the visitor such as clicking on a hyperlink) you might implement a code such as the following:
+Когда мы хотим автоматически перенаправить пользователя на другую страницу (без каких-либо действий посетителя, таких как переход по гиперссылке), вы можете реализовать следующий код:
 
 Java
 
@@ -20,9 +20,9 @@ PHP
 
 ```php
 <?php
-/* Redirect browser */
+/* Перенаправление браузера */
 header("Location: http://www.mysite.com");
-/* Exit to prevent the rest of the code from executing */
+/* Завершите, чтобы предотвратить выполнение остальной части кода */
 exit;
 ?>
 ```
@@ -47,35 +47,35 @@ Rust actix web
         .finish())
 ```
 
-In the examples above, the URL is being explicitly declared in the code and cannot be manipulated by an attacker.
+В приведенных выше примерах URL-адрес явно объявлен в коде, и злоумышленник не может им манипулировать.
 
-## Dangerous URL Redirects
+## Опасные перенаправления URL-адресов
 
-The following examples demonstrate unsafe redirect and forward code.
+Следующие примеры демонстрируют небезопасный код перенаправления и переадресации.
 
-### Dangerous URL Redirect Example 1
+### Пример опасного перенаправления URL-адреса 1
 
-The following Java code receives the URL from the parameter named `url` ([GET or POST](https://docs.oracle.com/javaee/7/api/javax/servlet/ServletRequest.html#getParameter-java.lang.String-)) and redirects to that URL:
+Следующий Java-код получает URL-адрес из параметра с именем `url` ([GET или POST](https://docs.oracle.com/javaee/7/api/javax/servlet/ServletRequest.html#getParameter-java.lang.String-)) и перенаправляет на этот URL-адрес:
 
 ```java
 response.sendRedirect(request.getParameter("url"));
 ```
 
-The following PHP code obtains a URL from the query string (via the parameter named `url`) and then redirects the user to that URL. Additionally, the PHP code after this `header()` function will continue to execute, so if the user configures their browser to ignore the redirect, they may be able to access the rest of the page.
+Следующий PHP-код получает URL-адрес из строки запроса (через параметр с именем `url`) и затем перенаправляет пользователя на этот URL-адрес. Кроме того, PHP-код после этой функции header() будет продолжать выполняться, поэтому, если пользователь настроит свой браузер на игнорирование перенаправления, он сможет получить доступ к остальной части страницы.
 
 ```php
 $redirect_url = $_GET['url'];
 header("Location: " . $redirect_url);
 ```
 
-A similar example of C\# .NET Vulnerable Code:
+Аналогичный пример уязвимого кода на C\# .NET:
 
 ```csharp
 string url = request.QueryString["url"];
 Response.Redirect(url);
 ```
 
-And in Rails:
+И в Rails:
 
 ```ruby
 redirect_to params[:url]
@@ -89,23 +89,23 @@ Rust actix web
         .finish())
 ```
 
-The above code is vulnerable to an attack if no validation or extra method controls are applied to verify the certainty of the URL. This vulnerability could be used as part of a phishing scam by redirecting users to a malicious site.
+Приведенный выше код уязвим для атаки, если для проверки достоверности URL-адреса не используется проверка подлинности или дополнительные методы контроля. Эта уязвимость может быть использована для фишинговой атаки, перенаправляя пользователей на вредоносный сайт.
 
-If no validation is applied, a malicious user could create a hyperlink to redirect your users to an unvalidated malicious website, for example:
+Если проверка не выполняется, злоумышленник может создать гиперссылку, чтобы перенаправить ваших пользователей, например, на не прошедший проверку вредоносный веб-сайт:
 
 ```text
  http://example.com/example.php?url=http://malicious.example.com
 ```
 
-The user sees the link directing to the original trusted site (`example.com`) and does not realize the redirection that could take place
+Пользователь видит ссылку, ведущую на исходный надежный сайт (`example.com`), и не осознает, что может произойти перенаправление
 
-### Dangerous URL Redirect Example 2
+### Пример опасного перенаправления URL-адреса 2
 
-[ASP .NET MVC 1 & 2 websites](https://docs.microsoft.com/en-us/aspnet/mvc/overview/security/preventing-open-redirection-attacks) are particularly vulnerable to open redirection attacks. In order to avoid this vulnerability, you need to apply MVC 3.
+[ASP .NET MVC 1 и 2 websites](https://docs.microsoft.com/en-us/aspnet/mvc/overview/security/preventing-open-redirection-attacks) особенно уязвимы для атак с открытым перенаправлением. Чтобы избежать этой уязвимости, вам необходимо применить MVC 3.
 
-The code for the LogOn action in an ASP.NET MVC 2 application is shown below. After a successful login, the controller returns a redirect to the returnUrl. You can see that no validation is being performed against the returnUrl parameter.
+Код для действия входа в систему в ASP.NET Ниже показано приложение MVC 2. После успешного входа в систему контроллер возвращает перенаправление на returnUrl. Вы можете видеть, что проверка для параметра returnUrl не выполняется.
 
-ASP.NET MVC 2 LogOn action in `AccountController.cs` (see Microsoft Docs link provided above for the context):
+ASP.NET Действие входа в систему MVC 2 в `AccountController.cs` (смотрите ссылку на документы Microsoft, приведенную выше для контекста):
 
 ```csharp
 [HttpPost]
@@ -131,24 +131,24 @@ ASP.NET MVC 2 LogOn action in `AccountController.cs` (see Microsoft Docs link pr
      }
    }
 
-   // If we got this far, something failed, redisplay form
+   // Если мы зашли так далеко, значит, что-то не получилось, повторите отображение формы
    return View(model);
  }
 ```
 
-### Dangerous Forward Example
+### Пример опасного Forward
 
-When applications allow user input to forward requests between different parts of the site, the application must check that the user is authorized to access the URL, perform the functions it provides, and it is an appropriate URL request.
+Когда приложения разрешают ввод данных пользователем для пересылки запросов между различными частями сайта, приложение должно проверить, что пользователь авторизован для доступа к URL-адресу, выполняет функции, которые он предоставляет, и это соответствующий запрос URL-адреса.
 
-If the application fails to perform these checks, an attacker crafted URL may pass the application's access control check and then forward the attacker to an administrative function that is not normally permitted.
+Если приложению не удается выполнить эти проверки, созданный злоумышленником URL-адрес может пройти проверку контроля доступа приложения и затем перенаправить злоумышленника к административной функции, которая обычно не разрешена.
 
-Example:
+Пример:
 
 ```text
 http://www.example.com/function.jsp?fwd=admin.jsp
 ```
 
-The following code is a Java servlet that will receive a `GET` request with a URL parameter named `fwd` in the request to forward to the address specified in the URL parameter. The servlet will retrieve the URL parameter value [from the request](https://docs.oracle.com/javaee/7/api/javax/servlet/ServletRequest.html#getParameter-java.lang.String-) and complete the server-side forward processing before responding to the browser.
+Следующий код представляет собой Java-сервлет, который получит запрос `GET` с параметром URL с именем `fwd` в запросе на пересылку по адресу, указанному в параметре URL. Сервлет получит значение параметра URL [из request](https://docs.oracle.com/javaee/7/api/javax/servlet/ServletRequest.html#getParameter-java.lang.Строка-) и завершите переадресацию на стороне сервера, прежде чем отвечать браузеру.
 
 ```java
 public class ForwardServlet extends HttpServlet
@@ -172,25 +172,25 @@ public class ForwardServlet extends HttpServlet
 }
 ```
 
-## Preventing Unvalidated Redirects and Forwards
+## Предотвращение непроверенных перенаправлений и переадресаций
 
-Safe use of redirects and forwards can be done in a number of ways:
+Безопасное использование перенаправлений и форвардеров может быть обеспечено несколькими способами:
 
-- Simply avoid using redirects and forwards.
-- If used, do not allow the URL as user input for the destination.
-- Where possible, have the user provide short name, ID or token which is mapped server-side to a full target URL.
-    - This provides the highest degree of protection against the attack tampering with the URL.
-    - Be careful that this doesn't introduce an enumeration vulnerability where a user could cycle through IDs to find all possible redirect targets
-- If user input can’t be avoided, ensure that the supplied **value** is valid, appropriate for the application, and is **authorized** for the user.
-- Sanitize input by creating a list of trusted URLs (lists of hosts or a regex).
-    - This should be based on an allow-list approach, rather than a denylist.
-- Force all redirects to first go through a page notifying users that they are going off of your site, with the destination clearly displayed, and have them click a link to confirm.
+- Просто избегайте использования перенаправлений и переадресаций.
+- Если они используются, не используйте URL-адрес в качестве пользовательского ввода для назначения.
+- По возможности попросите пользователя указать краткое имя, идентификатор или токен, которые сопоставляются на стороне сервера с полным целевым URL-адресом.
+    - Это обеспечивает высочайшую степень защиты от атаки, направленной на изменение URL-адреса.
+    - Будьте осторожны, чтобы это не привело к возникновению уязвимости при перечислении, когда пользователь может перебирать идентификаторы, чтобы найти все возможные цели перенаправления
+- Если избежать ввода данных пользователем невозможно, убедитесь, что указанное **значение** является допустимым, подходящим для приложения и **авторизованным** для пользователя.
+- Очистите вводимые данные, создав список надежных URL-адресов (списки хостов или регулярное выражение).
+    - Это должно основываться на подходе с использованием разрешенного списка, а не запрещенного списка.
+- Заставьте все перенаправления сначала перейти на страницу, уведомляющую пользователей о том, что они покидают ваш сайт, с четко указанным пунктом назначения, и попросите их нажать на ссылку для подтверждения.
 
-### Validating URLs
+### Проверка URL-адресов
 
-Validating and sanitising user-input to determine whether the URL is safe is not a trivial task. Detailed instructions how to implement URL validation is described [in Server Side Request Forgery Prevention Cheat Sheet](Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md#application-layer)
+Проверка и очистка пользовательского ввода, чтобы определить, безопасен ли URL-адрес, не является тривиальной задачей. Подробные инструкции по реализации проверки URL описаны [в шпаргалке по предотвращению подделки запросов на стороне сервера SSRF](Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md#прикладной уровень)
 
-## References
+## Ссылки на литературу
 
 - [CWE Entry 601 on Open Redirects](http://cwe.mitre.org/data/definitions/601.html).
 - [WASC Article on URL Redirector Abuse](http://projects.webappsec.org/w/page/13246981/URL%20Redirector%20Abuse)
