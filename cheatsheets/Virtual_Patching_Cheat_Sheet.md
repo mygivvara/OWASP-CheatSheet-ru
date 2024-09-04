@@ -1,56 +1,56 @@
-# Virtual Patching Cheat Sheet
+# Шпаргалка для виртуального исправления ошибок
 
-## Introduction
+## Вступление
 
-The goal with this cheat Sheet is to present a concise virtual patching framework that organizations can follow to maximize the timely implementation of mitigation protections.
+Цель этой шпаргалки - представить краткую структуру виртуальных исправлений, которой организации могут следовать для максимально своевременного внедрения мер защиты от последствий.
 
-## Definition: Virtual Patching
+## Определение: Виртуальное внесение исправлений
 
-**A security policy enforcement layer which prevents and reports the exploitation attempt of a known vulnerability.**
+**Уровень обеспечения соблюдения политики безопасности, который предотвращает попытку использования известной уязвимости и сообщает о ней.**
 
-The virtual patch works when the security enforcement layer analyzes transactions and intercepts attacks in transit, so malicious traffic never reaches the web application. The resulting impact of virtual patching is that, while the actual source code of the application itself has not been modified, the exploitation attempt does not succeed.
+Виртуальное исправление работает, когда уровень обеспечения безопасности анализирует транзакции и перехватывает атаки в процессе передачи, поэтому вредоносный трафик никогда не достигает веб-приложения. В результате виртуальное исправление приводит к тому, что, хотя исходный код самого приложения не был изменен, попытка его использования не увенчалась успехом.
 
-## Why Not Just Fix the Code
+## Почему бы просто не исправить код
 
-From a purely technical perspective, the number one remediation strategy would be for an organization to correct the identified vulnerability within the source code of the web application. This concept is universally agreed upon by both web application security experts and system owners. Unfortunately, in real world business situations, there arise many scenarios where updating the source code of a web application is not easy such as:
+С чисто технической точки зрения, стратегия устранения уязвимости номер один для организации заключается в устранении выявленной уязвимости в исходном коде веб-приложения. С этой концепцией согласны как эксперты по безопасности веб-приложений, так и владельцы систем. К сожалению, в реальных бизнес-ситуациях возникает множество сценариев, в которых обновление исходного кода веб-приложения является непростой задачей, например:
 
-- **Lack of resources** - Devs are already allocated to other projects.
-- **Third-party Software** - Code can not be modified by the user.
-- **Outsourced App Dev** - Changes would require a new project.
+- **Нехватка ресурсов** - Разработчики уже задействованы в других проектах.
+- **Программное обеспечение сторонних производителей** - Код не может быть изменен пользователем.
+- **Разработка приложений на стороне** - Для внесения изменений потребуется новый проект.
 
-The important point is this - **Code level fixes and Virtual Patching are NOT mutually exclusive**. They are processes that are executed by different team (OWASP Builders/Devs vs. OWASP Defenders/OpSec) and can be run in tandem.
+Важным моментом является то, что **исправления на уровне кода и виртуальные исправления не являются взаимоисключающими**. Это процессы, которые выполняются разными командами (OWASP Builders/Devs vs. OWASP Defenders/OpSec) и могут быть запущены в тандеме.
 
-## Value of Virtual Patching
+## Ценность виртуального исправления
 
-The two main goals of Virtual Patching are:
+Двумя основными целями виртуального исправления являются:
 
-- **Minimize Time-to-Fix** - Fixing application source code takes time. The main purpose of a virtual patch is to implement a mitigation for the identified vulnerability as soon as possible. The urgency of this response may be different: for example if the vulnerability was identified in-house through code reviews or penetration testing vs. finding a vulnerability as part of live incident response.
-- **Attack Surface Reduction** - Focus on minimizing the attack vector. In some cases, such as missing positive security input validation, it is possible to achieve 100% attack surface reduction. In other cases, such with missing output encoding for XSS flaws, you may only be able to limit the exposures. Keep in mind - 50% reduction in 10 minutes is better than 100% reduction in 48 hrs.
+- **Минимизируйте время на исправление** - Исправление исходного кода приложения требует времени. Основная цель виртуального исправления - как можно скорее устранить выявленную уязвимость. Срочность такого реагирования может быть разной: например, если уязвимость была выявлена собственными силами с помощью анализа кода или тестирования на проникновение, а не путем обнаружения уязвимости в рамках оперативного реагирования на инцидент.
+- **Уменьшение площади атаки** - Сосредоточьтесь на минимизации вектора атаки. В некоторых случаях, например, при отсутствии положительной проверки входных данных системы безопасности, можно добиться 100% уменьшения площади атаки. В других случаях, например, при отсутствии кодировки на выходе из-за ошибок XSS, вы можете ограничить экспозицию. Имейте в виду, что 50%-ное сокращение за 10 минут лучше, чем 100%-ное сокращение за 48 часов.
 
-## Virtual Patching Tools
+## Инструменты для внесения виртуальных исправлений
 
-Notice that the definition above did not list any specific tool as there are a number of different options that may be used for virtual patching efforts such as:
+Обратите внимание, что в приведенном выше определении не перечислен какой-либо конкретный инструмент, поскольку существует ряд различных опций, которые могут быть использованы для виртуального исправления, таких как:
 
-- Intermediary devices such as a WAF or IPS appliance
-- Web server plugin such as ModSecurity
-- Application layer filter such as ESAPI WAF
+- Промежуточные устройства, такие как WAF или IPS-устройства
+- Подключаемый модуль веб-сервера, такой как ModSecurity
+- Фильтр прикладного уровня, такой как ESAPI WAF
 
-For example purposes, we will show virtual patching examples using the open source [ModSecurity WAF tool](http://www.modsecurity.org).
+В качестве примера мы покажем примеры виртуального исправления с использованием открытого исходного кода [ModSecurity WAF tool](http://www.modsecurity.org).
 
-## A Virtual Patching Methodology
+## Методология виртуального исправления
 
-Virtual Patching, like most other security processes, is not something that should be approached haphazardly. Instead, a consistent, repeatable process should be followed that will provide the best chances of success. The following virtual patching workflow mimics the industry accepted practice for conducting IT Incident Response and consists of the following phases:
+К внесению виртуальных исправлений, как и к большинству других процессов обеспечения безопасности, не следует подходить бессистемно. Вместо этого следует придерживаться последовательного, повторяемого процесса, который обеспечит наилучшие шансы на успех. Следующий рабочий процесс внесения виртуальных исправлений имитирует принятую в отрасли практику реагирования на ИТ-инциденты и состоит из следующих этапов:
 
-1. Preparation.
-2. Identification.
-3. Analysis.
-4. Virtual Patch Creation.
-5. Implementation/Testing.
-6. Recovery/Follow Up.
+1. Подготовка.
+2. Идентификация.
+3. Анализ.
+4. Создание виртуального патча.
+5. Внедрение/Тестирование.
+6. Восстановление/Последующие действия.
 
-## Example Public Vulnerability
+## Пример публичной уязвимости
 
-Let's take the following [SQL Injection vulnerability](https://packetstormsecurity.com/files/119217/WordPress-Shopping-Cart-8.1.14-Shell-Upload-SQL-Injection.html) as our example for the remainder of this article:
+Давайте возьмем следующую [SQLi уязвимость](https://packetstormsecurity.com/files/119217/WordPress-Shopping-Cart-8.1.14-Shell-Upload-SQL-Injection.html) в качестве примера для оставшейся части этой статьи:
 
 ```text
 WordPress Shopping Cart Plugin for WordPress
@@ -58,131 +58,131 @@ WordPress Shopping Cart Plugin for WordPress
 reqID Parameter prone to SQL Injection.
 ```
 
-**Description**:
+**Описание**:
 
-WordPress Shopping Cart Plugin for WordPress contains a flaw that may allow an attacker to carry out an SQL injection attack.
+Плагин WordPress Shopping Cart для WordPress содержит уязвимость, которая может позволить злоумышленнику осуществить атаку с помощью SQL-инъекции.
 
-The issue is due to the `/wp-content/plugins/levelfourstorefront/scripts/administration/exportsubscribers.php` script not properly sanitizing user-supplied input to the `reqID` parameter.
+Проблема возникает из-за того, что скрипт `/wp-content/plugins/levelfourstorefront/scripts/administration/exportsubscribers.php` неправильно обрабатывал введенный пользователем параметр `reqID`.
 
-This may allow an attacker to inject or manipulate SQL queries in the back-end database, allowing for the manipulation or disclosure of arbitrary data.
+Это может позволить злоумышленнику внедрять SQL-запросы во внутреннюю базу данных или манипулировать ими, что позволяет манипулировать произвольными данными или раскрывать их.
 
-## Preparation Phase
+## Подготовительный этап
 
-The importance of properly utilizing the preparation phase with regards to virtual patching cannot be overstated. You need to do a number of things to setup the virtual patching processes and framework **prior** to actually having to deal with an identified vulnerability, or worse yet, react to a live web application intrusion. The point is that during a live compromise is not the ideal time to be proposing installation of a web application firewall and the concept of a virtual patch. Tension is high during real incidents and time is of the essence, so lay the foundation of virtual patching when the waters are calm and get everything in place and ready to go when an incident does occur.
+Важность правильного использования этапа подготовки к виртуальному внесению исправлений трудно переоценить. Вам необходимо выполнить ряд действий по настройке процессов и платформы виртуального исправления, **прежде** чем вам действительно придется устранять выявленную уязвимость или, что еще хуже, реагировать на вторжение веб-приложения в реальном времени. Дело в том, что во время реальной компрометации не самое подходящее время предлагать установку брандмауэра веб-приложений и концепцию виртуального исправления. Во время реальных инцидентов напряженность высока, и время имеет большое значение, поэтому заложите основу для виртуального исправления ситуации, когда ситуация спокойна, и подготовьте все к работе, когда инцидент все-таки произойдет.
 
-Here are a few critical items that should be addressed during the preparation phase:
+Вот несколько важных моментов, на которые следует обратить внимание на этапе подготовки:
 
-- **Public/Vendor Vulnerability Monitoring** - Ensure that you are signed up for all vendor alert mail-lists for commercial software that you are using. This will ensure that you will be notified in the event that the vendor releases vulnerability information and patching data.
-- **Virtual Patching Pre-Authorization** – Virtual Patches need to be implemented quickly so the normal governance processes and authorizations steps for standard software patches need to be expedited. Since virtual patches are not actually modifying source code, they do not require the same amount of regression testing as normal software patches. Categorizing virtual patches in the same group as Anti-Virus updates or Network IDS signatures helps to speed up the authorization process and minimize extended testing phases.
-- **Deploy Virtual Patching Tool In Advance** - As time is critical during incident response, it would be a poor time to have to get approvals to install new software. For instance, you can install ModSecurity WAF in embedded mode on your Apache servers, or an Apache reverse proxy server. The advantage with this deployment is that you can create fixes for non-Apache back-end servers. Even if you do not use ModSecurity under normal circumstances, it is best to have it "on deck" ready to be enabled if need be.
-- **Increase HTTP Audit Logging** – The standard Common Log Format (CLF) utilized by most web servers does not provide adequate data for conducting proper incident response. You need to have access to the following HTTP data:
+- **Общедоступный мониторинг уязвимостей/мониторинг уязвимостей поставщиков** - Убедитесь, что вы подписаны на рассылку всех уведомлений от поставщиков для коммерческого программного обеспечения, которое вы используете. Это гарантирует, что вы будете получать уведомления в случае, если поставщик опубликует информацию об уязвимостях и данные для исправления.
+- **Предварительная авторизация при установке виртуальных исправлений** - Необходимо быстро внедрять виртуальные исправления, поэтому необходимо ускорить обычные процессы управления и этапы авторизации стандартных исправлений программного обеспечения. Поскольку виртуальные исправления на самом деле не изменяют исходный код, они не требуют такого же объема регрессионного тестирования, как обычные программные исправления. Отнесение виртуальных исправлений к той же группе, что и антивирусных обновлений или сетевых идентификационных подписей, помогает ускорить процесс авторизации и свести к минимуму длительные этапы тестирования.
+- **Заблаговременно разверните виртуальный инструмент исправления** - Поскольку время реагирования на инциденты имеет решающее значение, получение разрешений на установку нового программного обеспечения является неподходящим моментом. Например, вы можете установить ModSecurity WAF во встроенном режиме на свои серверы Apache или на обратный прокси-сервер Apache. Преимущество этого развертывания в том, что вы можете создавать исправления для внутренних серверов, отличных от Apache. Даже если вы не используете ModSecurity в обычных условиях, лучше всего иметь его "наготове", готовым к включению в случае необходимости.
+- **Расширьте ведение журнала аудита HTTP** – Стандартный формат общего журнала (CLF), используемый большинством веб-серверов, не предоставляет достаточных данных для надлежащего реагирования на инциденты. У вас должен быть доступ к следующим данным HTTP:
     - Request URI (including QUERY_STRING)
     - Full Request Headers (including Cookies)
     - Full Request Body (POST payload)
     - Full Response Headers
     - Full Response Body
 
-## Identification Phase
+## Фаза идентификации
 
-The Identification Phase occurs when an organization becomes aware of a vulnerability within their web application. There are generally two different methods of identifying vulnerabilities: `Proactive` and `Reactive`.
+The Identification Phase occurs when an organization becomes aware of a vulnerability within their web application. There are generally two different methods of identifying vulnerabilities: `Proactive` and `Reactive`. Этап идентификации наступает, когда организации становится известно об уязвимости в своем веб-приложении. Как правило, существует два различных метода выявления уязвимостей: `проактивный` и `реактивный`.
 
-### Proactive Identification
+### Проактивная идентификация
 
-This occurs when an organization takes it upon themselves to assess their web security posture and conducts the following tasks:
+Это происходит, когда организация берет на себя ответственность за оценку состояния своей веб-безопасности и выполняет следующие задачи:
 
-- **Dynamic Application Assessments** - Ethical attackers conduct penetration tests or automated web assessment tools are run against the live web application to identify flaws.
-- **Source code reviews** - Ethical attackers use manual/automated means to analyze the source code of the web application to identify flaws.
+- **Динамическая оценка приложений** - Этичные злоумышленники проводят тесты на проникновение или запускают автоматизированные инструменты веб-оценки в реальном веб-приложении для выявления недостатков.
+- **Проверка исходного кода** - Этичные злоумышленники используют ручные или автоматизированные средства для анализа исходного кода веб-приложения для выявления недостатков.
 
-Due to the fact that custom coded web applications are unique, these proactive identification tasks are extremely important as you are not able to rely upon third-party vulnerability notifications.
+В связи с тем, что веб-приложения с пользовательским кодом уникальны, эти задачи проактивной идентификации чрезвычайно важны, поскольку вы не можете полагаться на уведомления об уязвимостях от третьих лиц.
 
-### Reactive Identification
+### Реактивная идентификация
 
-There are three main reactive methods for identifying vulnerabilities:
+Существует три основных реактивных метода выявления уязвимостей:
 
-- **Vendor contact (e.g. pre-warning)** - Occurs when a vendor discloses a vulnerability for commercial web application software that you are using. Example is Microsoft's [Active Protections Program (MAPP)](https://www.microsoft.com/en-us/msrc/mapp)
-- **Public disclosure** - Public vulnerability disclosure for commercial/open source web application software that you are using. The threat level for public disclosure is increased as more people know about the vulnerability.
-- **Security incident** – This is the most urgent situation as the attack is active. In these situations, remediation must be immediate.
+- **Обращение к поставщику (например, предварительное предупреждение)** - Происходит, когда поставщик раскрывает уязвимость в коммерческом веб-приложении, которое вы используете. Примером может служить [Active Protections Program (MAPP)] от Microsoft(https://www.microsoft.com/en-us/msrc/mapp).
+- **Публичное раскрытие информации** - Публичное раскрытие уязвимости используемого вами коммерческого веб-приложения с открытым исходным кодом. Уровень угрозы публичного раскрытия информации повышается по мере того, как все больше людей узнают об уязвимости.
+- **Инцидент с безопасностью** – Это наиболее срочная ситуация, поскольку атака активна. В таких ситуациях устранение неполадок должно быть незамедлительным.
 
-## Analysis Phase
+## Фаза анализа
 
-Here are the recommended steps to start the analysis phase:
+Вот рекомендуемые шаги для начала этапа анализа:
 
-1. **Determine Virtual Patching Applicability** - Virtual patching is ideally suited for injection-type flaws but may not provide an adequate level of attack surface reduction for other attack types or categories. Thorough analysis of the underlying flaw should be conducted to determine if the virtual patching tool has adequate detection logic capabilities.
-2. **Utilize Bug Tracking/Ticketing System** - Enter the vulnerability information into a bug tracking system for tracking purposes and metrics. Recommend you use ticketing systems you already use such as Jira or you may use a specialized tool such as [ThreadFix](https://threadfix.it/).
-3. **Verify the name of the vulnerability** - This means that you need to have the proper public vulnerability identifier (such as CVE name/number) specified by the vulnerability announcement, vulnerability scan, etc. If the vulnerability is identified proactively rather than through public announcements, then you should assign your own unique identifier to each vulnerability.
-4. **Designate the impact level** - It is always important to understand the level of criticality involved with a web vulnerability. Information leakages may not be treated in the same manner as an SQL Injection issue.
-5. **Specify which versions of software are impacted** - You need to identify what versions of software are listed so that you can determine if the version(s) you have installed are affected.
-6. **List what configuration is required to trigger the problem** - Some vulnerabilities may only manifest themselves under certain configuration settings.
-7. **List Proof of Concept (PoC) exploit code or payloads used during attacks/testing** - Many vulnerability announcements have accompanying exploit code that shows how to demonstrate the vulnerability. If this data is available, make sure to download it for analysis. This will be useful later on when both developing and testing the virtual patch.
+1. **Определение применимости виртуального исправления** - Виртуальное исправление идеально подходит для устранения дефектов типа инъекции, но может не обеспечить достаточного уровня снижения поверхности атаки для других типов или категорий атак. Необходимо провести тщательный анализ лежащего в основе дефекта, чтобы определить, обладает ли инструмент виртуального исправления адекватными логическими возможностями обнаружения.
+2. **Использовать систему отслеживания ошибок/выдачи билетов** - Введите информацию об уязвимостях в систему отслеживания ошибок для целей отслеживания и определения показателей. Рекомендуем использовать уже используемые системы выдачи билетов, такие как Jira, или специализированный инструмент, такой как [ThreadFix](https://threadfix.it/).
+3. **Проверьте название уязвимости** - Это означает, что вам необходимо иметь соответствующий общедоступный идентификатор уязвимости (например, имя/номер CVE), указанный в объявлении об уязвимости, при сканировании уязвимостей и т.д. Если уязвимость выявляется проактивно, а не посредством публичных объявлений, то вам следует присвоить каждой уязвимости свой собственный уникальный идентификатор.
+4. **Укажите уровень воздействия** - Всегда важно понимать уровень критичности, связанный с веб-уязвимостью. Утечка информации может рассматриваться по-разному, как проблема с внедрением SQL-кода.
+5. **Укажите, на какие версии программного обеспечения это влияет** - Вам необходимо указать, какие версии программного обеспечения указаны в списке, чтобы вы могли определить, затронуты ли установленные вами версии.
+6. **Укажите, какая конфигурация требуется для запуска проблемы** - Некоторые уязвимости могут проявляться только при определенных настройках конфигурации.
+7. **Приведите код эксплойта для проверки концепции (PoC) или полезную нагрузку, использованную во время атак/тестирования** - Многие объявления об уязвимостях сопровождаются кодом эксплойта, который показывает, как продемонстрировать уязвимость. Если эти данные доступны, обязательно загрузите их для анализа. Это будет полезно позже, при разработке и тестировании виртуального патча.
 
-## Virtual Patch Creation Phase
+## Этап создания виртуального патча
 
-The process of creating an accurate virtual patch is bound by two main tenants:
+Процесс создания точного виртуального исправления зависит от двух основных условий:
 
-1. **No false positives** - Do not ever block legitimate traffic under any circumstances.
-2. **No false negatives** - Do not ever miss attacks, even when the attacker intentionally tries to evade detection.
+1. **Никаких ложных срабатываний** - Никогда и ни при каких обстоятельствах не блокируйте легетимный трафик.
+2. **Отсутствие ложных срабатываний** - Никогда не пропускайте атаки, даже если злоумышленник намеренно пытается избежать обнаружения.
 
-Care should be taken to attempt to minimize either of these two rules. It may not be possible to adhere 100% to each of these goals but remember that virtual patching is about **Risk Reduction**. It should be understood by business owners that while you are gaining the advantage of shortening the Time-to-Fix metric, you may not be implementing a complete fix for the flaw.
+Следует позаботиться о том, чтобы свести к минимуму любое из этих двух правил. Возможно, невозможно на 100% придерживаться каждой из этих целей, но помните, что виртуальное внесение исправлений направлено на **снижение риска**. Владельцы бизнеса должны понимать, что, хотя вы получаете преимущество за счет сокращения показателя времени на устранение неполадок, вы, возможно, не полностью устраняете недостаток.
 
-### Manual Virtual Patch Creation
+### Ручное создание виртуального патча
 
-#### Positive Security (Allow List) Virtual Patches (**Recommended Solution**)
+#### Виртуальные исправления с положительным уровнем защиты (список разрешенных) (**Рекомендуемое решение**)
 
-Positive security model (allowlist) is a comprehensive security mechanism that provides an independent input validation envelope to an application. The model specifies the characteristics of valid input (character set, length, etc…) and denies anything that does not conform. By defining rules for every parameter in every page in the application the application is protected by an additional security envelop independent from its code.
+Позитивная модель безопасности (allow list) - это комплексный механизм безопасности, который предоставляет приложению независимую систему проверки ввода. Модель определяет характеристики допустимого ввода (набор символов, длина и т.д.) и запрещает все, что не соответствует требованиям. Определяя правила для каждого параметра на каждой странице приложения, приложение защищается дополнительной оболочкой безопасности, независимой от его кода.
 
-##### Example Allow List ModSecurity Virtual Patch
+##### Пример списка разрешений ModSecurity Virtual Patch
 
-In order to create an allow-list virtual patch, you must be able to verify what the normal, expected input values are. If you have implemented proper audit logging as part of the Preparation Phase, then you should be able to review audit logs to identify the format of expected input types. In this case, the `reqID` parameter is supposed to only hold integer characters so we can use this virtual patch:
+Чтобы создать виртуальный патч со списком разрешений, вы должны иметь возможность проверить, каковы обычные ожидаемые входные значения. Если вы внедрили надлежащее ведение журнала аудита на этапе подготовки, вы должны иметь возможность просматривать журналы аудита, чтобы определить формат ожидаемых типов входных данных. В этом случае предполагается, что параметр `reqID` содержит только целые символы, поэтому мы можем использовать этот виртуальный патч:
 
 ```text
 ##
-## Verify we only receive 1 parameter called "reqID"
+## Убедитесь, что мы получаем только 1 вызываемый параметр "reqID"
 ##
 SecRule REQUEST_URI "@contains /wp-content/plugins/levelfourstorefront/scripts/administration/exportsubscribers.php" "chain,id:1,phase:2,t:none,t:Utf8toUnicode,t:urlDecodeUni,t:normalizePathWin,t:lowercase,block,msg:'Input Validation Error for \'reqID\' parameter - Duplicate Parameters Names Seen.',logdata:'%{matched_var}'"
   SecRule &ARGS:/reqID/ "!@eq 1"
 
 ##
-## Verify reqID's payload only contains integers
+## Убедитесь, что пейлоад reqID содержит только целые числа
 ##
 SecRule REQUEST_URI "@contains /wp-content/plugins/levelfourstorefront/scripts/administration/exportsubscribers.php" "chain,id:2,phase:2,t:none,t:Utf8toUnicode,t:urlDecodeUni,t:normalizePathWin,t:lowercase,block,msg:'Input Validation Error for \'reqID\' parameter.',logdata:'%{args.reqid}'"
   SecRule ARGS:/reqID/ "!@rx ^[0-9]+$"
 ```
 
-This virtual patch will inspect the `reqID` parameter value on the specified page and prevent any characters other than integers as input.
+Этот виртуальный патч проверит значение параметра `reqID` на указанной странице и предотвратит использование любых символов, отличных от целых, в качестве входных данных.
 
-- **Note** - You should make sure to assign rule IDs properly and track them in the bug tracking system.
-- **Caution**: There are numerous evasion vectors when creating virtual patches. Please consult the [OWASP Best Practices: Virtual Patching document](https://owasp.org/www-community/Virtual_Patching_Best_Practices) for a more thorough discussion on countering evasion methods.
+- **Примечание** - Вы должны убедиться, что правильно присвоили идентификаторы правил и отследили их в системе отслеживания ошибок.
+- **Внимание**: При создании виртуальных исправлений существует множество способов уклонения. Пожалуйста, ознакомьтесь с [документом OWASP Best Practices: Virtual Patching](https://owasp.org/www-community/Virtual_Patching_Best_Practices) для более подробного обсуждения методов противодействия уклонению.
 
-#### Negative Security (Block List) Virtual Patches
+#### Виртуальные исправления с отрицательной защитой (черынй список)
 
-A negative security model (denylist) is based on a set of rules that detect specific known attacks rather than allow only valid traffic.
+Негативная модель безопасности (denylist) основана на наборе правил, которые обнаруживают конкретные известные атаки, а не разрешают только допустимый трафик.
 
-##### Example Block List ModSecurity Virtual Patch
+##### Пример списка блокировок ModSecurity Virtual Patch
 
-Here is the example [PoC code](https://packetstormsecurity.com/files/119217/WordPress-Shopping-Cart-8.1.14-Shell-Upload-SQL-Injection.html) that was supplied by the public advisory:
+Вот пример [PoC code](https://packetstormsecurity.com/files/119217/WordPress-Shopping-Cart-8.1.14-Shell-Upload-SQL-Injection.html), который был предоставлен общественным консультативным советом:
 
 ```text
 http://localhost/wordpress/wp-content/plugins/levelfourstorefront/scripts/administration/exportsubscribers.php?reqID=1' or 1='1
 ```
 
-Looking at the payload, we can see that the attacker is inserting a single quote character and then adding additional SQL query logic to the end. Based on this data, we could disallow the single quote character like this:
+Просматривая полезную нагрузку, мы видим, что злоумышленник вставляет символ одинарной кавычки, а затем добавляет дополнительную логику SQL-запроса в конец. Основываясь на этих данных, мы могли бы запретить символ одинарной кавычки следующим образом:
 
 ```text
 SecRule REQUEST_URI "@contains /wp-content/plugins/levelfourstorefront/scripts/administration/exportsubscribers.php" "chain,id:1,phase:2,t:none,t:Utf8toUnicode,t:urlDecodeUni,t:normalizePathWin,t:lowercase,block,msg:'Input Validation Error for \'reqID\' parameter.',logdata:'%{args.reqid}'"
   SecRule ARGS:/reqID/ "@pm '"
 ```
 
-#### Which Method is Better for Virtual Patching – Positive or Negative Security
+#### Какой метод лучше подходит для виртуального исправления – положительный или отрицательный
 
-A virtual patch may employ either a positive or negative security model. Which one you decide to use depends on the situation and a few different considerations. For example, negative security rules can usually be implemented more quickly, however the possible evasions are more likely.
+Виртуальный патч может использовать как позитивную, так и негативную модель безопасности. Какую из них вы решите использовать, зависит от ситуации и ряда других соображений. Например, негативные правила безопасности обычно можно внедрить быстрее, однако вероятность их обхода более высока.
 
-Positive security rules, only the other hand, provides better protection however it is often a manual process and thus is not scalable and difficult to maintain for large/dynamic sites. While manual positive security rules for an entire site may not be feasible, a positive security model can be selectively employed when a vulnerability alert identifies a specific location with a problem.
+С другой стороны, позитивные правила безопасности обеспечивают лучшую защиту, однако часто это ручной процесс, который не масштабируется и который сложно поддерживать на больших / динамичных сайтах. Хотя ручные правила позитивной безопасности для всего сайта могут оказаться невыполнимыми, модель позитивной безопасности может быть выборочно использована, когда предупреждение об уязвимости идентифицирует конкретное местоположение с проблемой.
 
-#### Beware of Exploit-Specific Virtual Patches
+#### Остерегайтесь виртуальных исправлений, специфичных для эксплойтов
 
-You want to resist the urge to take the easy road and quickly create an **exploit-specific virtual patch**.
+Вы не должны поддаваться желанию пойти по легкому пути и быстро создать **специфичный для эксплойтов виртуальный патч**.
 
-For instance, if an authorized penetration test identified an XSS vulnerability on a page and used the following attack payload in the report:
+Например, если авторизованный тест на проникновение выявил уязвимость XSS на странице и использовал в отчете следующий пейлоад для атаки:
 
 ```html
 <script>
@@ -190,40 +190,40 @@ For instance, if an authorized penetration test identified an XSS vulnerability 
 </script>
 ```
 
-It would not be wise to implement a virtual patch that simply blocks that exact payload. While it may provide some immediate protection, its long term value is significantly decreased.
+Было бы неразумно внедрять виртуальный патч, который просто блокирует именно эту полезную нагрузку. Хотя он может обеспечить некоторую немедленную защиту, его долгосрочная ценность значительно снижается.
 
-### Automated Virtual Patch Creation
+### Автоматическое создание виртуального патча
 
-Manual patch creation may become unfeasible as the number of vulnerabilities grow and automated means may become necessary. If the vulnerabilities were identified using automated tools and an XML report is available, it is possible to leverage automated processes to auto-convert this vulnerability data into virtual patches for protection systems.
+Создание исправлений вручную может стать невозможным по мере роста числа уязвимостей и может возникнуть необходимость в автоматизированных средствах. Если уязвимости были выявлены с помощью автоматизированных средств и доступен отчет в формате XML, можно использовать автоматизированные процессы для автоматического преобразования данных об уязвимостях в виртуальные исправления для систем защиты.
 
-Three examples include:
+Три примера включают в себя:
 
-- **OWASP ModSecurity Core Rule Set (CRS) Scripts** - The OWASP CRS includes scripts to auto-convert XML output from tools such as [OWASP ZAP into ModSecurity Virtual Patches]. Reference [here](https://www.trustwave.com/en-us/resources/blogs/spiderlabs-blog/modsecurity-advanced-topic-of-the-week-automated-virtual-patching-using-owasp-zed-attack-proxy).
-- **ThreadFix Virtual Patching** - ThreadFix also includes automated processes of converting imported vulnerability XML data into virtual patches for security tools such as ModSecurity. Reference [here](https://github.com/denimgroup/threadfix/wiki/Waf-Types#mod_security).
-- **Direct Importing to WAF Device** - Many commercial WAF products have the capability to import DAST tool XML report data and automatically adjust their protection profiles.
+- **Скрипты OWASP ModSecurity Core Rule Set (CRS)** - CRS OWASP включает в себя скрипты для автоматического преобразования выходных данных XML из таких инструментов, как [OWASP ZAP в виртуальные исправления ModSecurity]. Ссылка [здесь](https://www.trustwave.com/en-us/resources/blogs/spiderlabs-blog/modsecurity-advanced-topic-of-the-week-automated-virtual-patching-using-owasp-zed-attack-proxy).
+- **Виртуальное исправление ThreadFix** - ThreadFix также включает автоматизированные процессы преобразования импортированных XML-данных об уязвимостях в виртуальные исправления для инструментов безопасности, таких как ModSecurity. Ссылка [здесь](https://github.com/denimgroup/threadfix/wiki/Waf-Types#mod_security).
+- **Прямой импорт на устройство WAF** - Многие коммерческие продукты WAF имеют возможность импортировать данные XML-отчетов DAST tool и автоматически настраивать свои профили защиты.
 
-## Implementation/Testing Phase
+## Этап внедрения/тестирования
 
-In order to accurately test out the newly created virtual patches, it may be necessary to use an application other than a web browser. Some useful tools are:
+Для точного тестирования недавно созданных виртуальных исправлений может потребоваться использование приложения, отличного от веб-браузера. Вот некоторые полезные инструменты:
 
-- Web browser.
-- Command-line web clients such as Curl and Wget.
-- Local Proxy Servers such as [OWASP ZAP](https://www.zaproxy.org/).
-- [ModSecurity AuditViewer](https://web.archive.org/web/20181011065823/http://www.jwall.org/web/audit/viewer.jsp) – which allows you to load a ModSecurity audit log file, manipulate it and then re-inject the data back into any web server.
+- Веб-браузер.
+- Веб-клиенты командной строки, такие как Curl и Wget.
+- Локальные прокси-серверы, такие как [OWASP ZAP](https://www.zaproxy.org/).
+- [ModSecurity AuditViewer](https://web.archive.org/web/20181011065823/http://www.jwall.org/web/audit/viewer.jsp) – который позволяет загружать файл журнала аудита ModSecurity, манипулировать им и затем повторно загружать данные обратно на любой веб-сервер.
 
-### Testing Steps
+### Этапы тестирования
 
-- Implement virtual patches initially in a "Log Only" configuration to ensure that you do not block any normal user traffic (false positives).
-- If the vulnerability was identified by a specific tool or assessment team - request a retest.
-- If retesting fails due to evasions, then you must go back to the Analysis phase to identify how to better fix the issue.
+- Изначально внедрите виртуальные исправления в конфигурации "Только для регистрации", чтобы гарантировать, что вы не заблокируете обычный пользовательский трафик (ложные срабатывания).
+- Если уязвимость была выявлена определенным инструментом или группой оценки, запросите повторное тестирование.
+- Если повторное тестирование завершилось неудачей из-за уклонений, вы должны вернуться к этапу анализа, чтобы определить, как лучше устранить проблему.
 
-## Recovery/Follow-Up Phase
+## Фаза восстановления/последующего наблюдения
 
-- **Update Data in Ticket System** - Although you may need to expedite the implementation of virtual patches, you should still track them in your normal Patch Management processes. This means that you should create proper change request tickets, etc… so that their existence and functionality is documented. Updating the ticket system also helps to identify "time-to-fix" metrics for different vulnerability types. Make sure to properly log the virtual patch rule ID values.
-- **Periodic Re-assessments** - You should also have periodic re-assessments to verify if/when you can remove previous virtual patches if the web application code has been updated with the real source code fix. I have found that many people opt to keep virtual patches in place due to better identification/logging vs. application or db capabilities.
-- **Running Virtual Patch Alert Reports** - Run reports to identify if/when any of your virtual patches have triggered. This will show value for virtual patching in relation to windows of exposure for source code time-to-fix.
+- **Обновление данных в системе уведомлений** - Несмотря на то, что вам может потребоваться ускорить внедрение виртуальных исправлений, вы все равно должны отслеживать их в рамках обычных процессов управления исправлениями. Это означает, что вам следует создать соответствующие заявки на изменение и т.д., чтобы их существование и функциональность были задокументированы. Обновление системы уведомлений также помогает определить показатели "времени на исправление" для различных типов уязвимостей. Убедитесь, что вы правильно записали значения идентификатора правила виртуального исправления.
+- **Периодические повторные проверки** - Вам также следует проводить периодические повторные проверки, чтобы проверить, сможете ли вы удалить предыдущие виртуальные исправления, если код веб-приложения был обновлен с исправлением реального исходного кода. Я обнаружил, что многие люди предпочитают сохранять виртуальные исправления на месте из-за лучшей идентификации / ведения журнала по сравнению с возможностями приложений или базы данных.
+- **Запуск отчетов о предупреждениях о виртуальных исправлениях** - Запуск отчетов, чтобы определить, сработали ли какие-либо из ваших виртуальных исправлений. Это покажет значение виртуального исправления в зависимости от времени, необходимого для исправления исходного кода.
 
-## References
+## Ссылки на литературу
 
 - [OWASP Virtual Patching Best Practices](https://owasp.org/www-community/Virtual_Patching_Best_Practices).
 - [OWASP Securing WebGoat with ModSecurity](https://wiki.owasp.org/index.php/Category:OWASP_Securing_WebGoat_using_ModSecurity_Project).
