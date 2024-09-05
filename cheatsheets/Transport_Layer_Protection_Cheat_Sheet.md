@@ -1,5 +1,5 @@
-# DEPRECATED: Transport Layer Protection Cheat Sheet
+# УСТАРЕЛО: Шпаргалка по защите транспортного уровня
 
-The Transport Layer Protection Cheat Sheet has been deprecated.
+Шпаргалка по защите транспортного уровня устарела.
 
-Please visit the [Transport Layer Security Cheat Sheet](Transport_Layer_Security_Cheat_Sheet.md) instead.
+Пожалуйста, ознакомьтесь с [Шпаргалкой по безопасности транспортного уровня](Transport_Layer_Security_Cheat_Sheet.md) вместо этого.
