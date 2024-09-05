@@ -1,161 +1,161 @@
-# Software Supply Chain Security
+# Безопасность цепочки поставок программного обеспечения
 
-## Introduction
+## Вступление
 
-No piece of software is developed in a vacuum; regardless of the technologies used to develop it, software is embedded in a Software Supply Chain (SSC). According to [NIST](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204D.pdf), an entity's SSC can be defined as "a collection of steps that create, transform, and assess the quality and  policy conformance of software artifacts". From a developer's perspective, these steps span the entire SDLC and are accomplished using a wide range of components and tools. Common examples (by no means exhaustive) of components that are especially relevant from a developer's perspective include:
+Ни одно программное обеспечение не разрабатывается в вакууме; независимо от технологий, используемых для его разработки, программное обеспечение встраивается в цепочку поставок программного обеспечения (SSC). Согласно [NIST](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204D.pdf), SSC организации можно определить как "набор шагов, которые создают, преобразуют и оценивают качество и соответствие политике программных артефактов". С точки зрения разработчика, эти этапы охватывают весь SDLC и выполняются с использованием широкого спектра компонентов и инструментов. Общие примеры (ни в коем случае не исчерпывающие) компонентов, которые особенно важны с точки зрения разработчика, включают:
 
-- IDEs and code editors
-- Internally developed source code
-- Third-party software libraries
-- Version control systems (VCS)
-- Build tools (Maven, Rake, make, Grunt, etc.)
-- CI/CD software (Jenkins, CircleCI, TeamCity, etc.)
-- Configuration management tools (Ansible, Puppet, Chef, etc.)
-- Package management software and ecosystems (pip, npm, Composer, etc.)
+- IDE и редакторы кода
+- Исходный код собственной разработки
+- Библиотеки программного обеспечения сторонних производителей
+- Системы контроля версий (VCS)
+- Инструменты сборки (Maven, Rake, make, Grunt и т.д.)
+- Программное обеспечение CI/CD (Jenkins, CircleCI, TeamCity и др.)
+- Инструменты управления конфигурацией (Ansible, Puppet, Chef и др.)
+- Программное обеспечение и экосистемы для управления пакетами (pip, npm, Composer и др.)
 
-Each of these components must be secured; a flaw in a single component, such as a vulnerable third-party dependency or misconfigured VCS, can put an entire SSC in jeopardy. Thus, in order to strengthen Software Supply Chain Security (SCSS), developers should possess a general understanding of what the SSC is, common threats against it, and practices and techniques that can be applied to reduce SSC risk.
+Каждый из этих компонентов должен быть защищен; ошибка в одном компоненте, такая как уязвимая сторонняя зависимость или неправильно сконфигурированный VCS, может поставить под угрозу работу всего SSC. Таким образом, чтобы усилить безопасность цепочки поставок программного обеспечения (SCSS), разработчики должны обладать общим пониманием того, что такое SSC, общих угроз для нее, а также практик и методов, которые могут быть применены для снижения риска SSC.
 
-## Overview of Threat Landscape
+## Обзор ландшафта угроз
 
-Given the breadth and complexity of the SSC, it is unsurprising that the threat landscape for SSC is similarly expansive. Threats include [dependency confusion](https://fossa.com/blog/dependency-confusion-understanding-preventing-attacks/), compromise of an upstream providers infrastructure, theft of code signing certificates, and CI/CD system exploits. More broadly, threats may be grouped into four categories based upon what component of the supply chain they seek to compromise [[4,5](#references)]:
+Учитывая широту и сложность SSC, неудивительно, что спектр угроз для SSC столь же широк. К угрозам относятся [путаница в зависимостях](https://fossa.com/blog/dependency-confusion-understanding-preventing-attacks/), компрометация инфраструктуры вышестоящих поставщиков, кража сертификатов подписи кода и эксплойты в системах CI/CD. В более широком смысле угрозы можно разделить на четыре категории в зависимости от того, какой компонент цепочки поставок они стремятся скомпрометировать [[4,5](#ссылки)]:
 
-- Source code threats. These type of threats focus on violating the integrity of a source code which is then built and and deployed or potentially consumed by other software projects. Threats in this category include VCS exploits, the introduction of malicious or vulnerable code into a code base, or building code from an unauthorized branch.
-- Build environment threats. These threats modify a software artifact but without altering the underlying source code or exploiting the build process itself. Examples include build cache poisoning, compromising a privileged account used by the build system, or publishing software built from an untrusted source.
-- Dependency related threats. Threats that result from the consumption of both direct and transitive software dependencies. The most common threat is using a vulnerable or compromised dependency.
-- Deployment and runtime threats. These threats exploit either the deployment process or runtime environment. Common examples include compromising a privilege CI/CD account, software misconfigurations, and deployment of compromised binaries.
+- Угрозы исходному коду. Угрозы такого типа направлены на нарушение целостности исходного кода, который затем создается, развертывается или потенциально используется другими программными проектами. Угрозы этой категории включают эксплойты VCS, внедрение вредоносного или уязвимого кода в базу кода или создание кода из несанкционированной ветки.
+- Угрозы среде сборки. Эти угрозы модифицируют программный артефакт, но без изменения исходного кода или использования самого процесса сборки. В качестве примеров можно привести заражение кэша сборки, взлом привилегированной учетной записи, используемой системой сборки, или публикацию программного обеспечения, созданного из ненадежного источника.
+- Угрозы, связанные с зависимостями. Угрозы, возникающие в результате использования как прямых, так и переходных зависимостей программного обеспечения. Наиболее распространенной угрозой является использование уязвимой или скомпрометированной зависимости.
+- Угрозы развертывания и среды выполнения. Эти угрозы используют либо процесс развертывания, либо среду выполнения. Распространенные примеры включают компрометацию учетной записи CI/CD с привилегиями, неправильную настройку программного обеспечения и развертывание скомпрометированных двоичных файлов.
 
-The characteristics of threat actors seeking exploit the SSC are similarly diverse. Although SSC compromise is often associated with highly sophisticated threat actors, such sophistication is not inherently necessary for attacking the SSC, especially if the attack focuses on compromising the SSC of entities with poor security practices. Threat actor motive also varies widely, A SSC exploit can result in loss of confidentiality, integrity, and/or availability of any organization's assets and thus fulfill a wide range of attacker goals such as espionage or financial gain.
+Характеристики злоумышленников, стремящихся использовать SSC, также различны. Хотя компрометация SSC часто ассоциируется с очень изощренными действиями злоумышленников, такая изощренность по своей сути не является необходимой для атаки на SSC, особенно если атака направлена на компрометацию SSC организаций с плохими методами обеспечения безопасности. Мотивы злоумышленников также широко варьируются, и использование SSC-эксплойта может привести к потере конфиденциальности, целостности и/или доступности активов любой организации и, таким образом, к достижению широкого спектра целей злоумышленника, таких как шпионаж или финансовая выгода.
 
-Finally, it must be recognized that many SSC threats have the capability to propagate across many entities. This is due to consumer-supplier relationship that is integral to an SSC. For example, uf a large-scale software supplier, whether proprietary or open-source, is compromised, many downstream, consuming entities could also be impacted as a result. The 2020 Solarwind and 2021 Codecov incidents are excellent real-world examples of this.
+Наконец, следует признать, что многие угрозы SSC способны распространяться на множество объектов. Это связано с отношениями между потребителем и поставщиком, которые являются неотъемлемой частью SSC. Например, если будет скомпрометирован крупный поставщик программного обеспечения, будь то проприетарного или с открытым исходным кодом, это также может повлиять на многие последующие предприятия-потребители. Инциденты с Solarwind в 2020 году и Codecov в 2021 году являются отличными примерами этого в реальном мире.
 
-## Mitigations and Security Best Practices
+## Меры по смягчению последствий и лучшие практики обеспечения безопасности
 
-Mitigating SSC related risk can seem daunting, yet it need not be. Even for sophisticated attacks that may focus on compromising upstream suppliers, individual organization can take reasonable steps to defend its own assets and mitigate risk even if its supplier is compromised. Although some parts of SSCS may remain outside direct control of development teams, those teams must still do their part to improve SSCS in their organization; the guidance below is intended as starting point for developers to do just that.
+Снижение рисков, связанных с SSC, может показаться сложной задачей, но это не обязательно так. Даже при изощренных атаках, которые могут быть направлены на компрометацию вышестоящих поставщиков, отдельная организация может предпринять разумные шаги для защиты своих активов и снижения риска, даже если ее поставщик будет скомпрометирован. Хотя некоторые части SSC могут оставаться вне прямого контроля команд разработчиков, эти команды все равно должны внести свой вклад в улучшение SSC в своей организации; приведенное ниже руководство предназначено в качестве отправной точки для разработчиков, чтобы сделать именно это.
 
-### General
+### Общие
 
-The practices described below are general techniques that can be used to mitigate risk related to a wide variety of threat types.
+Описанные ниже методы являются общими и могут быть использованы для снижения рисков, связанных с широким спектром типов угроз.
 
-#### Implement Strong Access Control
+#### Внедрить строгий контроль доступа
 
-  Compromised accounts, particularly privileged ones, represents a significant threats to SSCs. Account takeover can allow an attacker can perform a variety of malicious acts including i^njecting code into legitimate dependencies, manipulating CI/CD pipeline execution, and replacing a benign artifact with a malicious one. Strong access control for build, development, version control, and similar environments is thus critical. Best practices include adhering to  the basic security principles of least privileges and separation of duties, enforcing MFA, rotating credentials, and ensuring credentials are never stored or transmitted in clear text or committed to source control.
+  Скомпрометированные учетные записи, особенно привилегированные, представляют серьезную угрозу для SSC. Захват учетной записи может позволить злоумышленнику совершать различные вредоносные действия, включая внедрение кода в законные зависимости, манипулирование выполнением конвейера CI/CD и замену доброкачественного артефакта вредоносным. Таким образом, строгий контроль доступа к средам сборки, разработки, контроля версий и подобным средам имеет решающее значение. Лучшие практики включают соблюдение основных принципов безопасности, таких как минимизация привилегий и разделение обязанностей, обеспечение соблюдения MFA, ротация учетных данных и обеспечение того, чтобы учетные данные никогда не хранились и не передавались открытым текстом и не передавались в систему управления версиями.
 
 #### Logging and Monitoring
 
-  When considering SSCS, the importance of detective controls should not be overlooked; these controls are essential for detecting attacks and enabling prompt respond. In the context of SSCS, logging is critical. All systems involved in the SSC, including VCS, build tools, delivery mechanisms, artifact repositories, and the systems responsible for running applications should be configured to log authentication attempts, configuration changes, and other events that could assist in identifying anomalous behavior or that could prove crucial for incident response efforts. Logs throughout the SSC must be sufficient in both depth and breadth to support detection and response
+  При рассмотрении SSC не следует упускать из виду важность оперативного контроля; эти средства контроля необходимы для обнаружения атак и обеспечения быстрого реагирования. В контексте SSC ведение журнала имеет решающее значение. Все системы, задействованные в SSC, включая VCS, средства сборки, механизмы доставки, хранилища артефактов и системы, ответственные за запуск приложений, должны быть настроены таким образом, чтобы регистрировать попытки аутентификации, изменения конфигурации и другие события, которые могут помочь в выявлении аномального поведения или которые могут оказаться решающими для реагирования на инциденты. Журналы по всему SSC должны быть достаточными как по глубине, так и по охвату, чтобы поддерживать обнаружение и реагирование
 
-  However, logging events is not sufficient. These logs must be monitored, and, if necessary, acted upon. A centralized SIEM, log aggregator, or similar tool is preferred, especially given the complexity of SSCs. Regardless of the technology used, the basic objective remains the same: log data should be actionable.
+  Однако регистрации событий недостаточно. Эти журналы должны отслеживаться и, при необходимости, приниматься соответствующие меры. Предпочтительнее использовать централизованный SIEM, агрегатор журналов или аналогичный инструмент, особенно учитывая сложность SSC. Независимо от используемой технологии, основная цель остается неизменной: данные журнала должны быть доступны для использования.к системе управления версиями.
 
-#### Leverage Security Automation
+#### Используйте автоматизацию системы безопасности
 
-For complex SSCs, automation of security tasks, such as scanning, monitoring, and testing is critical. Such automation, while not a replacement for manual reviews and other actions performed by skilled professionals, is capable of detecting, and in some cases responding to, vulnerabilities and potential attacks with a scale and consistency that is hard to achieve through manual human intervention. Types of tools that support automation include SAST, DAST, SCA, container image scanners and more. The exact tools most capable of delivering value to an organization will vary significantly based on the characteristics of the organization. However, regardless of the type of tools and vendors used, it is important to acknowledge that these tools themselves must be mainlined, secured, and configured correctly. Failure to do so could actually increase SSC risk for an organization, or at the very least, fail to bring meaningful benefit to the organization. Finally, it must be clearly understood that these tools are but one component of an overall SSCS program; they cannot be considered a comprehensive solution or be relied on to identify all vulnerabilities.
+Для сложных SSC критически важна автоматизация задач обеспечения безопасности, таких как сканирование, мониторинг и тестирование. Такая автоматизация, хотя и не заменяет ручные проверки и другие действия, выполняемые квалифицированными специалистами, способна обнаруживать уязвимости и потенциальные атаки, а в некоторых случаях и реагировать на них с таким масштабом и последовательностью, которых трудно достичь с помощью ручного вмешательства человека. К типам инструментов, поддерживающих автоматизацию, относятся SAST, DAST, SCA, сканеры изображений контейнеров и многое другое. Конкретные инструменты, которые в наибольшей степени способны принести пользу организации, могут существенно различаться в зависимости от характеристик организации. Однако, независимо от типа используемых инструментов и поставщиков, важно понимать, что сами эти инструменты должны быть интегрированы, защищены и правильно настроены. Невыполнение этого требования может на самом деле увеличить риск SSC для организации или, по крайней мере, не принести существенной пользы организации. Наконец, необходимо четко понимать, что эти инструменты являются лишь одним из компонентов общей программы SSC; они не могут рассматриваться как комплексное решение или на них нельзя полагаться при выявлении всех уязвимостей.
 
-### Mitigating Source Code Threats
+### Устранение угроз в исходном коде
 
-The practices described below can help reduce SSC risk associated with source code and development.
+Методы, описанные ниже, могут помочь снизить риск SSC, связанный с исходным кодом и разработкой.
 
-#### Peer Reviews
+#### Экспертные оценки
 
-Manual code reviews are an important, relatively low cost technique for reducing SSC risk; these reviews can act as both detective controls and deterrents. Reviews should be performed by peers possessing both experience in the technology being used and secure coding processes and should occur before code is merged within a source control systems [[3](#references)]. The reviews should look for both unintentional security flaws as well as intentional code that could serve malicious purposes. The results of the review should be documented for later review if needed.
+Ручные проверки кода являются важным и относительно недорогостоящим методом снижения риска SSC; эти проверки могут выступать как в качестве оперативного контроля, так и в качестве сдерживающего фактора. Проверки должны проводиться экспертами, обладающими опытом в области используемых технологий и процессов безопасного кодирования, и должны проводиться до объединения кода в системы управления версиями [[3] (#ссылки)]. В ходе проверок следует выявлять как непреднамеренные недостатки в системе безопасности, так и преднамеренный код, который может служить вредоносным целям. Результаты проверки должны быть задокументированы для последующего рассмотрения в случае необходимости.
 
-#### Secure Config of Version Control Systems
+#### Безопасная настройка систем контроля версий
 
-Compromise or abuse of the source control system is consistently recognized as a significant SSC risk [[4,5](#references)]. The general security best practices of strong access control and logging and monitoring are two methods to help secure VCS. Security features specific to the VCS system, such as protected branches and merge policies in git, should also be leveraged. Regardless of any security controls added a VCS, it must be remember that secrets should never be committed to these systems.
+Компрометация системы управления версиями или злоупотребление ею неизменно рассматривается как существенный риск для SSC [[4,5] (#ссылки)]. Общие рекомендации по обеспечению безопасности, такие как строгий контроль доступа, ведение журнала и мониторинг, являются двумя методами, помогающими защитить VCS. Также следует использовать функции безопасности, характерные для системы VCS, такие как защищенные ветви и политики слияния в git. Независимо от того, какие средства контроля безопасности добавлены в VCS, следует помнить, что секреты никогда не должны передаваться этим системам.
 
-#### Secure Development Platform
+#### Безопасная платформа разработки
 
-IDEs, development plugins, and similar tools can help assist the development process. However, like all pieces of software, these components can have vulnerabilities and become an attack vector. Thus, it is important to take steps not only to ensure these tools are used securely, but also to secure the underlying system. The development system should have endpoint security software installed and should have threat assessments performed against it [[2](#references)]. Only trusted, well-vetted software should be used in the development process; this includes not only "core" development tools such as IDEs, but also any plugins or extensions.  Additionally, these tools should be included as part of an organization's system inventory.
+IDE, плагины для разработки и аналогичные инструменты могут помочь в процессе разработки. Однако, как и все компоненты программного обеспечения, эти компоненты могут иметь уязвимости и стать объектом атаки. Таким образом, важно предпринять шаги не только для обеспечения безопасного использования этих инструментов, но и для защиты базовой системы. В системе разработки должно быть установлено программное обеспечение endpoint security и для него должны быть выполнены оценки угроз [[2] (#ссылки)]. В процессе разработки следует использовать только надежное, хорошо проверенное программное обеспечение; это включает в себя не только "базовые" средства разработки, такие как IDE, но и любые плагины или расширения.  Кроме того, эти инструменты должны быть включены в системный инвентарь организации.
 
-### Mitigating Dependency Threats
+### Смягчение угроз зависимости
 
-Best practices and techniques related to secure use of dependencies are described below.
+Ниже описаны лучшие практики и приемы, связанные с безопасным использованием зависимостей.
 
-#### Assess Suppliers
+#### Оценка поставщиков
 
-Before incorporating a third-party service, product, or software component into the SSC, the vendor and specific offering should both be thoroughly assessed for security. This applies to both open-source and proprietary offerings. The form and extent of the analysis will vary substantially in accordance with both the criticality and nature of the component being considered. Component maturity, security history, and the vendor's response to past vulnerabilities are useful information in nearly any case. For larger vendors or service offerings, determining whether or not a solution has been evaluated against third-party assessments and certifications, such as those performed against [FedRAMP](https://marketplace.fedramp.gov/products), [CSA](https://cloudsecurityalliance.org/star/registry), or various ISO standards (ISO/IEC 27001, ISO/IEC 15408,
-ISO/IEC 27034), can be a useful data point, but must not be relied on exclusively.
+Прежде чем включать стороннюю услугу, продукт или программный компонент в SSC, необходимо тщательно оценить безопасность поставщика и конкретного предложения. Это относится как к предложениям с открытым исходным кодом, так и к проприетарным предложениям. Форма и объем анализа могут существенно различаться в зависимости от критичности и характера рассматриваемого компонента. Уровень готовности компонента, история безопасности и реакция поставщика на прошлые уязвимости являются полезной информацией практически в любом случае. Для более крупных поставщиков или предложений услуг необходимо определить, было ли решение оценено с помощью сторонних оценок и сертификаций, таких как те, которые были проведены с помощью [FedRAMP](https://marketplace.fedramp.gov/products ), [CSA](https://cloudsecurityalliance.org/star/registry) или различные стандарты ISO (ISO/IEC 27001, ISO/IEC 15408,
+ISO/IEC 27034) могут быть полезными источниками данных, но на них нельзя полагаться исключительно.
 
-Due to its transparent nature, open-source projects offer additional assessment opportunities. Questions to consider include [[6](#references)]:
+Благодаря своей прозрачной природе проекты с открытым исходным кодом предоставляют дополнительные возможности для оценки. Вопросы для рассмотрения включают [[6](#ссылки)]:
 
-- Is the project actively maintained?
-- Is the project sufficiently popular and well-known in the applicable community?
-- Is the project sufficiently mature?
-- Is the product or version being evaluated a "release" version, e.g. not an alpha, beta, or comparable versions?
-- Given the complexity of the project, does the project have a sufficient number of maintainers and contributors?
-- Does the project keep its dependencies updated?
-- Does the project have sufficient test coverage and do the tests include security relevant rules?
-- Is the project well-documented and does the document include guidance on how to use the component securely?
-- Does the project have an established and documented process for reporting vulnerabilities and are these vulnerabilities addressed in a timely manner?
-- Is the intended usage of the project consistent with the project's license?
+- Ведется ли активная поддержка проекта?
+- Достаточно ли популярен и известен ли проект в соответствующем сообществе?
+- Является ли проект достаточно зрелым?
+- Является ли оцениваемый продукт или версия "релизной" версией, например, не альфа-, бета-версией или аналогичными версиями?
+- Учитывая сложность проекта, имеет ли проект достаточное количество сопровождающих и участников?
+- Обновляет ли проект свои зависимости?
+- Имеет ли проект достаточное покрытие тестами и включают ли тесты правила, относящиеся к безопасности?
+- Хорошо ли документирован проект и содержит ли документ руководство по безопасному использованию компонента?
+- Существует ли в проекте установленный и документированный процесс сообщения об уязвимостях и устраняются ли эти уязвимости своевременно?
+- Соответствует ли предполагаемое использование проекта лицензии проекта?
 
-#### Understand and Monitor Software Dependencies
+#### Понимать и отслеживать зависимости программного обеспечения
 
-While third-party software dependencies can greatly accelerate the development process, they are also one of the leading risks associated with modern applications. Dependencies must not only be carefully selected before they are incorporated into an application, but also carefully monitored and maintained throughout the SDLC. In order achieve this, having insight into the various dependencies consumed by software is a crucial first step. To facilitate this, SBOMs may be used. Both production and consumption of these SBOMs should be automated, preferably as part of the  organization's CI/CD process.
+Хотя зависимости от программного обеспечения сторонних производителей могут значительно ускорить процесс разработки, они также являются одним из основных рисков, связанных с современными приложениями. Зависимости должны быть не только тщательно отобраны до их включения в приложение, но и тщательно отслеживаться и поддерживаться на протяжении всего SDLC. Для достижения этой цели важным первым шагом является понимание различных зависимостей, используемых программным обеспечением. Для облегчения этого можно использовать SBOMs. Как производство, так и потребление этих SBOM должны быть автоматизированы, предпочтительно как часть процесса CI/CD в организации.
 
-Once the organization has inventoried depdencies, it must also monitor them for known vulnerabilities. This should also be automated as much as possible; tools such as [OWASP Dependency Check](https://owasp.org/www-project-dependency-check/) or [retire.js](https://retirejs.github.io/retire.js/) can assist in this process. Additionally, sources such as the [NVD](https://nvd.nist.gov/), [OSVDB](https://osv.dev/list), or [CISA KEV catalog](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) may also be monitored for known vulnerabilities related to dependencies used in the organization's SSC.
+Как только организация проведет инвентаризацию зависимостей, она должна также отслеживать их на предмет известных уязвимостей. Это также должно быть максимально автоматизировано; такие инструменты, как [Проверка зависимостей OWASP](https://owasp.org/www-project-dependency-check/) или [retire.js](https://retirejs.github.io/retire.js/), могут помочь в этом процессе. Кроме того, такие источники, как [NVD](https://nvd.nist.gov/), [OSVDB](https://osv.dev/list) или [каталог CISA KEV](https://www.cisa.gov/known-exploited-vulnerabilities-catalog), также могут отслеживаться на предмет известных уязвимостей, связанных с зависимостями, используемыми в SSC организации.
 
 #### SAST
 
-Although using SAST to detect potential security in custom developed code is a widely used security technique, it can also be used on OSS components within the SSC [[2](#references)]. As when using SAST on internally developed code, one must recognize that these tools can produce both false positives and false negatives. Thus, SAST results must not be accepted without manual verification and should not be interpreted as providing a comprehensive view of the project's security. However, as long as their limitations are understood, SAST scans can prove useful when analyzing both internally developed or OSS code.
+Хотя использование SAST для обнаружения потенциальной защиты в специально разработанном коде является широко используемым методом обеспечения безопасности, его также можно использовать в компонентах OSS в рамках SSC [[2] (#ссылки)]. Как и при использовании SAST для кода, разработанного собственными силами, необходимо учитывать, что эти инструменты могут давать как ложные срабатывания, так и ложноотрицательные результаты. Таким образом, результаты SAST не должны приниматься без проверки вручную и не должны интерпретироваться как предоставляющие всестороннее представление о безопасности проекта. Однако, если понимать их ограничения, сканирование SAST может оказаться полезным при анализе как внутреннего кода, так и кода OSS.
 
-#### Lockfile/Version Pinning
+#### Привязка файла блокировки/версии
 
-To reduce the likelihood that a compromised or vulnerable version is unwittingly pulled into an application, one should limit the applications dependencies to a specific version that has been previously verified as legitimate and secure. This is commonly accomplished using lockfiles such as the package-lock.json file used by npm.
+Чтобы снизить вероятность непреднамеренного использования скомпрометированной или уязвимой версии в приложении, следует ограничить зависимости приложений конкретной версией, которая была предварительно проверена как легитимная и безопасная. Обычно это достигается с помощью файлов блокировки, таких как файл package-lock.json, используемый npm.
 
-### Build Threats
+### Угрозы сборки
 
-The section below describes techniques that are especially relevant for securing build related threats.
+В разделе ниже описаны методы, которые особенно актуальны для защиты от угроз, связанных со сборкой.
 
-#### Inventory Build Tools
+#### Инструменты для создания инвентаря
 
-Knowing the components used in the SSC is essential to the security of that SSC. This concept extends to build tools. An inventory of all build tools, including versions and any plugins, should be automatically collected and mainlined, One must also monitor vulnerability databases, vendor security advisories and other sources for any vulnerabilities related to the identified build tools.
+Знание компонентов, используемых в SSC, имеет важное значение для обеспечения безопасности этого SSC. Эта концепция распространяется и на инструменты сборки. Перечень всех инструментов сборки, включая версии и любые плагины, должен быть автоматически собран и подключен к основной сети, необходимо также отслеживать базы данных уязвимостей, рекомендации поставщиков по безопасности и другие источники на предмет любых уязвимостей, связанных с выявленными инструментами сборки.
 
-#### Harden Build Tools
+#### Упрочняющие инструменты для сборки
 
-Compromised build tools can enable a wide range of exploits and thus represent an appealing target for attackers. As such, all infrastructure and tools used in build process must be hardened to mitigate risk. Techniques for hardening build environments include [[2](#references)]:
+Скомпрометированные инструменты сборки могут использовать широкий спектр эксплойтов и, таким образом, представляют собой привлекательную цель для злоумышленников. Таким образом, вся инфраструктура и инструменты, используемые в процессе сборки, должны быть защищены для снижения риска. Методы защиты среды сборки включают [[2](#ссылки)]:
 
-- Ensure build tools are located in an appropriately segregated networks.
-- Use DLP and other tools and techniques to detect and prevent exfiltration.
-- Disable/remove any unused services.
-- Use version control systems to manage and store pipeline configurations.
+- Убедитесь, что средства сборки расположены в надлежащим образом изолированных сетях.
+- Используйте DLP и другие инструменты и методы для обнаружения и предотвращения утечки.
+- Отключите/удалите все неиспользуемые службы.
+- Используйте системы контроля версий для управления конфигурациями конвейера и их хранения.
 
-#### Enforce Code Signing
+#### Принудительное подписание кода
 
-From a the perspective of software consumers, only accepting components which have been digitally signed and validating the signature before utilizing the software is an important task step in ensuring the component is authentic and has not been tampered with. For those performing code signing, it is imperative that the code signing infrastructure is thoroughly hardened. Failure to do so can result in compromise of the code signing system and lead further exploits, including those targeting consumers of the software.
+С точки зрения потребителей программного обеспечения, прием только тех компонентов, которые были подписаны цифровой подписью, и проверка подписи перед использованием программного обеспечения является важным этапом для обеспечения подлинности компонента и того, что он не был подделан. Для тех, кто выполняет подписание кода, крайне важно, чтобы инфраструктура подписи кода была тщательно защищена. Невыполнение этого требования может привести к компрометации системы подписи кода и привести к дальнейшим атакам, в том числе нацеленным на пользователей программного обеспечения.
 
-#### Use Private Artifact Repository
+#### Используйте частное хранилище артефактов
 
-Using a private artifact repository increases the control an organization has over the various artifacts that are used within the SSC. Artifacts should be reviewed before being allowed in the private repository and organizations must ensure that usage of these repositories cannot be bypassed. Although usage of private repositories can introduce extra maintenance or reduce agility, they can also be an important component of SSCS, especially for sensitive or critical applications.
+Использование частного хранилища артефактов повышает степень контроля организации над различными артефактами, используемыми в рамках SSC. Артефакты должны быть проверены, прежде чем их можно будет разместить в частном хранилище, и организации должны убедиться, что использование этих хранилищ невозможно обойти. Хотя использование частных репозиториев может потребовать дополнительного обслуживания или снизить гибкость, они также могут быть важным компонентом SSC, особенно для чувствительных или критически важных приложений.
 
-#### Use Source Control for Build Scritps and Config
+#### Используйте систему управления версиями для сценариев сборки и настройки
 
-The benefits of VCSs can be realized for items beyond source control; this is especially true for config and scripts related to CI/CD pipelines. Enforcing version control for these files allows one to incorporate reviews, merge rules, and like controls into the config update process. Using VCS also increase visibility, allowing one easy visibility into any changes introduced, whether malicious or benign [[2](#references)].
+Преимущества VCSs могут быть реализованы для элементов, не связанных с управлением версиями; это особенно актуально для конфигурации и сценариев, связанных с конвейерами CI/CD. Принудительное управление версиями для этих файлов позволяет включать проверки, правила объединения и аналогичные элементы управления в процесс обновления конфигурации. Использование VCS также повышает видимость, позволяя легко отслеживать любые вносимые изменения, как вредоносные, так и доброкачественные [[2] (#ссылки)].
 
-#### Verify Provenance/Ensure Sufficient Metadata is Generated
+#### Проверка происхождения/Обеспечение создания достаточного количества метаданных
 
-Having assurance that an SSC component comes from a trusted source and has not been tampered with is a important part of SSCS. Generation and consumption of provenance, defined in [SLSA 1.0](https://slsa.dev/spec/v1.0/provenance) as "the verifiable information about software artifacts describing where, when and how something was produced"cis an important part of this. The provenance should be generated by the build platform (as opposed to a local development system), be very difficult for attackers to forge, and contain all details necessary to accurately link the result back to the builder [[7](#references)]. SLSA 1.0 compliant provenance can be generated using builders such as [FRSCA](https://github.com/buildsec/frsca) or [Github Actions](https://github.com/slsa-framework/slsa-github-generator) and verified [using SLSA Verifier](https://github.com/slsa-framework/slsa-verifier?tab=readme-ov-file)
+Важной частью SSC является гарантия того, что компонент SSC поступает из надежного источника и не был подделан. Важной частью этого является получение и использование информации о происхождении, определенной в [SLSA 1.0](https://slsa.dev/spec/v1.0/provenance) как "поддающаяся проверке информация о программных артефактах, описывающая, где, когда и как что-либо было произведено". Исходный код должен быть сгенерирован платформой сборки (в отличие от локальной системы разработки), злоумышленникам его будет очень сложно подделать, и он должен содержать все детали, необходимые для точной привязки результата к компоновщику [[7] (#ссылки)]. Исходные данные, соответствующие SLSA 1.0, могут быть сгенерированы с помощью таких сборщиков, как [FRSCA](https://github.com/buildsec/frsca) или [Github Actions](https://github.com/slsa-framework/slsa-github-generator), и проверены [с помощью SLSA Verifier](https://github.com/slsa-framework/slsa-verifier?tab=readme-ov-file)
 
-#### Ephemeral, Isolated Builds
+#### Временные изолированные сборки
 
-Reuse and sharing of build environments may allow attackers to perform cache poising or otherwise more readily inject malicious code.  Builds should be performed in isolated, temporary ("ephemeral") environments. This can be achieved using technologies such as VMs or containers for builds and ensuring the environment is immediately destroyed afterward.
+Повторное использование и совместное использование сред сборки может позволить злоумышленникам выполнять очистку кэша или иным образом легче внедрять вредоносный код.  Сборки должны выполняться в изолированных, временных ("эфемерных") средах. Этого можно достичь, используя такие технологии, как виртуальные машины или контейнеры для сборок, и гарантируя, что после этого среда будет немедленно уничтожена.
 
-#### Limit use of Parameters
+#### Ограничить использование параметров
 
-Although passing user controllable parameters to a build process can increase flexibility, it also increases risk. If parameters can be modified by users in order to alter how a build is performed, an attacker with sufficient permission will also be able to modify the parameters and potentially compromise the build process [[8](#references)]. One should thus make an effort to minimize or eliminate any user controllable build parameters.
+Хотя передача контролируемых пользователем параметров в процесс сборки может повысить гибкость, это также увеличивает риск. Если пользователи могут изменять параметры, чтобы изменить способ выполнения сборки, злоумышленник с достаточными разрешениями также сможет изменить параметры и потенциально скомпрометировать процесс сборки [[8] (#ссылки)]. Таким образом, следует приложить усилия к тому, чтобы свести к минимуму или исключить любые контролируемые пользователем параметры сборки.
 
-### Deployment and Runtime Threats
+### Угрозы при развертывании и во время выполнения
 
-The section below outlines a couple of techniques that can be used to protect software during the deployment and runtime phases.
+В приведенном ниже разделе описаны несколько методов, которые можно использовать для защиты программного обеспечения на этапах развертывания и во время выполнения.
 
-#### Scan Final Build Binary
+#### Проверьте двоичный файл окончательной сборки
 
-Once the build process has finished, one should not simply assume that the final result is secure. Binary composition analysis can help detect exposed secrets, detect unauthorized components or content, and verify integrity [[2](#references)]. This task should be performed by both suppliers and consumers.
+После завершения процесса сборки не следует просто предполагать, что конечный результат безопасен. Анализ бинарной структуры может помочь обнаружить открытые секреты, неавторизованные компоненты или контент и проверить целостность [[2] (#ссылки)]. Эту задачу должны выполнять как поставщики, так и потребители.
 
-#### Monitor Deployed Software for Vulnerabilities
+#### Отслеживайте уязвимости в развернутом программном обеспечении
 
-SSCS does not end with the deployment of the software; the deployed software must be monitored and maintained to reduce risk. New vulnerabilities, whether introduced due to an update or simply newly discovered (or made public), are a continual concern in software systems [[4](#references)]. When performing this monitoring, a wholistic approached must be used; code dependencies, container images, web servers, and operating system components are just a sampling of items that must be consider.To support this monitoring, an accurate and up-to-date inventory of system components is critical. Additionally, insecure configuration changes must be monitored and acted upon.
+SSCS не заканчивается развертыванием программного обеспечения; для снижения риска необходимо отслеживать и поддерживать в рабочем состоянии развернутое программное обеспечение. Новые уязвимости, появляющиеся в результате обновления или просто недавно обнаруженные (или обнародованные), являются постоянной проблемой в программных системах [[4] (#ссылки)]. При выполнении этого мониторинга необходимо использовать целостный подход; зависимости кода, образы контейнеров, веб-серверы и компоненты операционной системы - это лишь некоторые из элементов, которые необходимо учитывать.Для поддержки этого мониторинга критически важна точная и актуальная инвентаризация системных компонентов. Кроме того, необходимо отслеживать небезопасные изменения конфигурации и принимать соответствующие меры.
 
-## References
+## Ссылки на литературу
 
 1. [NIST SP 800-204D: Strategies for the Integration of Software Supply Chain Security in DevSecOps CI/CD Pipelines](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204D.pdf)
 2. [Securing the Software Supply Chain: Recommended Practices Guide for Developers](https://media.defense.gov/2022/Sep/01/2003068942/-1/-1/0/ESF_SECURING_THE_SOFTWARE_SUPPLY_CHAIN_DEVELOPERS.PDF)
