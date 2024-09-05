@@ -1,217 +1,217 @@
-# Session Management Cheat Sheet
+# Шпаргалка по управлению сеансами
 
-## Introduction
+## Введение
 
-**Web Authentication, Session Management, and Access Control**:
+**Веб-аутентификация, управление сеансами и контроль доступа**:
 
-A web session is a sequence of network HTTP request and response transactions associated with the same user. Modern and complex web applications require the retaining of information or status about each user for the duration of multiple requests. Therefore, sessions provide the ability to establish variables – such as access rights and localization settings – which will apply to each and every interaction a user has with the web application for the duration of the session.
+Веб-сессия - это последовательность сетевых HTTP-запросов и ответов, связанных с одним и тем же пользователем. Современные и сложные веб-приложения требуют сохранения информации или статуса о каждом пользователе в течение нескольких запросов. Таким образом, сеансы предоставляют возможность устанавливать переменные, такие как права доступа и настройки локализации, которые будут применяться к каждому взаимодействию пользователя с веб–приложением в течение всего сеанса.
 
-Web applications can create sessions to keep track of anonymous users after the very first user request. An example would be maintaining the user language preference. Additionally, web applications will make use of sessions once the user has authenticated. This ensures the ability to identify the user on any subsequent requests as well as being able to apply security access controls, authorized access to the user private data, and to increase the usability of the application. Therefore, current web applications can provide session capabilities both pre and post authentication.
+Веб-приложения могут создавать сеансы для отслеживания анонимных пользователей после первого же запроса пользователя. Примером может служить сохранение языковых предпочтений пользователя. Кроме того, веб-приложения будут использовать сеансы после аутентификации пользователя. Это обеспечивает возможность идентификации пользователя при любых последующих запросах, а также возможность применения мер безопасности, авторизованного доступа к личным данным пользователя и повышения удобства использования приложения. Таким образом, современные веб-приложения могут предоставлять возможности сеанса как до, так и после аутентификации.
 
-Once an authenticated session has been established, the session ID (or token) is temporarily equivalent to the strongest authentication method used by the application, such as username and password, passphrases, one-time passwords (OTP), client-based digital certificates, smartcards, or biometrics (such as fingerprint or eye retina). See the OWASP [Authentication Cheat Sheet](Authentication_Cheat_Sheet.md).
+Как только аутентифицированный сеанс установлен, идентификатор сеанса (или токен) временно эквивалентен самому надежному методу аутентификации, используемому приложением, такому как имя пользователя и пароль, парольные фразы, одноразовые пароли (OTP), клиентские цифровые сертификаты, смарт-карты или биометрические данные (например, отпечаток пальца или глаз сетчатка). Смотрите OWASP [Шпаргалку по аутентификации](Authentication_Cheat_Sheet.md).
 
-HTTP is a stateless protocol ([RFC2616](https://www.ietf.org/rfc/rfc2616.txt) section 5), where each request and response pair is independent of other web interactions. Therefore, in order to introduce the concept of a session, it is required to implement session management capabilities that link both the authentication and access control (or authorization) modules commonly available in web applications:
+HTTP - это протокол без сохранения состояния ([RFC2616](https://www.ietf.org/rfc/rfc2616.txt) раздел 5), в котором каждая пара запросов и ответов не зависит от других веб-взаимодействий. Следовательно, для внедрения концепции сеанса требуется реализовать возможности управления сеансом, которые связывают модули аутентификации и контроля доступа (или авторизации), обычно доступные в веб-приложениях:
 
 ![SessionDiagram](../assets/Session_Management_Cheat_Sheet_Diagram.png)
 
-The session ID or token binds the user authentication credentials (in the form of a user session) to the user HTTP traffic and the appropriate access controls enforced by the web application. The complexity of these three components (authentication, session management, and access control) in modern web applications, plus the fact that its implementation and binding resides on the web developer's hands (as web development frameworks do not provide strict relationships between these modules), makes the implementation of a secure session management module very challenging.
+Идентификатор сеанса или токен привязывает учетные данные для аутентификации пользователя (в форме пользовательского сеанса) к пользовательскому HTTP-трафику и соответствующим элементам управления доступом, применяемым веб-приложением. Сложность этих трех компонентов (аутентификация, управление сеансами и контроль доступа) в современных веб-приложениях, а также тот факт, что их реализация и привязка находятся в руках веб-разработчика (поскольку фреймворки веб-разработки не предусматривают строгих взаимосвязей между этими модулями), делает внедрение модуля безопасного управления сеансами безопасным. очень сложная задача.
 
-The disclosure, capture, prediction, brute force, or fixation of the session ID will lead to session hijacking (or sidejacking) attacks, where an attacker is able to fully impersonate a victim user in the web application. Attackers can perform two types of session hijacking attacks, targeted or generic. In a targeted attack, the attacker's goal is to impersonate a specific (or privileged) web application victim user. For generic attacks, the attacker's goal is to impersonate (or get access as) any valid or legitimate user in the web application.
+Раскрытие, перехват, предсказание, использование грубой силы или фиксация идентификатора сеанса приведут к атакам с перехватом сеанса (или сайдджекингом), когда злоумышленник может полностью выдать себя за пользователя-жертву в веб-приложении. Злоумышленники могут осуществлять два типа атак с перехватом сеанса: целенаправленные или общие. При целенаправленной атаке целью злоумышленника является выдача себя за конкретного (или привилегированного) пользователя веб-приложения-жертвы. При обычных атаках цель злоумышленника состоит в том, чтобы выдать себя за любого действительного пользователя веб-приложения (или получить доступ от его имени).
 
-## Session ID Properties
+## Свойства идентификатора сеанса
 
-In order to keep the authenticated state and track the users progress within the web application, applications provide users with a **session identifier** (session ID or token) that is assigned at session creation time, and is shared and exchanged by the user and the web application for the duration of the session (it is sent on every HTTP request). The session ID is a `name=value` pair.
+Чтобы поддерживать состояние аутентификации и отслеживать прогресс пользователей в веб-приложении, приложения предоставляют пользователям **идентификатор сеанса** (ID сеанса или токен), который присваивается во время создания сеанса и используется совместно пользователем и веб-приложением в течение всего сеанса (он отправляется при каждом HTTP-запросе). Идентификатор сеанса представляет собой пару "имя=значение".
 
-With the goal of implementing secure session IDs, the generation of identifiers (IDs or tokens) must meet the following properties.
+С целью реализации защищенных идентификаторов сеанса генерация идентификаторов (IDS или токенов) должна соответствовать следующим свойствам.
 
-### Session ID Name Fingerprinting
+### Фингерпринтинг имени индификатора сеанса
 
-The name used by the session ID should not be extremely descriptive nor offer unnecessary details about the purpose and meaning of the ID.
+Имя, используемое для идентификатора сеанса, не должно быть чрезмерно описательным и не должно содержать ненужных подробностей о назначении и значении идентификатора.
 
-The session ID names used by the most common web application development frameworks [can be easily fingerprinted](https://wiki.owasp.org/index.php/Category:OWASP_Cookies_Database), such as `PHPSESSID` (PHP), `JSESSIONID` (J2EE), `CFID` & `CFTOKEN` (ColdFusion), `ASP.NET_SessionId` (ASP .NET), etc. Therefore, the session ID name can disclose the technologies and programming languages used by the web application.
+Имена идентификаторов сеансов, используемые наиболее распространенными платформами разработки веб-приложений [могут быть легко идентифицированы по отпечаткам пальцев](https://wiki.owasp.org/index.php/Category:OWASP_Cookies_Database ), такие как `PHPSESSID` (PHP), `JSESSIONID` (J2EE), `CFID` и `CFTOKEN` (ColdFusion), `ASP.NET_SessionId` (ASP.NET), и так далее. Таким образом, идентификатор сеанса может указывать на технологии и языки программирования, используемые веб-приложением.
 
-It is recommended to change the default session ID name of the web development framework to a generic name, such as `id`.
+Рекомендуется изменить имя идентификатора сеанса по умолчанию в платформе веб-разработки на общее имя, например `id`.
 
-### Session ID Length
+### Длина идентификатора сеанса
 
-The session ID must be long enough to prevent brute force attacks, where an attacker can go through the whole range of ID values and verify the existence of valid sessions.
+Идентификатор сеанса должен быть достаточно длинным, чтобы предотвратить атаки методом перебора, когда злоумышленник может просмотреть весь диапазон значений идентификатора и проверить наличие действительных сеансов.
 
-The session ID length must be at least `128 bits (16 bytes)`.
+Длина идентификатора сеанса должна составлять не менее `128 бит (16 байт)`.
 
-**NOTE**:
+**ПРИМЕЧАНИЕ**:
 
-- The session ID length of 128 bits is provided as a reference based on the assumptions made on the next section *Session ID Entropy*. However, this number should not be considered as an absolute minimum value, as other implementation factors might influence its strength.
-- For example, there are well-known implementations, such as [Microsoft ASP.NET session IDs](https://docs.microsoft.com/en-us/dotnet/api/system.web.sessionstate.sessionidmanager?redirectedfrom=MSDN&view=netframework-4.7.2): "*The ASP .NET session identifier is a randomly generated number encoded into a 24-character string consisting of lowercase characters from a to z and numbers from 0 to 5*".
-- It can provide a very good effective entropy, and as a result, can be considered long enough to avoid guessing or brute force attacks.
+- Длина идентификатора сеанса, равная 128 битам, указана в качестве ссылки на основе предположений, сделанных в следующем разделе *Энтропия идентификатора сеанса*. Однако это число не следует рассматривать как абсолютное минимальное значение, поскольку на его надежность могут влиять другие факторы реализации.
+- Например, существуют хорошо известные реализации, такие как [Microsoft ASP.NET session IDs](https://docs.microsoft.com/en-us/dotnet/api/system.web.sessionstate.sessionidmanager?redirectedfrom=MSDN&view=netframework-4.7.2): "*Идентификатор сеанса ASP .NET - это случайно сгенерированное число, закодированное в 24-символьную строку, состоящую из строчных символов от a до z и чисел от 0 до 5*".
+- Это может обеспечить очень хорошую эффективную энтропию и, как следствие, может рассматриваться достаточно долго, чтобы избежать угадывания или атак методом перебора.
 
-### Session ID Entropy
+### Энтропия идентификатора сеанса
 
-The session ID must be unpredictable (random enough) to prevent guessing attacks, where an attacker is able to guess or predict the ID of a valid session through statistical analysis techniques. For this purpose, a good [CSPRNG](https://en.wikipedia.org/wiki/Cryptographically_secure_pseudorandom_number_generator) (Cryptographically Secure Pseudorandom Number Generator) must be used.
+Идентификатор сеанса должен быть непредсказуемым (достаточно случайным), чтобы предотвратить атаки с угадыванием, когда злоумышленник может угадать или предсказать идентификатор действительного сеанса с помощью методов статистического анализа. Для этой цели необходимо использовать хороший [CSPRNG](https://en.wikipedia.org/wiki/Cryptographically_secure_pseudorandom_number_generator) (криптографически защищенный генератор псевдослучайных чисел).
 
-The session ID value must provide at least `64 bits` of entropy (if a good [PRNG](https://en.wikipedia.org/wiki/Pseudorandom_number_generator) is used, this value is estimated to be half the length of the session ID).
+Значение идентификатора сеанса должно содержать не менее `64 бит` энтропии (если используется хороший [PRNG](https://en.wikipedia.org/wiki/Pseudorandom_number_generator), это значение, по оценкам, составляет половину длины идентификатора сеанса).
 
-Additionally, a random session ID is not enough; it must also be unique to avoid duplicated IDs. A random session ID must not already exist in the current session ID space.
+Кроме того, случайного идентификатора сеанса недостаточно; он также должен быть уникальным, чтобы избежать дублирования идентификаторов. Случайный идентификатор сеанса не должен уже существовать в текущем пространстве идентификаторов сеанса.
 
-**NOTE**:
+**ПРИМЕЧАНИЕ**:
 
-- The session ID entropy is really affected by other external and difficult to measure factors, such as the number of concurrent active sessions the web application commonly has, the absolute session expiration timeout, the amount of session ID guesses per second the attacker can make and the target web application can support, etc.
-- If a session ID with an entropy of `64 bits` is used, an attacker can expect to spend more than 292 years to successfully guess a valid session ID, assuming the attacker can try 10,000 guesses per second with 100,000 valid simultaneous sessions available in the web application.
-- More information [here](https://owasp.org/www-community/vulnerabilities/Insufficient_Session-ID_Length).
+- На энтропию идентификатора сеанса действительно влияют другие внешние и трудно поддающиеся измерению факторы, такие как количество одновременных активных сеансов, которые обычно проводит веб-приложение, абсолютное время ожидания истечения сеанса, количество предположений об идентификаторе сеанса в секунду, которые может сделать злоумышленник, и которые может поддерживать целевое веб-приложение и т.д.
+- Если используется идентификатор сеанса с энтропией `64 бита`, злоумышленник может ожидать, что ему потребуется более 292 лет, чтобы успешно угадать действительный идентификатор сеанса, предполагая, что злоумышленник может делать 10 000 попыток угадывания в секунду при 100 000 действительных одновременных сеансов, доступных в веб-приложении.
+- Более подробная информация [здесь](https://owasp.org/www-community/vulnerabilities/Insufficient_Session-ID_Length).
 
-### Session ID Content (or Value)
+### Содержимое (или значение) идентификатора сеанса
 
-The session ID content (or value) must be meaningless to prevent information disclosure attacks, where an attacker is able to decode the contents of the ID and extract details of the user, the session, or the inner workings of the web application.
+Содержимое (или значение) идентификатора сеанса должно быть бессмысленным, чтобы предотвратить атаки на раскрытие информации, когда злоумышленник может расшифровать содержимое идентификатора и извлечь сведения о пользователе, сеансе или внутренней работе веб-приложения.
 
-The session ID must simply be an identifier on the client side, and its value must never include sensitive information or Personally Identifiable Information (PII). To read more about PII, refer to [Wikipedia](https://en.wikipedia.org/wiki/Personally_identifiable_information) or this [post](https://www.idshield.com/blog/identity-theft/what-pii-and-why-should-i-care/).
+Идентификатор сеанса должен быть просто идентификатором на стороне клиента, и его значение никогда не должно включать конфиденциальную информацию или информацию, позволяющую установить личность (PII). Чтобы узнать больше о PII, обратитесь к [Википедии](https://en.wikipedia.org/wiki/Personally_identifiable_information) или к этому [посту](https://www.idshield.com/blog/identity-theft/what-pii-and-why-should-i-care/).
 
-The meaning and business or application logic associated with the session ID must be stored on the server side, and specifically, in session objects or in a session management database or repository.
+Значение и бизнес-логика или логика приложения, связанные с идентификатором сеанса, должны храниться на стороне сервера, в частности, в объектах сеанса или в базе данных или репозитории для управления сеансами.
 
-The stored information can include the client IP address, User-Agent, e-mail, username, user ID, role, privilege level, access rights, language preferences, account ID, current state, last login, session timeouts, and other internal session details. If the session objects and properties contain sensitive information, such as credit card numbers, it is required to duly encrypt and protect the session management repository.
+Сохраненная информация может включать IP-адрес клиента, пользовательский агент, адрес электронной почты, имя пользователя, идентификатор пользователя, роль, уровень привилегий, права доступа, языковые настройки, идентификатор учетной записи, текущее состояние, последний вход в систему, тайм-ауты сеанса и другие внутренние данные сеанса. Если объекты и свойства сеанса содержат конфиденциальную информацию, такую как номера кредитных карт, необходимо должным образом зашифровать и защитить хранилище управления сеансами.
 
-It is recommended to use the session ID created by your language or framework. If you need to create your own sessionID, use a cryptographically secure pseudorandom number generator (CSPRNG) with a size of at least 128 bits and ensure that each sessionID is unique.
+Рекомендуется использовать идентификатор сеанса, созданный в вашем языке или фреймворке. Если вам нужно создать свой собственный идентификатор сеанса, используйте криптографически защищенный генератор псевдослучайных чисел (CSPRNG) размером не менее 128 бит и убедитесь, что каждый идентификатор сеанса уникален.
 
-## Session Management Implementation
+## Внедрение системы управления сессиями
 
-The session management implementation defines the exchange mechanism that will be used between the user and the web application to share and continuously exchange the session ID. There are multiple mechanisms available in HTTP to maintain session state within web applications, such as cookies (standard HTTP header), URL parameters (URL rewriting – [RFC2396](https://www.ietf.org/rfc/rfc2396.txt)), URL arguments on GET requests, body arguments on POST requests, such as hidden form fields (HTML forms), or proprietary HTTP headers.
+Реализация управления сеансами определяет механизм обмена, который будет использоваться между пользователем и веб-приложением для совместного использования и постоянного обмена идентификатором сеанса. В протоколе HTTP доступно множество механизмов для поддержания состояния сеанса в веб–приложениях, таких как файлы cookie (стандартный HTTP-заголовок), параметры URL (перезапись URL-адреса - [RFC2396](https://www.ietf.org/rfc/rfc2396.txt )), аргументы URL в запросах GET, основные аргументы в запросах POST, такие как скрытые поля форм (HTML-формы), или собственные HTTP-заголовки.
 
-The preferred session ID exchange mechanism should allow defining advanced token properties, such as the token expiration date and time, or granular usage constraints. This is one of the reasons why cookies (RFCs [2109](https://www.ietf.org/rfc/rfc2109.txt) & [2965](https://www.ietf.org/rfc/rfc2965.txt) & [6265](https://www.ietf.org/rfc/rfc6265.txt)) are one of the most extensively used session ID exchange mechanisms, offering advanced capabilities not available in other methods.
+Предпочтительный механизм обмена идентификаторами сеанса должен позволять определять расширенные свойства токена, такие как дата и время истечения срока действия токена или детализированные ограничения на использование. Это одна из причин, по которой файлы cookie (RFC [2109](https://www.ietf.org/rfc/rfc2109.txt) и [2965](https://www.ietf.org/rfc/rfc2965.txt) и [6265](https://www.ietf.org/rfc/rfc6265.txt)) являются одним из наиболее широко используемых механизмов обмена идентификаторами сеанса, предлагая расширенные возможности, недоступные другими способами.
 
-The usage of specific session ID exchange mechanisms, such as those where the ID is included in the URL, might disclose the session ID (in web links and logs, web browser history and bookmarks, the Referer header or search engines), as well as facilitate other attacks, such as the manipulation of the ID or [session fixation attacks](http://www.acrossecurity.com/papers/session_fixation.pdf).
+Использование определенных механизмов обмена идентификаторами сеанса, таких как те, в которых идентификатор включен в URL-адрес, может раскрыть идентификатор сеанса (в веб-ссылках и журналах, истории веб-браузера и закладках, заголовке ссылки или поисковых системах), а также способствовать другим атакам, таким как манипулирование веб-сайтом. Идентификатор или [атаки на фиксацию сеанса](http://www.acrossecurity.com/papers/session_fixation.pdf).
 
-### Built-in Session Management Implementations
+### Встроенные реализации управления сеансами
 
-Web development frameworks, such as J2EE, ASP .NET, PHP, and others, provide their own session management features and associated implementation. It is recommended to use these built-in frameworks versus building a home made one from scratch, as they are used worldwide on multiple web environments and have been tested by the web application security and development communities over time.
+Платформы веб-разработки, такие как J2EE, ASP .NET, PHP и другие, предоставляют свои собственные функции управления сеансами и соответствующую реализацию. Рекомендуется использовать эти встроенные фреймворки, а не создавать самодельные с нуля, поскольку они используются во всем мире в различных веб-средах и со временем были протестированы сообществами по безопасности веб-приложений и разработке веб-приложений.
 
-However, be advised that these frameworks have also presented vulnerabilities and weaknesses in the past, so it is always recommended to use the latest version available, that potentially fixes all the well-known vulnerabilities, as well as review and change the default configuration to enhance its security by following the recommendations described along this document.
+Однако имейте в виду, что в прошлом в этих платформах также были обнаружены уязвимости, поэтому всегда рекомендуется использовать последнюю доступную версию, которая потенциально устраняет все известные уязвимости, а также пересматривать и изменять конфигурацию по умолчанию для повышения ее безопасности, следуя рекомендациям, описанным в этом документе.
 
-The storage capabilities or repository used by the session management mechanism to temporarily save the session IDs must be secure, protecting the session IDs against local or remote accidental disclosure or unauthorized access.
+Средства хранения или репозиторий, используемые механизмом управления сеансами для временного сохранения идентификаторов сеансов, должны быть надежными, защищая идентификаторы сеансов от случайного раскрытия локально или удаленно или несанкционированного доступа.
 
-### Used vs. Accepted Session ID Exchange Mechanisms
+### Используемые и Принятые механизмы обмена идентификаторами сеансов
 
-A web application should make use of cookies for session ID exchange management. If a user submits a session ID through a different exchange mechanism, such as a URL parameter, the web application should avoid accepting it as part of a defensive strategy to stop session fixation.
+Веб-приложение должно использовать файлы cookie для управления обменом идентификаторами сеанса. Если пользователь отправляет идентификатор сеанса с помощью другого механизма обмена, такого как параметр URL, веб-приложение не должно принимать его как часть защитной стратегии, чтобы остановить фиксацию сеанса.
 
-**NOTE**:
+**ПРИМЕЧАНИЕ**:
 
-- Even if a web application makes use of cookies as its default session ID exchange mechanism, it might accept other exchange mechanisms too.
-- It is therefore required to confirm via thorough testing all the different mechanisms currently accepted by the web application when processing and managing session IDs, and limit the accepted session ID tracking mechanisms to just cookies.
-- In the past, some web applications used URL parameters, or even switched from cookies to URL parameters (via automatic URL rewriting), if certain conditions are met (for example, the identification of web clients without support for cookies or not accepting cookies due to user privacy concerns).
+- Даже если веб-приложение использует файлы cookie в качестве механизма обмена идентификаторами сеанса по умолчанию, оно может использовать и другие механизмы обмена.
+- Поэтому необходимо подтвердить путем тщательного тестирования все различные механизмы, которые в настоящее время используются веб-приложением при обработке идентификаторов сеансов и управлении ими, и ограничить принятые механизмы отслеживания идентификаторов сеансов только файлами cookie.
+- В прошлом некоторые веб-приложения использовали параметры URL или даже переключались с файлов cookie на параметры URL (посредством автоматической перезаписи URL), если выполнялись определенные условия (например, идентификация веб-клиентов без поддержки файлов cookie или отказ от принятия файлов cookie из соображений конфиденциальности пользователей).
 
-### Transport Layer Security
+### Безопасность транспортного уровня (TLS)
 
-In order to protect the session ID exchange from active eavesdropping and passive disclosure in the network traffic, it is essential to use an encrypted HTTPS (TLS) connection for the entire web session, not only for the authentication process where the user credentials are exchanged. This may be mitigated by [HTTP Strict Transport Security (HSTS)](HTTP_Strict_Transport_Security_Cheat_Sheet.md) for a client that supports it.
+Чтобы защитить обмен идентификаторами сеанса от активного перехвата и пассивного раскрытия в сетевом трафике, важно использовать зашифрованное HTTPS (TLS) соединение для всего веб-сеанса, а не только для процесса аутентификации, при котором происходит обмен учетными данными пользователя. Это может быть устранено с помощью [HTTP Strict Transport Security (HSTS)](HTTP_Strict_Transport_Security_Cheat_Sheet.md) для клиента, который его поддерживает.
 
-Additionally, the `Secure` [cookie attribute](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#Secure_and_HttpOnly_cookies) must be used to ensure the session ID is only exchanged through an encrypted channel. The usage of an encrypted communication channel also protects the session against some session fixation attacks where the attacker is able to intercept and manipulate the web traffic to inject (or fix) the session ID on the victim's web browser (see [here](https://media.blackhat.com/bh-eu-11/Raul_Siles/BlackHat_EU_2011_Siles_SAP_Session-Slides.pdf) and [here](https://media.blackhat.com/bh-eu-11/Raul_Siles/BlackHat_EU_2011_Siles_SAP_Session-WP.pdf)).
+Кроме того, необходимо использовать `Secure` [атрибут cookie](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#Secure_and_HttpOnly_cookies), чтобы гарантировать, что обмен идентификатором сеанса осуществляется только по зашифрованному каналу. Использование зашифрованного канала связи также защищает сеанс от некоторых атак на фиксацию сеанса, когда злоумышленник может перехватывать веб-трафик и манипулировать им, чтобы ввести (или исправить) идентификатор сеанса в веб-браузере жертвы (см. [здесь](https://media.blackhat.com/bh-eu-11/Raul_Siles/BlackHat_EU_2011_Siles_SAP_Session-Slides.pdf) и [здесь](https://media.blackhat.com/bh-eu-11/Raul_Siles/BlackHat_EU_2011_Siles_SAP_Session-WP.pdf)).
 
-The following set of best practices are focused on protecting the session ID (specifically when cookies are used) and helping with the integration of HTTPS within the web application:
+Следующий набор рекомендаций направлен на защиту идентификатора сеанса (особенно при использовании файлов cookie) и упрощение интеграции HTTPS в веб-приложение.:
 
-- Do not switch a given session from HTTP to HTTPS, or vice-versa, as this will disclose the session ID in the clear through the network.
-    - When redirecting to HTTPS, ensure that the cookie is set or regenerated **after** the redirect has occurred.
-- Do not mix encrypted and unencrypted contents (HTML pages, images, CSS, JavaScript files, etc) in the same page, or from the same domain.
-- Where possible, avoid offering public unencrypted contents and private encrypted contents from the same host. Where insecure content is required, consider hosting this on a separate insecure domain.
-- Implement [HTTP Strict Transport Security (HSTS)](HTTP_Strict_Transport_Security_Cheat_Sheet.md) to enforce HTTPS connections.
+- Не переключайте данный сеанс с HTTP на HTTPS или наоборот, так как это приведет к раскрытию идентификатора сеанса в открытом доступе по сети.
+    - При перенаправлении на HTTPS убедитесь, что файл cookie установлен или восстановлен повторно после того, как произошло перенаправление.
+- Не смешивайте зашифрованное и незашифрованное содержимое (HTML-страницы, изображения, CSS, файлы JavaScript и т.д.) на одной странице или из одного домена.
+- По возможности избегайте размещения общедоступного незашифрованного содержимого и частного зашифрованного содержимого с одного и того же хостинга. Если требуется небезопасное содержимое, рассмотрите возможность размещения его в отдельном небезопасном домене.
+- Внедрите [HTTP Strict Transport Security (HSTS)](HTTP_Strict_Transport_Security_Cheat_Sheet.md) для обеспечения соблюдения HTTPS-соединений.
 
-See the OWASP [Transport Layer Security Cheat Sheet](Transport_Layer_Security_Cheat_Sheet.md) for more general guidance on implementing TLS securely.
+Смотрите OWASP [Шпаргалку по безопасности транспортного уровня](Transport_Layer_Security_Cheat_Sheet.md) для получения более общих рекомендаций по безопасному внедрению TLS.
 
-It is important to emphasize that TLS does not protect against session ID prediction, brute force, client-side tampering or fixation; however, it does provide effective protection against an attacker intercepting or stealing session IDs through a man in the middle attack.
+Важно подчеркнуть, что протокол TLS не защищает от предсказания идентификатора сеанса, грубой силы, вмешательства или фиксации на стороне клиента; однако он обеспечивает эффективную защиту от перехвата или кражи идентификаторов сеанса злоумышленником с помощью атаки "человек посередине".
 
-## Cookies
+## Файлы cookie
 
-The session ID exchange mechanism based on cookies provides multiple security features in the form of cookie attributes that can be used to protect the exchange of the session ID:
+Механизм обмена идентификаторами сеанса, основанный на файлах cookie, предоставляет множество функций безопасности в виде атрибутов файлов cookie, которые могут использоваться для защиты обмена идентификаторами сеанса:
 
-### Secure Attribute
+### Атрибут Secure
 
-The `Secure` cookie attribute instructs web browsers to only send the cookie through an encrypted HTTPS (SSL/TLS) connection. This session protection mechanism is mandatory to prevent the disclosure of the session ID through MitM (Man-in-the-Middle) attacks. It ensures that an attacker cannot simply capture the session ID from web browser traffic.
+Атрибут `Secure`файла cookie предписывает веб-браузерам отправлять cookie-файлы только через зашифрованное соединение HTTPS (SSL/TLS). Этот механизм защиты сеанса является обязательным для предотвращения раскрытия идентификатора сеанса в результате атак MitM (Man-in-the-Middle). Это гарантирует, что злоумышленник не сможет просто перехватить идентификатор сеанса из трафика веб-браузера.
 
-Forcing the web application to only use HTTPS for its communication (even when port TCP/80, HTTP, is closed in the web application host) does not protect against session ID disclosure if the `Secure` cookie has not been set - the web browser can be deceived to disclose the session ID over an unencrypted HTTP connection. The attacker can intercept and manipulate the victim user traffic and inject an HTTP unencrypted reference to the web application that will force the web browser to submit the session ID in the clear.
+Принуждение веб-приложения использовать только HTTPS для обмена данными (даже если порт TCP/80, HTTP, закрыт на хосте веб-приложения) не защищает от раскрытия идентификатора сеанса, если не установлен "Безопасный" файл cookie - веб-браузер может быть обманут, чтобы раскрыть идентификатор сеанса по электронной почте. незашифрованное HTTP-соединение. Злоумышленник может перехватывать пользовательский трафик жертвы и манипулировать им, а также вводить незашифрованную ссылку HTTP на веб-приложение, которая заставит веб-браузер отправить идентификатор сеанса в открытом виде.
 
-See also: [SecureFlag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#Secure_and_HttpOnly_cookies)
+Смотрите также: [SecureFlag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#Secure_and_HttpOnly_cookies)
 
-### HttpOnly Attribute
+### Атрибут HttpOnly
 
-The `HttpOnly` cookie attribute instructs web browsers not to allow scripts (e.g. JavaScript or VBscript) an ability to access the cookies via the DOM document.cookie object. This session ID protection is mandatory to prevent session ID stealing through XSS attacks. However, if an XSS attack is combined with a CSRF attack, the requests sent to the web application will include the session cookie, as the browser always includes the cookies when sending requests. The `HttpOnly` cookie only protects the confidentiality of the cookie; the attacker cannot use it offline, outside of the context of an XSS attack.
+Атрибут cookie `HttpOnly` указывает веб-браузерам не разрешать скриптам (например, JavaScript или VBScript) получать доступ к файлам cookie через объект DOM document.cookie. Эта защита идентификатора сеанса обязательна для предотвращения кражи идентификатора сеанса с помощью XSS-атак. Однако, если атака XSS сочетается с атакой CSRF, запросы, отправляемые веб-приложению, будут содержать сессионный файл cookie, поскольку браузер всегда включает файлы cookie при отправке запросов. Файл cookie `HttpOnly` защищает конфиденциальность только файлов cookie; злоумышленник не может использовать его в автономном режиме, вне контекста XSS-атаки.
 
-See the OWASP [XSS (Cross Site Scripting) Prevention Cheat Sheet](Cross_Site_Scripting_Prevention_Cheat_Sheet.md).
+Смотрите шпаргалку по предотвращению использования XSS (межсайтового скриптинга) в OWASP[Cross_Site_Scripting_Prevention_Cheat_Sheet.md].
 
-See also: [HttpOnly](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#Secure_and_HttpOnly_cookies)
+Смотрите также: [HttpOnly](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#Secure_and_HttpOnly_cookies)
 
-### SameSite Attribute
+### Атрибут SameSite
 
-SameSite defines a cookie attribute preventing browsers from sending a SameSite flagged cookie with cross-site requests. The main goal is to mitigate the risk of cross-origin information leakage, and provides some protection against cross-site request forgery attacks.
+Same ite определяет атрибут cookie, предотвращающий отправку браузерами файлов cookie, помеченных как SameSite, с межсайтовыми запросами. Основная цель - снизить риск утечки информации из разных источников и обеспечить некоторую защиту от атак на подделку межсайтовых запросов.
 
-See also: [SameSite](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#SameSite_cookies)
+Смотрите также: [Тот же сайт](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#SameSite_cookies)
 
-### Domain and Path Attributes
+### Атрибуты Domain и Path 
 
-The [`Domain` cookie attribute](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#Directives) instructs web browsers to only send the cookie to the specified domain and all subdomains. If the attribute is not set, by default the cookie will only be sent to the origin server. The [`Path` cookie attribute](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#Directives) instructs web browsers to only send the cookie to the specified directory or subdirectories (or paths or resources) within the web application. If the attribute is not set, by default the cookie will only be sent for the directory (or path) of the resource requested and setting the cookie.
+Атрибут cookie [`Domain`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#Directives) указывает веб-браузерам отправлять cookie-файлы только в указанный домен и все поддомены. Если этот атрибут не задан, по умолчанию cookie-файлы будут отправляться только на исходный сервер. Атрибут cookie [`Path`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#Directives) указывает веб-браузерам отправлять cookie только в указанный каталог или подкаталоги (или пути или ресурсы) в веб-приложении. Если атрибут не задан, то по умолчанию файл cookie будет отправляться только для указания каталога (или пути) запрошенного ресурса и установки файла cookie.
 
-It is recommended to use a narrow or restricted scope for these two attributes. In this way, the `Domain` attribute should not be set (restricting the cookie just to the origin server) and the `Path` attribute should be set as restrictive as possible to the web application path that makes use of the session ID.
+Рекомендуется использовать узкую или ограниченную область применения для этих двух атрибутов. Таким образом, атрибут `Domain` не должен устанавливаться (ограничивая использование файлов cookie только исходным сервером), а атрибут `Path` должен быть установлен как можно более строго для пути к веб-приложению, которое использует идентификатор сеанса.
 
-Setting the `Domain` attribute to a too permissive value, such as `example.com` allows an attacker to launch attacks on the session IDs between different hosts and web applications belonging to the same domain, known as cross-subdomain cookies. For example, vulnerabilities in `www.example.com` might allow an attacker to get access to the session IDs from `secure.example.com`.
+Установка для атрибута `Domain` слишком разрешающего значения, например `example.com`, позволяет злоумышленнику запускать атаки на идентификаторы сеансов между разными хостами и веб-приложениями, принадлежащими к одному домену, известные как файлы cookie с перекрестными поддоменами. Например, уязвимости в `www.example.com` могут позволить злоумышленнику получить доступ к идентификаторам сеанса из `secure.example.com`.
 
-Additionally, it is recommended not to mix web applications of different security levels on the same domain. Vulnerabilities in one of the web applications would allow an attacker to set the session ID for a different web application on the same domain by using a permissive `Domain` attribute (such as `example.com`) which is a technique that can be used in [session fixation attacks](http://www.acrossecurity.com/papers/session_fixation.pdf).
+Кроме того, рекомендуется не смешивать веб-приложения с разными уровнями безопасности в одном домене. Уязвимости в одном из веб-приложений позволили бы злоумышленнику установить идентификатор сеанса для другого веб-приложения в том же домене, используя разрешающий атрибут "Домен" (например, "example.com"), который является методом, который может быть использован в [атаках на фиксацию сеанса](http://www.acrossecurity.com/papers/session_fixation.pdf).
 
-Although the `Path` attribute allows the isolation of session IDs between different web applications using different paths on the same host, it is highly recommended not to run different web applications (especially from different security levels or scopes) on the same host. Other methods can be used by these applications to access the session IDs, such as the `document.cookie` object. Also, any web application can set cookies for any path on that host.
+Хотя атрибут `Path` позволяет изолировать идентификаторы сеанса между различными веб-приложениями, использующими разные пути на одном и том же хосте, настоятельно рекомендуется не запускать разные веб-приложения (особенно с разными уровнями безопасности или областями действия) на одном и том же хосте. Эти приложения могут использовать другие методы для доступа к идентификаторам сеанса, например, объект `document.cookie`. Кроме того, любое веб-приложение может установить файлы cookie для любого пути на этом хосте.
 
-Cookies are vulnerable to DNS spoofing/hijacking/poisoning attacks, where an attacker can manipulate the DNS resolution to force the web browser to disclose the session ID for a given host or domain.
+Файлы cookie уязвимы для атак с подменой/перехватом/отравлением DNS, когда злоумышленник может манипулировать разрешением DNS, чтобы заставить веб-браузер раскрыть идентификатор сеанса для данного хоста или домена.
 
-### Expire and Max-Age Attributes
+### Атрибуты Expire и Max-Age
 
-Session management mechanisms based on cookies can make use of two types of cookies, non-persistent (or session) cookies, and persistent cookies. If a cookie presents the [`Max-Age`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#Directives) (that has preference over `Expires`) or [`Expires`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#Directives) attributes, it will be considered a persistent cookie and will be stored on disk by the web browser based until the expiration time.
+Механизмы управления сеансами, основанные на файлах cookie, могут использовать два типа файлов cookie: непостоянные (или сессионные) файлы cookie и постоянные файлы cookie. Если файл cookie содержит атрибуты ["Max-Age"](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#Directives) (который предпочтительнее, чем `Expires`) или ["Expires"](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#Directives), он будет считаться постоянным файлом cookie и будет храниться веб-браузером на диске до истечения срока его действия.
 
-Typically, session management capabilities to track users after authentication make use of non-persistent cookies. This forces the session to disappear from the client if the current web browser instance is closed. Therefore, it is highly recommended to use non-persistent cookies for session management purposes, so that the session ID does not remain on the web client cache for long periods of time, from where an attacker can obtain it.
+Как правило, средства управления сеансами для отслеживания пользователей после аутентификации используют непостоянные файлы cookie. Это приводит к тому, что сеанс исчезает из клиента, если текущий экземпляр веб-браузера закрыт. Поэтому настоятельно рекомендуется использовать непостоянные файлы cookie для целей управления сеансами, чтобы идентификатор сеанса не оставался в кэше веб-клиента в течение длительного времени, откуда злоумышленник может его получить.
 
-- Ensure that sensitive information is not compromised by ensuring that it is not persistent, encrypting it, and storing it only for the duration of the need
-- Ensure that unauthorized activities cannot take place via cookie manipulation
-- Ensure secure flag is set to prevent accidental transmission over the wire in a non-secure manner
-- Determine if all state transitions in the application code properly check for the cookies and enforce their use
-- Ensure entire cookie should be encrypted if sensitive data is persisted in the cookie
-- Define all cookies being used by the application, their name and why they are needed
+- Следите за тем, чтобы конфиденциальная информация не была скомпрометирована, обеспечивая ее непостоянство, шифруя ее и сохраняя только на время необходимости.
+- Убедитесь, что несанкционированные действия не могут быть осуществлены с помощью манипулирования файлами cookie
+- Убедитесь, что установлен флажок secure для предотвращения случайной передачи данных небезопасным способом
+- Определите, все ли переходы состояний в коде приложения должным образом проверяются на наличие файлов cookie и обеспечивают их использование
+- Убедитесь, что все файлы cookie должны быть зашифрованы, если в них хранятся конфиденциальные данные
+- Укажите все файлы cookie, используемые приложением, их название и зачем они нужны
 
-## HTML5 Web Storage API
+## API веб-хранилища HTML5
 
-The Web Hypertext Application Technology Working Group (WHATWG) describes the HTML5 Web Storage APIs, `localStorage` and `sessionStorage`, as mechanisms for storing name-value pairs client-side.
-Unlike HTTP cookies, the contents of `localStorage` and `sessionStorage` are not automatically shared within requests or responses by the browser and are used for storing data client-side.
+Рабочая группа по технологиям веб-гипертекстовых приложений (WHATWG) описывает API-интерфейсы веб-хранилища HTML5 `localStorage` и `sessionStorage` как механизмы для хранения пар `имя-значение` на стороне клиента.
+В отличие от HTTP-файлов cookie, содержимое `localStorage` и `sessionStorage` не передается браузером автоматически в рамках запросов или ответов, а используется для хранения данных на стороне клиента.
 
-### The localStorage API
+### API localStorage
 
-#### Scope
+#### Масштаб
 
-Data stored using the `localStorage` API is accessible by pages which are loaded from the same origin, which is defined as the scheme (`https://`), host (`example.com`), port (`443`) and domain/realm (`example.com`).
-This provides similar access to this data as would be achieved by using the `secure` flag on a cookie, meaning that data stored from `https` could not be retrieved via `http`. Due to potential concurrent access from separate windows/threads, data stored using `localStorage` may be susceptible to shared access issues (such as race-conditions) and should be considered non-locking ([Web Storage API Spec](https://html.spec.whatwg.org/multipage/webstorage.html#the-localstorage-attribute)).
+Данные, хранящиеся с использованием API `localStorage`, доступны для страниц, загруженных из одного источника, который определяется как схема (`https://`), хост (`example.com`), порт (`443`) и домен/область (`example.com`).
+Это обеспечивает аналогичный доступ к этим данным, который был бы достигнут при использовании флага "secure" в файле cookie, что означает, что данные, сохраненные по `https`, не могут быть получены по `http`. Из-за потенциального параллельного доступа из разных окон/потоков данные, хранящиеся с использованием "localStorage", могут быть подвержены проблемам с общим доступом (таким как условия гонки) и должны рассматриваться как неблокируемые ([Спецификация API веб-хранилища](https://html.spec.whatwg.org/multipage/webstorage.html#the-localstorage-attribute)).
 
-#### Duration
+#### Продолжительность
 
-Data stored using the `localStorage` API is persisted across browsing sessions, extending the timeframe in which it may be accessible to other system users.
+Данные, сохраненные с помощью API `localStorage`, сохраняются в течение всех сеансов просмотра, что увеличивает период, в течение которого они могут быть доступны другим пользователям системы.
 
-#### Offline Access
+#### Автономный доступ
 
-The standards do not require `localStorage` data to be encrypted-at-rest, meaning it may be possible to directly access this data from disk.
+Стандарты не требуют, чтобы данные `localStorage` были зашифрованы в состоянии покоя, что означает, что может быть возможен прямой доступ к этим данным с диска.
 
-#### Use Case
+#### Пример использования
 
-WHATWG suggests the use of `localStorage` for data that needs to be accessed across windows or tabs, across multiple sessions, and where large (multi-megabyte) volumes of data may need to be stored for performance reasons.
+WHATWG предлагает использовать `localStorage` для данных, к которым требуется доступ через окна или вкладки, в нескольких сеансах и где по соображениям производительности может потребоваться хранение больших (многомегабайтных) объемов данных.
 
-### The sessionStorage API
+### API-интерфейс sessionStorage
 
-#### Scope
+#### Масштаб
 
-The `sessionStorage` API stores data within the window context from which it was called, meaning that Tab 1 cannot access data which was stored from Tab 2.
-Also, like the `localStorage` API, data stored using the `sessionStorage` API is accessible by pages which are loaded from the same origin, which is defined as the scheme (`https://`), host (`example.com`), port (`443`) and domain/realm (`example.com`).
-This provides similar access to this data as would be achieved by using the `secure` flag on a cookie, meaning that data stored from `https` could not be retrieved via `http`.
+API `sessionStorage` хранит данные в контексте окна, из которого он был вызван, что означает, что вкладка 1 не может получить доступ к данным, которые были сохранены на вкладке 2.
+Также, как и `localStorage` API, данные, хранящиеся с использованием API "sessionStorage", доступны страницам, загруженным из одного источника, который определяется как схема (`https://`), хост (`example.com`), порт (`443`) и домен/область (`example.com `).
+Это обеспечивает аналогичный доступ к этим данным, который был бы достигнут при использовании флага "secure" в файле cookie, что означает, что данные, сохраненные по `https`, не могут быть получены по `http`.
 
-#### Duration
+#### Продолжительность
 
-The `sessionStorage` API only stores data for the duration of the current browsing session. Once the tab is closed, that data is no longer retrievable. This does not necessarily prevent access, should a browser tab be reused or left open. Data may also persist in memory until a garbage collection event.
+API `sessionStorage` хранит данные только в течение текущего сеанса просмотра. Как только вкладка закрыта, эти данные больше не доступны для извлечения. Это не обязательно препятствует доступу, если вкладка браузера будет повторно использована или оставлена открытой. Данные также могут сохраняться в памяти до события сборки мусора.
 
-#### Offline Access
+#### Автономный доступ
 
-The standards do not require `sessionStorage` data to be encrypted-at-rest, meaning it may be possible to directly access this data from disk.
+Стандарты не требуют, чтобы данные `sessionStorage` были зашифрованы в состоянии покоя, что означает, что может быть возможен прямой доступ к этим данным с диска.
 
-#### Use Case
+#### Пример использования
 
-WHATWG suggests the use of `sessionStorage` for data that is relevant for one-instance of a workflow, such as details for a ticket booking, but where multiple workflows could be performed in other tabs concurrently. The window/tab bound nature will keep the data from leaking between workflows in separate tabs.
+WHATWG предлагает использовать `sessionStorage` для данных, которые имеют отношение к одному экземпляру рабочего процесса, например, для сведений о бронировании билетов, но в которых несколько рабочих процессов могут выполняться на других вкладках одновременно. Привязка к окну/вкладке предотвратит утечку данных между рабочими процессами на отдельных вкладках.
 
-### References
+### Ссылки на литературу
 
 - [Web Storage APIs](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API)
 - [LocalStorage API](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)
@@ -220,174 +220,174 @@ WHATWG suggests the use of `sessionStorage` for data that is relevant for one-in
 
 ## Web Workers
 
-Web Workers run JavaScript code in a global context separate from the one of the current window. A communication channel with the main execution window exists, which is called `MessageChannel`.
+Web Workers запускают JavaScript-код в глобальном контексте, отдельном от контекста текущего окна. Существует канал связи с главным окном выполнения, который называется `MessageChannel`.
 
-### Use Case
+### Пример использования
 
-Web Workers are an alternative for browser storage of (session) secrets when storage persistence across page refresh is not a requirement. For Web Workers to provide secure browser storage, any code that requires the secret should exist within the Web Worker and the secret should never be transmitted to the main window context.
+Web Workers - это альтернатива браузерному хранилищу секретов (сеанса), когда сохранение данных при обновлении страницы не требуется. Чтобы Web Workers обеспечивал безопасное хранение в браузере, любой код, для которого требуется секрет, должен существовать в Web Worker, и секрет никогда не должен передаваться в контекст главного окна.
 
-Storing secrets within the memory of a Web Worker offers the same security guarantees as an HttpOnly cookie: the confidentiality of the secret is protected. Still, an XSS attack can be used to send messages to the Web Worker to perform an operation that requires the secret. The Web Worker will return the result of the operation to the main execution thread.
+Хранение секретных данных в памяти веб-сервера обеспечивает те же гарантии безопасности, что и HttpOnly cookie: конфиденциальность секретных данных защищена. Тем не менее, XSS-атака может быть использована для отправки сообщений веб-серверу для выполнения операции, для которой требуется секрет. Веб-воркер вернет результат операции в основной поток выполнения.
 
-The advantage of a Web Worker implementation compared to an HttpOnly cookie is that a Web Worker allows for some isolated JavaScript code to access the secret; an HttpOnly cookie is not accessible to any JavaScript. If the frontend JavaScript code requires access to the secret, the Web Worker implementation is the only browser storage option that preserves the secret confidentiality.
+Преимущество реализации Web Worker по сравнению с файлом cookie HttpOnly заключается в том, что Web Worker позволяет некоторому изолированному JavaScript-коду получить доступ к секрету; файл cookie HttpOnly недоступен для любого JavaScript. Если JavaScript-код внешнего интерфейса требует доступа к секретной информации, реализация Web Worker является единственным вариантом хранения в браузере, который сохраняет конфиденциальность секретной информации.
 
-## Session ID Life Cycle
+## Жизненный цикл идентификатора сеанса
 
-### Session ID Generation and Verification: Permissive and Strict Session Management
+### Генерация и проверка идентификатора сеанса: разрешающее и строгое управление сеансом
 
-There are two types of session management mechanisms for web applications, permissive and strict, related to session fixation vulnerabilities. The permissive mechanism allows the web application to initially accept any session ID value set by the user as valid, creating a new session for it, while the strict mechanism enforces that the web application will only accept session ID values that have been previously generated by the web application.
+Существует два типа механизмов управления сеансами для веб-приложений: разрешающее и строгое, которые связаны с уязвимостями, связанными с фиксацией сеанса. Разрешительный механизм позволяет веб-приложению изначально принимать любое значение идентификатора сеанса, установленное пользователем, как действительное, создавая для него новый сеанс, в то время как строгий механизм обеспечивает, чтобы веб-приложение принимало только те значения идентификатора сеанса, которые были ранее сгенерированы веб-приложением.
 
-The session tokens should be handled by the web server if possible or generated via a cryptographically secure random number generator.
+Токены сеанса должны обрабатываться веб-сервером, если это возможно, или генерироваться с помощью криптографически защищенного генератора случайных чисел.
 
-Although the most common mechanism in use today is the strict one (more secure), [PHP defaults to permissive](https://wiki.php.net/rfc/session-use-strict-mode). Developers must ensure that the web application does not use a permissive mechanism under certain circumstances. Web applications should never accept a session ID they have never generated, and in case of receiving one, they should generate and offer the user a new valid session ID. Additionally, this scenario should be detected as a suspicious activity and an alert should be generated.
+Хотя наиболее распространенным механизмом, используемым сегодня, является строгий (более безопасный), [по умолчанию в PHP используется разрешающий механизм](https://wiki.php.net/rfc/session-use-strict-mode). Разработчики должны убедиться, что веб-приложение не использует разрешающий механизм при определенных обстоятельствах. Веб-приложения никогда не должны принимать идентификатор сеанса, который они никогда не генерировали, и в случае его получения они должны сгенерировать и предложить пользователю новый действительный идентификатор сеанса. Кроме того, этот сценарий должен быть обнаружен как подозрительная активность и должно быть выдано предупреждение.
 
-### Manage Session ID as Any Other User Input
+### Управляйте идентификатором сеанса так же, как любым другим пользовательским вводом
 
-Session IDs must be considered untrusted, as any other user input processed by the web application, and they must be thoroughly validated and verified. Depending on the session management mechanism used, the session ID will be received in a GET or POST parameter, in the URL or in an HTTP header (e.g. cookies). If web applications do not validate and filter out invalid session ID values before processing them, they can potentially be used to exploit other web vulnerabilities, such as SQL injection if the session IDs are stored on a relational database, or persistent XSS if the session IDs are stored and reflected back afterwards by the web application.
+Идентификаторы сеанса должны считаться ненадежными, как и любой другой пользовательский ввод, обрабатываемый веб-приложением, и они должны быть тщательно проверены. В зависимости от используемого механизма управления сеансом идентификатор сеанса будет получен в виде параметра GET или POST, в URL-адресе или в заголовке HTTP (например, файлы cookie). Если веб-приложения не проверяют и не отфильтровывают недопустимые значения идентификатора сеанса перед их обработкой, они потенциально могут быть использованы для использования других веб-уязвимостей, таких как внедрение SQL, если идентификаторы сеанса хранятся в реляционной базе данных, или постоянный XSS, если идентификаторы сеанса сохраняются и впоследствии отражаются веб-приложением.
 
-### Renew the Session ID After Any Privilege Level Change
+### Обновляйте идентификатор Сеанса после любого изменения уровня Привилегий
 
-The session ID must be renewed or regenerated by the web application after any privilege level change within the associated user session. The most common scenario where the session ID regeneration is mandatory is during the authentication process, as the privilege level of the user changes from the unauthenticated (or anonymous) state to the authenticated state though in some cases still not yet the authorized state. Common scenarios to consider include; password changes, permission changes, or switching from a regular user role to an administrator role within the web application. For all sensitive pages of the web application, any previous session IDs must be ignored, only the current session ID must be assigned to every new request received for the protected resource, and the old or previous session ID must be destroyed.
+Идентификатор сеанса должен быть обновлен веб-приложением после любого изменения уровня привилегий в рамках связанного пользовательского сеанса. Наиболее распространенный сценарий, при котором обновление идентификатора сеанса является обязательным, происходит во время процесса аутентификации, поскольку уровень привилегий пользователя меняется с неавторизованного (или анонимного) состояния на состояние, прошедшее проверку подлинности, хотя в некоторых случаях это еще не авторизованное состояние. К числу распространенных сценариев, которые следует учитывать, относятся смена пароля, изменение разрешений или переход от роли обычного пользователя к роли администратора в веб-приложении. Для всех конфиденциальных страниц веб-приложения любые идентификаторы предыдущих сеансов должны игнорироваться, каждому новому запросу, полученному для защищенного ресурса, должен присваиваться только текущий идентификатор сеанса, а старый или предыдущий идентификатор сеанса должен быть уничтожен.
 
-The most common web development frameworks provide session functions and methods to renew the session ID, such as `request.getSession(true)` & `HttpSession.invalidate()` (J2EE), `Session.Abandon()` & `Response.Cookies.Add(new...)` (ASP .NET), or `session_start()` & `session_regenerate_id(true)` (PHP).
+Наиболее распространенные платформы веб-разработки предоставляют функции и методы сеанса для обновления идентификатора сеанса, такие как `request.getSession(true)` и `HttpSession.invalidate()` (J2EE), `Session.Abandon()` и `Response.Cookies.Add(new...)` (ASP .NET) или `session_start()` и `session_regenerate_id(true)` (PHP).
 
-The session ID regeneration is mandatory to prevent [session fixation attacks](http://www.acrossecurity.com/papers/session_fixation.pdf), where an attacker sets the session ID on the victim user's web browser instead of gathering the victim's session ID, as in most of the other session-based attacks, and independently of using HTTP or HTTPS. This protection mitigates the impact of other web-based vulnerabilities that can also be used to launch session fixation attacks, such as HTTP response splitting or XSS (see [here](https://media.blackhat.com/bh-eu-11/Raul_Siles/BlackHat_EU_2011_Siles_SAP_Session-Slides.pdf) and [here](https://media.blackhat.com/bh-eu-11/Raul_Siles/BlackHat_EU_2011_Siles_SAP_Session-WP.pdf)).
+Обновление идентификатора сеанса является обязательным для предотвращения [атак с фиксацией сеанса] (http://www.acrossecurity.com/papers/session_fixation.pdf), когда злоумышленник устанавливает идентификатор сеанса в веб-браузере пользователя-жертвы вместо сбора идентификатора сеанса жертвы, как в большинстве других атак, основанных на сеансе, и независимо от использования HTTP или HTTPS. Эта защита снижает воздействие других веб-уязвимостей, которые также могут быть использованы для запуска атак с фиксацией сеанса, таких как разделение HTTP-ответов или XSS (см. [здесь](https://media.blackhat.com/bh-eu-11/Raul_Siles/BlackHat_EU_2011_Siles_SAP_Session-Slides.pdf) и [здесь](https://media.blackhat.com/bh-eu-11/Raul_Siles/BlackHat_EU_2011_Siles_SAP_Session-WP.pdf)).
 
-A complementary recommendation is to use a different session ID or token name (or set of session IDs) pre and post authentication, so that the web application can keep track of anonymous users and authenticated users without the risk of exposing or binding the user session between both states.
+Дополнительной рекомендацией является использование другого идентификатора сеанса или имени токена (или набора идентификаторов сеанса) до и после аутентификации, чтобы веб-приложение могло отслеживать анонимных пользователей и прошедших проверку подлинности пользователей без риска раскрытия или привязки сеанса пользователя к обоим состояниям.
 
-### Considerations When Using Multiple Cookies
+### Рекомендации при использовании Нескольких Файлов Cookie
 
-If the web application uses cookies as the session ID exchange mechanism, and multiple cookies are set for a given session, the web application must verify all cookies (and enforce relationships between them) before allowing access to the user session.
+Если веб-приложение использует файлы cookie в качестве механизма обмена идентификаторами сеанса и для данного сеанса установлено несколько файлов cookie, веб-приложение должно проверить все файлы cookie (и установить взаимосвязи между ними), прежде чем разрешить доступ к сеансу пользователя.
 
-It is very common for web applications to set a user cookie pre-authentication over HTTP to keep track of unauthenticated (or anonymous) users. Once the user authenticates in the web application, a new post-authentication secure cookie is set over HTTPS, and a binding between both cookies and the user session is established. If the web application does not verify both cookies for authenticated sessions, an attacker can make use of the pre-authentication unprotected cookie to get access to the authenticated user session (see [here](https://media.blackhat.com/bh-eu-11/Raul_Siles/BlackHat_EU_2011_Siles_SAP_Session-Slides.pdf) and [here](https://media.blackhat.com/bh-eu-11/Raul_Siles/BlackHat_EU_2011_Siles_SAP_Session-WP.pdf)).
+Веб-приложения очень часто устанавливают предварительную аутентификацию пользователя с помощью файлов cookie по протоколу HTTP, чтобы отслеживать не прошедших проверку подлинности (или анонимных) пользователей. Как только пользователь проходит аутентификацию в веб-приложении, по протоколу HTTPS устанавливается новый защищенный файл cookie после аутентификации, и устанавливается привязка между обоими файлами cookie и сеансом пользователя. Если веб-приложение не проверяет оба файла cookie для аутентифицированных сеансов, злоумышленник может использовать незащищенный файл cookie для предварительной аутентификации, чтобы получить доступ к аутентифицированному сеансу пользователя (см. [здесь](https://media.blackhat.com/bh-eu-11/Raul_Siles/BlackHat_EU_2011_Siles_SAP_Session-Slides.pdf) и [здесь](https://media.blackhat.com/bh-eu-11/Raul_Siles/BlackHat_EU_2011_Siles_SAP_Session-WP.pdf)).
 
-Web applications should try to avoid the same cookie name for different paths or domain scopes within the same web application, as this increases the complexity of the solution and potentially introduces scoping issues.
+Веб-приложениям следует избегать использования одного и того же имени файла cookie для разных путей или доменных областей в рамках одного и того же веб-приложения, поскольку это увеличивает сложность решения и потенциально создает проблемы с определением области.
 
-## Session Expiration
+## Истечение срока действия сеанса
 
-In order to minimize the time period an attacker can launch attacks over active sessions and hijack them, it is mandatory to set expiration timeouts for every session, establishing the amount of time a session will remain active. Insufficient session expiration by the web application increases the exposure of other session-based attacks, as for the attacker to be able to reuse a valid session ID and hijack the associated session, it must still be active.
+Чтобы свести к минимуму период времени, в течение которого злоумышленник может запускать атаки на активные сеансы и перехватывать их, необходимо в обязательном порядке устанавливать тайм-ауты истечения срока действия для каждого сеанса, определяя время, в течение которого сеанс будет оставаться активным. Недостаточный срок действия сеанса веб-приложением увеличивает вероятность других атак, основанных на сеансе, поскольку для того, чтобы злоумышленник мог повторно использовать действительный идентификатор сеанса и перехватить связанный с ним сеанс, он все еще должен быть активен.
 
-The shorter the session interval is, the lesser the time an attacker has to use the valid session ID. The session expiration timeout values must be set accordingly with the purpose and nature of the web application, and balance security and usability, so that the user can comfortably complete the operations within the web application without his session frequently expiring.
+Чем короче интервал сеанса, тем меньше времени у злоумышленника остается на использование действительного идентификатора сеанса. Значения тайм-аута истечения сеанса должны быть установлены в соответствии с назначением и характером веб-приложения и обеспечивать баланс между безопасностью и удобством использования, чтобы пользователь мог с комфортом выполнять операции в веб-приложении без частого истечения срока действия его сеанса.
 
-Both the idle and absolute timeout values are highly dependent on how critical the web application and its data are. Common idle timeouts ranges are 2-5 minutes for high-value applications and 15-30 minutes for low risk applications. Absolute timeouts depend on how long a user usually uses the application. If the application is intended to be used by an office worker for a full day, an appropriate absolute timeout range could be between 4 and 8 hours.
+Как значения времени простоя, так и абсолютного времени ожидания сильно зависят от того, насколько критичны веб-приложение и его данные. Общие интервалы времени ожидания составляют 2-5 минут для приложений с высокой стоимостью и 15-30 минут для приложений с низким уровнем риска. Абсолютные тайм-ауты зависят от того, как долго пользователь обычно использует приложение. Если приложение предназначено для использования офисным работником в течение целого дня, допустимый диапазон абсолютных тайм-аутов может составлять от 4 до 8 часов.
 
-When a session expires, the web application must take active actions to invalidate the session on both sides, client and server. The latter is the most relevant and mandatory from a security perspective.
+По истечении срока действия сеанса веб-приложение должно предпринять активные действия для аннулирования сеанса с обеих сторон, клиента и сервера. Последнее является наиболее актуальным и обязательным с точки зрения безопасности.
 
-For most session exchange mechanisms, client side actions to invalidate the session ID are based on clearing out the token value. For example, to invalidate a cookie it is recommended to provide an empty (or invalid) value for the session ID, and set the `Expires` (or `Max-Age`) attribute to a date from the past (in case a persistent cookie is being used): `Set-Cookie: id=; Expires=Friday, 17-May-03 18:45:00 GMT`
+Для большинства механизмов обмена сеансами действия на стороне клиента по аннулированию идентификатора сеанса основаны на удалении значения токена. Например, чтобы сделать файл cookie недействительным, рекомендуется указать пустое (или недопустимое) значение для идентификатора сеанса и установить для атрибута `Expires` (или `Max-Age`) значение прошлой даты (в случае, если используется постоянный файл cookie): `Set-Cookie: id=; Истекает=Пятница, 17 мая-03 18:45:00 GMT`
 
-In order to close and invalidate the session on the server side, it is mandatory for the web application to take active actions when the session expires, or the user actively logs out, by using the functions and methods offered by the session management mechanisms, such as `HttpSession.invalidate()` (J2EE), `Session.Abandon()` (ASP .NET) or `session_destroy()/unset()` (PHP).
+Чтобы закрыть и аннулировать сеанс на стороне сервера, веб-приложению необходимо предпринять активные действия по истечении сеанса или при активном выходе пользователя из системы, используя функции и методы, предлагаемые механизмами управления сеансом, такие как `HttpSession.invalidate()` (J2EE), `Сессия.Abandon()` (ASP .NET) или `session_destroy()/unset()` (PHP).
 
-### Automatic Session Expiration
+### Автоматическое истечение срока действия сеанса
 
-#### Idle Timeout
+#### Тайм-аут простоя
 
-All sessions should implement an idle or inactivity timeout. This timeout defines the amount of time a session will remain active in case there is no activity in the session, closing and invalidating the session upon the defined idle period since the last HTTP request received by the web application for a given session ID.
+Во всех сеансах должен быть реализован тайм-аут простоя или бездействия. Этот тайм-аут определяет количество времени, в течение которого сеанс будет оставаться активным в случае отсутствия активности в сеансе, закрывая и аннулируя сеанс по истечении определенного периода простоя с момента последнего HTTP-запроса, полученного веб-приложением для данного идентификатора сеанса.
 
-The idle timeout limits the chances an attacker has to guess and use a valid session ID from another user. However, if the attacker is able to hijack a given session, the idle timeout does not limit the attacker's actions, as they can generate activity on the session periodically to keep the session active for longer periods of time.
+Тайм-аут простоя ограничивает шансы злоумышленника угадать и использовать действительный идентификатор сеанса от другого пользователя. Однако, если злоумышленнику удается перехватить данный сеанс, тайм-аут простоя не ограничивает действия злоумышленника, поскольку он может периодически генерировать активность в сеансе, чтобы поддерживать его активность в течение более длительного периода времени.
 
-Session timeout management and expiration must be enforced server-side. If the client is used to enforce the session timeout, for example using the session token or other client parameters to track time references (e.g. number of minutes since login time), an attacker could manipulate these to extend the session duration.
+Управление тайм-аутом сеанса и истечением срока действия должно осуществляться на стороне сервера. Если клиент используется для принудительного установления тайм-аута сеанса, например, с помощью токена сеанса или других параметров клиента для отслеживания временных привязок (например, количества минут с момента входа в систему), злоумышленник может манипулировать ими для увеличения продолжительности сеанса.
 
-#### Absolute Timeout
+#### Абсолютный тайм-аут
 
-All sessions should implement an absolute timeout, regardless of session activity. This timeout defines the maximum amount of time a session can be active, closing and invalidating the session upon the defined absolute period since the given session was initially created by the web application. After invalidating the session, the user is forced to (re)authenticate again in the web application and establish a new session.
+Во всех сеансах должен быть установлен абсолютный тайм-аут, независимо от активности сеанса. Этот тайм-аут определяет максимальное время, в течение которого сеанс может быть активен, закрывая сеанс и делая его недействительным по истечении определенного абсолютного периода с момента первоначального создания данного сеанса веб-приложением. После аннулирования сеанса пользователь вынужден (повторно) проходить аутентификацию в веб-приложении и устанавливать новый сеанс.
 
-The absolute session limits the amount of time an attacker can use a hijacked session and impersonate the victim user.
+Абсолютный сеанс ограничивает время, в течение которого злоумышленник может использовать захваченный сеанс и выдавать себя за пользователя-жертву.
 
-#### Renewal Timeout
+#### Время ожидания обновления
 
-Alternatively, the web application can implement an additional renewal timeout after which the session ID is automatically renewed, in the middle of the user session, and independently of the session activity and, therefore, of the idle timeout.
+В качестве альтернативы, веб-приложение может ввести дополнительное время ожидания обновления, после которого идентификатор сеанса автоматически обновляется в середине сеанса пользователя и независимо от активности сеанса и, следовательно, времени ожидания простоя.
 
-After a specific amount of time since the session was initially created, the web application can regenerate a new ID for the user session and try to set it, or renew it, on the client. The previous session ID value would still be valid for some time, accommodating a safety interval, before the client is aware of the new ID and starts using it. At that time, when the client switches to the new ID inside the current session, the application invalidates the previous ID.
+По истечении определенного промежутка времени с момента первоначального создания сеанса веб-приложение может повторно создать новый идентификатор для сеанса пользователя и попытаться установить его или обновить на клиенте. Предыдущее значение идентификатора сеанса будет оставаться действительным в течение некоторого времени с учетом интервала безопасности, прежде чем клиент узнает о новом идентификаторе и начнет его использовать. В это время, когда клиент переключается на новый идентификатор в текущем сеансе, приложение аннулирует предыдущий идентификатор.
 
-This scenario minimizes the amount of time a given session ID value, potentially obtained by an attacker, can be reused to hijack the user session, even when the victim user session is still active. The user session remains alive and open on the legitimate client, although its associated session ID value is transparently renewed periodically during the session duration, every time the renewal timeout expires. Therefore, the renewal timeout complements the idle and absolute timeouts, specially when the absolute timeout value extends significantly over time (e.g. it is an application requirement to keep the user sessions open for long periods of time).
+Этот сценарий сводит к минимуму количество времени, в течение которого данное значение идентификатора сеанса, потенциально полученное злоумышленником, может быть повторно использовано для перехвата сеанса пользователя, даже если сеанс пользователя-жертвы все еще активен. Пользовательский сеанс остается активным и открытым на законном клиенте, хотя связанное с ним значение идентификатора сеанса прозрачно обновляется периодически в течение всего сеанса, каждый раз по истечении времени ожидания обновления. Таким образом, тайм-аут обновления дополняет тайм-аут простоя и абсолютный тайм-аут, особенно когда значение абсолютного тайм-аута значительно увеличивается со временем (например, это требование приложения - поддерживать пользовательские сеансы открытыми в течение длительного периода времени).
 
-Depending on the implementation, potentially there could be a race condition where the attacker with a still valid previous session ID sends a request before the victim user, right after the renewal timeout has just expired, and obtains first the value for the renewed session ID. At least in this scenario, the victim user might be aware of the attack as her session will be suddenly terminated because her associated session ID is not valid anymore.
+В зависимости от реализации, потенциально может возникнуть ситуация гонки, когда злоумышленник, у которого все еще действителен предыдущий идентификатор сеанса, отправляет запрос раньше пользователя-жертвы, сразу после истечения времени ожидания обновления, и сначала получает значение для обновленного идентификатора сеанса. По крайней мере, в этом случае пользователь-жертва может быть осведомлен об атаке, поскольку ее сеанс будет внезапно прерван, поскольку связанный с ним идентификатор сеанса больше недействителен.
 
-### Manual Session Expiration
+### Ручное истечение срока действия сеанса
 
-Web applications should provide mechanisms that allow security aware users to actively close their session once they have finished using the web application.
+Веб-приложения должны предоставлять механизмы, позволяющие пользователям, осведомленным о безопасности, активно закрывать свой сеанс после завершения использования веб-приложения.
 
-#### Logout Button
+#### Кнопка выхода из системы
 
-Web applications must provide a visible and easily accessible logout (logoff, exit, or close session) button that is available on the web application header or menu and reachable from every web application resource and page, so that the user can manually close the session at any time. As described in *Session_Expiration* section, the web application must invalidate the session at least on server side.
+Веб-приложения должны предоставлять видимую и легкодоступную кнопку выхода из системы (logoff, exit или close session), которая находится в заголовке веб-приложения или в меню и доступна с любого ресурса и страницы веб-приложения, чтобы пользователь мог вручную закрыть сеанс в любое время. Как описано в разделе *Session_Expiration*, веб-приложение должно аннулировать сеанс, по крайней мере, на стороне сервера.
 
-**NOTE**: Unfortunately, not all web applications facilitate users to close their current session. Thus, client-side enhancements allow conscientious users to protect their sessions by helping to close them diligently.
+**ПРИМЕЧАНИЕ**: К сожалению, не все веб-приложения позволяют пользователям закрыть текущую сессию. Таким образом, усовершенствования на стороне клиента позволяют добросовестным пользователям защитить свои сессии, помогая им тщательно закрывать их.
 
-### Web Content Caching
+### Кэширование веб-контента
 
-Even after the session has been closed, it might be possible to access the private or sensitive data exchanged within the session through the web browser cache. Therefore, web applications must use restrictive cache directives for all the web traffic exchanged through HTTP and HTTPS, such as the [`Cache-Control`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) and [`Pragma`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma) HTTP headers, and/or equivalent META tags on all or (at least) sensitive web pages.
+Даже после закрытия сеанса может сохраниться возможность доступа к личным или конфиденциальным данным, которыми обменивались в ходе сеанса, через кэш веб-браузера. Следовательно, веб-приложения должны использовать ограничительные директивы кэширования для всего веб-трафика, передаваемого через HTTP и HTTPS, такие как [`Cache-Control`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) и [`Pragma`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma) HTTP-заголовки и/или эквивалентные МЕТА-теги на всех или (по крайней мере) конфиденциальных веб-сайтах. страницы.
 
-Independently of the cache policy defined by the web application, if caching web application contents is allowed, the session IDs must never be cached, so it is highly recommended to use the `Cache-Control: no-cache="Set-Cookie, Set-Cookie2"` directive, to allow web clients to cache everything except the session ID (see [here](https://stackoverflow.com/a/41352418)).
+Независимо от политики кэширования, определенной веб-приложением, если кэширование содержимого веб-приложения разрешено, идентификаторы сеансов никогда не должны кэшироваться, поэтому настоятельно рекомендуется использовать директиву `Cache-Control: no-cache="Set-Cookie, Set-Cookie2"`, чтобы разрешить веб-клиентам чтобы кэшировать все, кроме идентификатора сеанса (смотрите [здесь](https://stackoverflow.com/a/41352418)).
 
-## Additional Client-Side Defenses for Session Management
+## Дополнительные средства защиты на стороне клиента для управления сеансами
 
-Web applications can complement the previously described session management defenses with additional countermeasures on the client side. Client-side protections, typically in the form of JavaScript checks and verifications, are not bullet proof and can easily be defeated by a skilled attacker, but can introduce another layer of defense that has to be bypassed by intruders.
+Веб-приложения могут дополнять ранее описанные средства защиты от управления сеансами дополнительными контрмерами на стороне клиента. Защита на стороне клиента, обычно в виде проверок на JavaScript, не является пуленепробиваемой и может быть легко преодолена опытным злоумышленником, но может создать еще один уровень защиты, который злоумышленникам придется обходить.
 
-### Initial Login Timeout
+### Время ожидания первоначального входа в систему
 
-Web applications can use JavaScript code in the login page to evaluate and measure the amount of time since the page was loaded and a session ID was granted. If a login attempt is tried after a specific amount of time, the client code can notify the user that the maximum amount of time to log in has passed and reload the login page, hence retrieving a new session ID.
+Веб-приложения могут использовать JavaScript-код на странице входа в систему для оценки и измерения времени, прошедшего с момента загрузки страницы и присвоения идентификатора сеанса. Если попытка входа в систему будет предпринята по истечении определенного промежутка времени, клиентский код может уведомить пользователя о том, что максимальное время для входа в систему истекло, и перезагрузить страницу входа в систему, в результате чего будет получен новый идентификатор сеанса.
 
-This extra protection mechanism tries to force the renewal of the session ID pre-authentication, avoiding scenarios where a previously used (or manually set) session ID is reused by the next victim using the same computer, for example, in session fixation attacks.
+Этот дополнительный механизм защиты пытается принудительно обновить предварительную аутентификацию по идентификатору сеанса, избегая сценариев, когда ранее использованный (или установленный вручную) идентификатор сеанса повторно используется следующей жертвой, использующей тот же компьютер, например, при атаках на фиксацию сеанса.
 
-### Force Session Logout On Web Browser Window Close Events
+### Принудительный Выход из Сеанса При Закрытии окна веб-Браузера
 
-Web applications can use JavaScript code to capture all the web browser tab or window close (or even back) events and take the appropriate actions to close the current session before closing the web browser, emulating that the user has manually closed the session via the logout button.
+Веб-приложения могут использовать JavaScript-код для отслеживания всех событий закрытия (или даже возврата) вкладок или окон веб-браузера и выполнения соответствующих действий для закрытия текущего сеанса перед закрытием веб-браузера, имитируя, что пользователь вручную закрыл сеанс с помощью кнопки выхода из системы.
 
-### Disable Web Browser Cross-Tab Sessions
+### Отключить сеансы кросс-табуляции в веб-браузере
 
-Web applications can use JavaScript code once the user has logged in and a session has been established to force the user to re-authenticate if a new web browser tab or window is opened against the same web application. The web application does not want to allow multiple web browser tabs or windows to share the same session. Therefore, the application tries to force the web browser to not share the same session ID simultaneously between them.
+Веб-приложения могут использовать код JavaScript после того, как пользователь вошел в систему и был установлен сеанс, чтобы заставить пользователя повторно пройти аутентификацию, если в том же веб-приложении открывается новая вкладка или окно веб-браузера. Веб-приложение не хочет разрешать нескольким вкладкам или окнам веб-браузера совместно использовать один и тот же сеанс. Поэтому приложение пытается заставить веб-браузер не использовать один и тот же идентификатор сеанса одновременно между ними.
 
-**NOTE**: This mechanism cannot be implemented if the session ID is exchanged through cookies, as cookies are shared by all web browser tabs/windows.
+**ПРИМЕЧАНИЕ**: Этот механизм не может быть реализован, если обмен идентификатором сеанса осуществляется с помощью файлов cookie, поскольку файлы cookie являются общими для всех вкладок/ окон веб-браузера.
 
-### Automatic Client Logout
+### Автоматический выход клиента из системы
 
-JavaScript code can be used by the web application in all (or critical) pages to automatically logout client sessions after the idle timeout expires, for example, by redirecting the user to the logout page (the same resource used by the logout button mentioned previously).
+Веб-приложение может использовать JavaScript-код на всех (или критически важных) страницах для автоматического выхода из клиентских сессий по истечении времени ожидания, например, путем перенаправления пользователя на страницу выхода из системы (тот же ресурс, который используется кнопкой выхода, упомянутой ранее).
 
-The benefit of enhancing the server-side idle timeout functionality with client-side code is that the user can see that the session has finished due to inactivity, or even can be notified in advance that the session is about to expire through a count down timer and warning messages. This user-friendly approach helps to avoid loss of work in web pages that require extensive input data due to server-side silently expired sessions.
+Преимущество расширения функциональности тайм-аута простоя на стороне сервера с помощью клиентского кода заключается в том, что пользователь может видеть, что сеанс завершен из-за бездействия, или даже может быть заранее уведомлен о том, что сеанс подходит к концу, с помощью таймера обратного отсчета и предупреждающих сообщений. Такой удобный подход помогает избежать сбоев в работе веб-страниц, требующих большого объема вводимых данных, из-за того, что сеансы на стороне сервера автоматически истекают.
 
-## Session Attacks Detection
+## Обнаружение атак на сеансы
 
-### Session ID Guessing and Brute Force Detection
+### Определение идентификатора сеанса и обнаружение методом перебора
 
-If an attacker tries to guess or brute force a valid session ID, they need to launch multiple sequential requests against the target web application using different session IDs from a single (or set of) IP address(es). Additionally, if an attacker tries to analyze the predictability of the session ID (e.g. using statistical analysis), they need to launch multiple sequential requests from a single (or set of) IP address(es) against the target web application to gather new valid session IDs.
+Если злоумышленник попытается угадать действительный идентификатор сеанса или применить грубую силу, ему необходимо запустить несколько последовательных запросов к целевому веб-приложению, используя разные идентификаторы сеанса с одного (или набора) IP-адресов. Кроме того, если злоумышленник пытается проанализировать предсказуемость идентификатора сеанса (например, с помощью статистического анализа), ему необходимо запустить несколько последовательных запросов из одного (или набора) IP-адреса целевого веб-приложения для сбора новых действительных идентификаторов сеанса.
 
-Web applications must be able to detect both scenarios based on the number of attempts to gather (or use) different session IDs and alert and/or block the offending IP address(es).
+Веб-приложения должны быть способны обнаруживать оба сценария на основе количества попыток собрать (или использовать) разные идентификаторы сеанса и предупреждать и/или блокировать IP-адреса-нарушители.
 
-### Detecting Session ID Anomalies
+### Обнаружение аномалий идентификатора сеанса
 
-Web applications should focus on detecting anomalies associated to the session ID, such as its manipulation. The OWASP [AppSensor Project](https://owasp.org/www-project-appsensor/) provides a framework and methodology to implement built-in intrusion detection capabilities within web applications focused on the detection of anomalies and unexpected behaviors, in the form of detection points and response actions. Instead of using external protection layers, sometimes the business logic details and advanced intelligence are only available from inside the web application, where it is possible to establish multiple session related detection points, such as when an existing cookie is modified or deleted, a new cookie is added, the session ID from another user is reused, or when the user location or User-Agent changes in the middle of a session.
+Веб-приложения должны быть сосредоточены на обнаружении аномалий, связанных с идентификатором сеанса, таких как манипулирование им. OWASP [Проект AppSensor](https://owasp.org/www-project-appsensor/) предоставляет структуру и методологию для реализации встроенных возможностей обнаружения вторжений в веб-приложениях, ориентированных на обнаружение аномалий и неожиданного поведения, в виде точек обнаружения и ответных действий. Вместо использования внешних уровней защиты иногда детали бизнес-логики и расширенная аналитика доступны только изнутри веб-приложения, где можно установить несколько точек обнаружения, связанных с сеансом, например, при изменении или удалении существующего файла cookie, добавлении нового файла cookie, получении идентификатора сеанса от другого пользователя. используется повторно, или когда местоположение пользователя или пользовательский агент меняются в середине сеанса.
 
-### Binding the Session ID to Other User Properties
+### Привязка идентификатора сеанса к другим свойствам пользователя
 
-With the goal of detecting (and, in some scenarios, protecting against) user misbehaviors and session hijacking, it is highly recommended to bind the session ID to other user or client properties, such as the client IP address, User-Agent, or client-based digital certificate. If the web application detects any change or anomaly between these different properties in the middle of an established session, this is a very good indicator of session manipulation and hijacking attempts, and this simple fact can be used to alert and/or terminate the suspicious session.
+С целью обнаружения (и, в некоторых случаях, защиты от) неправильного поведения пользователя и перехвата сеанса настоятельно рекомендуется привязать идентификатор сеанса к другим свойствам пользователя или клиента, таким как IP-адрес клиента, пользовательский агент или клиентский цифровой сертификат. Если веб-приложение обнаруживает какие-либо изменения или аномалии между этими различными свойствами в середине установленного сеанса, это является очень хорошим показателем манипулирования сеансом и попыток перехвата, и этот простой факт может быть использован для предупреждения и/или прекращения подозрительного сеанса.
 
-Although these properties cannot be used by web applications to trustingly defend against session attacks, they significantly increase the web application detection (and protection) capabilities. However, a skilled attacker can bypass these controls by reusing the same IP address assigned to the victim user by sharing the same network (very common in NAT environments, like Wi-Fi hotspots) or by using the same outbound web proxy (very common in corporate environments), or by manually modifying his User-Agent to look exactly as the victim users does.
+Хотя эти свойства не могут быть использованы веб-приложениями для надежной защиты от сеансовых атак, они значительно расширяют возможности обнаружения (и защиты) веб-приложений. Однако опытный злоумышленник может обойти эти средства управления, повторно используя тот же IP-адрес, назначенный пользователю-жертве, используя ту же сеть (очень распространенную в средах NAT, таких как точки доступа Wi-Fi), или используя тот же исходящий веб-прокси (очень распространенный в корпоративных средах), или вручную изменив своего пользователя-Агент должен выглядеть точно так же, как это делают пользователи-жертвы.
 
-### Logging Sessions Life Cycle: Monitoring Creation, Usage, and Destruction of Session IDs
+### Ведение журнала жизненного цикла сеансов: Мониторинг создания, использования и уничтожения идентификаторов сеансов
 
-Web applications should increase their logging capabilities by including information regarding the full life cycle of sessions. In particular, it is recommended to record session related events, such as the creation, renewal, and destruction of session IDs, as well as details about its usage within login and logout operations, privilege level changes within the session, timeout expiration, invalid session activities (when detected), and critical business operations during the session.
+Веб-приложения должны расширить свои возможности ведения журнала, включив в него информацию о полном жизненном цикле сеансов. В частности, рекомендуется записывать события, связанные с сеансом, такие как создание, обновление и уничтожение идентификаторов сеанса, а также сведения о его использовании при входе в систему и выходе из системы, изменении уровня привилегий в сеансе, истечении времени ожидания, недопустимых действиях сеанса (при обнаружении) и критических бизнес-операциях во время сеанса.
 
-The log details might include a timestamp, source IP address, web target resource requested (and involved in a session operation), HTTP headers (including the User-Agent and Referer), GET and POST parameters, error codes and messages, username (or user ID), plus the session ID (cookies, URL, GET, POST…).
+Данные журнала могут включать временную метку, IP-адрес источника, запрашиваемый веб-ресурс (задействованный в сеансе), заголовки HTTP (включая User-Agent и Refererer), параметры получения и публикации, коды ошибок и сообщения, имя пользователя (или ID пользователя), а также идентификатор сеанса (файлы cookie, URL, ПОЛУЧИТЬ, ОПУБЛИКОВАТЬ...).
 
-Sensitive data like the session ID should not be included in the logs in order to protect the session logs against session ID local or remote disclosure or unauthorized access. However, some kind of session-specific information must be logged in order to correlate log entries to specific sessions. It is recommended to log a salted-hash of the session ID instead of the session ID itself in order to allow for session-specific log correlation without exposing the session ID.
+Конфиденциальные данные, такие как идентификатор сеанса, не должны включаться в журналы, чтобы защитить журналы сеансов от локального или удаленного раскрытия идентификатора сеанса или несанкционированного доступа. Однако для сопоставления записей журнала с конкретными сеансами необходимо сохранять некоторую информацию, относящуюся к конкретному сеансу. Рекомендуется регистрировать соленый хэш идентификатора сеанса вместо самого идентификатора сеанса, чтобы обеспечить корреляцию журнала для конкретного сеанса, не раскрывая идентификатор сеанса.
 
-In particular, web applications must thoroughly protect administrative interfaces that allow to manage all the current active sessions. Frequently these are used by support personnel to solve session related issues, or even general issues, by impersonating the user and looking at the web application as the user does.
+В частности, веб-приложения должны тщательно защищать административные интерфейсы, которые позволяют управлять всеми текущими активными сеансами. Часто они используются персоналом службы поддержки для решения проблем, связанных с сеансами, или даже общих проблем, путем выдачи себя за пользователя и просмотра веб-приложения так, как это делает пользователь.
 
-The session logs become one of the main web application intrusion detection data sources, and can also be used by intrusion protection systems to automatically terminate sessions and/or disable user accounts when (one or many) attacks are detected. If active protections are implemented, these defensive actions must be logged too.
+Журналы сеансов становятся одним из основных источников данных для обнаружения вторжений в веб-приложения, а также могут использоваться системами защиты от вторжений для автоматического завершения сеансов и/или отключения учетных записей пользователей при обнаружении (одной или нескольких) атак. Если реализованы активные средства защиты, эти защитные действия также должны регистрироваться.
 
-### Simultaneous Session Logons
+### Одновременный вход в систему во время сеанса
 
-It is the web application design decision to determine if multiple simultaneous logons from the same user are allowed from the same or from different client IP addresses. If the web application does not want to allow simultaneous session logons, it must take effective actions after each new authentication event, implicitly terminating the previously available session, or asking the user (through the old, new or both sessions) about the session that must remain active.
+При разработке веб-приложения необходимо определить, разрешено ли несколько одновременных входов в систему от одного и того же пользователя с одного и того же или с разных IP-адресов клиента. Если веб-приложение не хочет разрешать одновременный сеансовый вход в систему, оно должно предпринимать эффективные действия после каждого нового события аутентификации, неявно завершая ранее доступный сеанс или запрашивая пользователя (через старый, новый или оба сеанса) о сеансе, который должен оставаться активным.
 
-It is recommended for web applications to add user capabilities that allow checking the details of active sessions at any time, monitor and alert the user about concurrent logons, provide user features to remotely terminate sessions manually, and track account activity history (logbook) by recording multiple client details such as IP address, User-Agent, login date and time, idle time, etc.
+Веб-приложениям рекомендуется добавить пользовательские возможности, позволяющие в любое время проверять информацию об активных сеансах, отслеживать и оповещать пользователя о одновременных входах в систему, предоставлять пользователю функции для удаленного завершения сеансов вручную и отслеживать историю действий учетной записи (журнал регистрации), записывая множество сведений о клиенте, таких как IP-адрес, имя пользователя и пароль.-Агент, дата и время входа в систему, время простоя и т.д.
 
-## Session Management WAF Protections
+## Управление сеансами защиты WAF
 
-There are situations where the web application source code is not available or cannot be modified, or when the changes required to implement the multiple security recommendations and best practices detailed above imply a full redesign of the web application architecture, and therefore, cannot be easily implemented in the short term.
+Бывают ситуации, когда исходный код веб-приложения недоступен или не может быть изменен, или когда изменения, необходимые для реализации многочисленных рекомендаций по безопасности и наилучших практик, описанных выше, предполагают полную переработку архитектуры веб-приложения и, следовательно, не могут быть легко реализованы в краткосрочной перспективе.
 
-In these scenarios, or to complement the web application defenses, and with the goal of keeping the web application as secure as possible, it is recommended to use external protections such as Web Application Firewalls (WAFs) that can mitigate the session management threats already described.
+В этих сценариях или в дополнение к средствам защиты веб-приложений, а также с целью обеспечения максимальной безопасности веб-приложения рекомендуется использовать внешние средства защиты, такие как брандмауэры веб-приложений (WAFS), которые могут смягчить уже описанные угрозы управления сеансами.
 
-Web Application Firewalls offer detection and protection capabilities against session based attacks. On the one hand, it is trivial for WAFs to enforce the usage of security attributes on cookies, such as the `Secure` and `HttpOnly` flags, applying basic rewriting rules on the `Set-Cookie` header for all the web application responses that set a new cookie.
+Брандмауэры веб-приложений предоставляют возможности обнаружения и защиты от атак на основе сеанса. С одной стороны, для WAF нет ничего сложного в том, чтобы принудительно использовать атрибуты безопасности для файлов cookie, такие как флаги `Secure` и `HttpOnly`, применяя базовые правила перезаписи в заголовке `Set-Cookie` для всех ответов веб-приложения, которые устанавливают новый файл cookie.
 
-On the other hand, more advanced capabilities can be implemented to allow the WAF to keep track of sessions, and the corresponding session IDs, and apply all kind of protections against session fixation (by renewing the session ID on the client-side when privilege changes are detected), enforcing sticky sessions (by verifying the relationship between the session ID and other client properties, like the IP address or User-Agent), or managing session expiration (by forcing both the client and the web application to finalize the session).
+С другой стороны, могут быть реализованы более продвинутые возможности, позволяющие WAF отслеживать сеансы и соответствующие идентификаторы сеансов, а также применять все виды защиты от фиксации сеанса (путем обновления идентификатора сеанса на стороне клиента при обнаружении изменений привилегий), принудительного выполнения зависающих сеансов (путем проверки связь между идентификатором сеанса и другими свойствами клиента, такими как IP-адрес или пользовательский агент), или управление истечением срока действия сеанса (путем принудительного завершения сеанса как клиентом, так и веб-приложением).
 
-The open-source ModSecurity WAF, plus the OWASP [Core Rule Set](https://owasp.org/www-project-modsecurity-core-rule-set/), provide capabilities to detect and apply security cookie attributes, countermeasures against session fixation attacks, and session tracking features to enforce sticky sessions.
+WAF ModSecurity с открытым исходным кодом, а также OWASP [Базовый набор правил] (https://owasp.org/www-project-modsecurity-core-rule-set/) предоставляют возможности для обнаружения и применения атрибутов файлов cookie безопасности, противодействия атакам на фиксацию сеанса и функции отслеживания сеансов для принудительного выполнения зависающих сеансов.
