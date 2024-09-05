@@ -1,5 +1,5 @@
-# DEPRECATED: Access Control Cheatsheet
+# УСТАРЕЛО: Шпаркалка по контролю доступом
 
-The Access Control cheatsheet has been deprecated.
+Шпаргалка по контролю доступом устарела.
 
-Please visit the [Authorization Cheatsheet](Authorization_Cheat_Sheet.md) instead.
+Ознакомьтесь со [Шпаргалкой по авторизации](Authorization_Cheat_Sheet.md) вместо этой.
