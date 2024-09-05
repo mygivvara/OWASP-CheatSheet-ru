@@ -1,116 +1,116 @@
-# Third Party JavaScript Management Cheat Sheet
+# Шпаргалка по управлению JavaScript от сторонних разработчиков
 
-## Introduction
+## Вступление
 
-Tags, aka marketing tags, analytics tags etc. are small bits of JavaScript on a web page. They can also be HTML image elements when JavaScript is disabled. The reason for them is to collect data on the web user actions and browsing context for use by the web page owner in marketing.
+Теги, также известные как маркетинговые теги, аналитические теги и т.д., представляют собой небольшие фрагменты JavaScript на веб-странице. Они также могут быть элементами HTML-изображений, когда JavaScript отключен. Их назначение - сбор данных о действиях веб-пользователя и контексте просмотра для использования владельцем веб-страницы в маркетинговых целях.
 
-Third party vendor JavaScript tags (hereinafter, **tags**) can be divided into two types:
+JavaScript-теги сторонних производителей (далее - **теги**) можно разделить на два типа:
 
-- User interface tags.
-- Analytic tags.
+- Теги пользовательского интерфейса.
+- Аналитические теги.
 
-User interface tags have to execute on the client because they change the DOM; displaying a dialog or image or changing text etc.
+Теги пользовательского интерфейса должны выполняться на клиенте, поскольку они изменяют DOM; отображение диалогового окна или изображения, изменение текста и т.д.
 
-Analytics tags send information back to a marketing information database; information like what user action was just taken, browser metadata, location information, page metadata etc. The rationale for analytics tags is to provide data from the user's browser DOM to the vendor for some form of marketing analysis. This data can be anything available in the DOM. The data is used for user navigation and clickstream analysis, identification of the user to determine further content to display etc., and various marketing analysis functions.
+Аналитические теги отправляют информацию обратно в базу данных маркетинговой информации; например, информацию о том, какое действие пользователь только что совершил, метаданные браузера, информацию о местоположении, метаданные страницы и т.д. Смысл использования аналитических тегов заключается в предоставлении данных из DOM браузера пользователя поставщику для проведения маркетингового анализа в той или иной форме. Эти данные могут быть любыми, доступными в DOM. Данные используются для навигации пользователя и анализа потока кликов, идентификации пользователя для определения дальнейшего контента для показа и т.д., а также для различных функций маркетингового анализа.
 
-The term **host** refers to the original site the user goes to, such as a shopping or news site, that contains or retrieves and executes third party JavaScript tag for marketing analysis of the user actions.
+Термин **хост** относится к исходному сайту, на который заходит пользователь, такому как сайт покупок или новостной сайт, который содержит или извлекает и выполняет сторонний JavaScript-тег для маркетингового анализа действий пользователя.
 
-## Major risks
+## Основные риски
 
-The single greatest risk is a compromise of the third party JavaScript server, and the injection of malicious JavaScript into the original tag JavaScript. This has happened in 2018 and likely earlier.
+Наибольший риск представляет собой компрометация стороннего JavaScript-сервера и внедрение вредоносного JavaScript в исходный тег JavaScript. Это произошло в 2018 году и, вероятно, ранее.
 
-The invocation of third-party JS code in a web application requires consideration for 3 risks in particular:
+Использование стороннего JS-кода в веб-приложении требует рассмотрения, в частности, трех рисков:
 
-1. The loss of control over changes to the client application,
-2. The execution of arbitrary code on client systems,
-3. The disclosure or leakage of sensitive information to 3rd parties.
+1. Потеря контроля над изменениями в клиентском приложении,
+2. Выполнение произвольного кода в клиентских системах,
+3. Раскрытие или утечка конфиденциальной информации третьим лицам.
 
-### Risk 1: Loss of control over changes to the client application
+### Риск 1: Потеря контроля над изменениями в клиентском приложении
 
-This risk arises from the fact that there is usually no guaranty that the code hosted at the third-party will remain the same as seen from the developers and testers: new features may be pushed in the third-party code at any time, thus potentially breaking the interface or data-flows and exposing the availability of your application to its users/customers.
+Этот риск возникает из-за того, что обычно нет гарантии, что код, размещенный у стороннего разработчика, останется таким же, каким его видят разработчики и тестировщики: в любой момент в сторонний код могут быть добавлены новые функции, что потенциально может нарушить интерфейс или потоки данных и подвергнуть риску систему. доступность вашего приложения для его пользователей/заказчиков.
 
-Typical defenses include, but are not restricted to: in-house script mirroring (to prevent alterations by 3rd parties), sub-resource integrity (to enable browser-level interception) and secure transmission of the third-party code (to prevent modifications while in-transit). See below for more details.
+Типичные средства защиты включают, но не ограничиваются ими: собственное зеркальное отображение скриптов (для предотвращения изменений третьими лицами), целостность подресурса (для обеспечения перехвата на уровне браузера) и безопасную передачу кода третьей стороны (для предотвращения изменений во время передачи). Смотрите ниже для получения более подробной информации.
 
-### Risk 2: Execution of arbitrary code on client systems
+### Риск 2: Выполнение произвольного кода в клиентских системах
 
-This risk arises from the fact that third-party JavaScript code is rarely reviewed by the invoking party prior to its integration into a website/application. As the client reaches the hosting website/application, this third-party code gets executed, thus granting the third-party the exact same privileges that were granted to the user (similar to [XSS attacks](https://owasp.org/www-community/attacks/xss/)).
+Этот риск возникает из-за того, что сторонний JavaScript-код редко просматривается запрашивающей стороной перед его интеграцией в веб-сайт/приложение. Когда клиент достигает веб-сайта/приложения, на котором размещен хостинг, этот сторонний код выполняется, предоставляя третьей стороне точно такие же привилегии, которые были предоставлены пользователю (аналогично [XSS-атакам](https://owasp.org/www-community/attacks/xss/)).
 
-Any testing performed prior to entering production loses some of its validity, including `AST testing` ([IAST](https://www.veracode.com/security/interactive-application-security-testing-iast), [RAST](https://www.veracode.com/sites/default/files/pdf/resources/whitepapers/what-is-rasp.pdf), [SAST](https://www.sqreen.com/web-application-security/what-is-sast), [DAST](https://www.sqreen.com/web-application-security/what-is-dast), etc.).
+Любое тестирование, проведенное до запуска в производство, частично теряет силу, включая `тестирование AST` ([IAST](https://www.veracode.com/security/interactive-application-security-testing-iast), [RAST](https://www.veracode.com/sites/default/files/pdf/resources/whitepapers/what-is-rasp.pdf), [SAST](https://www.sqreen.com/web-application-security/what-is-sast), [DAST](https://www.sqreen.com/web-application-security/what-is-dast) и т.д.).
 
-While it is widely accepted that the probability of having rogue code intentionally injected by the third-party is low, there are still cases of malicious injections in third-party code after the organization's servers were compromised (ex: Yahoo, January 2014).
+Хотя общепризнано, что вероятность преднамеренного внедрения вредоносного кода третьей стороной невелика, все еще существуют случаи вредоносных внедрений в сторонний код после того, как серверы организации были скомпрометированы (например, Yahoo, январь 2014 г.).
 
-This risk should therefore still be evaluated, in particular when the third-party does not show any documentation that it is enforcing better security measures than the invoking organization itself, or at least equivalent. Another example is that the domain hosting the third-party JavaScript code expires because the company maintaining it is bankrupt or the developers have abandoned the project. A malicious actor can then re-register the domain and publish malicious code.
+Поэтому этот риск все еще следует оценивать, в частности, когда третья сторона не предъявляет никаких документов, подтверждающих, что она применяет более эффективные меры безопасности, чем сама запрашивающая организация, или, по крайней мере, эквивалентные им. Другой пример - срок действия домена, на котором размещен сторонний JavaScript-код, истекает из-за того, что обслуживающая его компания обанкротилась или разработчики отказались от проекта. Злоумышленник может перерегистрировать домен и опубликовать вредоносный код.
 
-Typical defenses include, but are not restricted to:
+Типичные средства защиты включают, но не ограничиваются ими:
 
-- In-house script mirroring (to prevent alterations by 3rd parties),
-- [Sub-resource integrity](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity) (to enable browser-level interception),
-- Secure transmission of the third-party code (to prevent modifications while in-transit) and various types of sandboxing. See below for more details.
+- Собственное зеркальное отображение скрипта (для предотвращения изменений третьими лицами),
+- [Целостность подресурса](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity) (для обеспечения перехвата на уровне браузера),
+- Безопасная передача кода третьей стороны (для предотвращения изменений во время транспортировки) и различные виды изолированной защиты. Более подробную информацию смотрите ниже.
 - ...
 
-### Risk 3: Disclosure of sensitive information to 3rd parties
+### Риск 3: Разглашение конфиденциальной информации третьим лицам
 
-When a third-party script is invoked in a website/application, the browser directly contacts the third-party servers. By default, the request includes all regular HTTP headers. In addition to the originating IP address of the browser, the third-party also obtains other data such as the referrer (in non-https requests) and any cookies previously set by the 3rd party, for example when visiting another organization's website that also invokes the third-party script.
+Когда на веб-сайте/в приложении вызывается сторонний скрипт, браузер напрямую связывается со сторонними серверами. По умолчанию запрос содержит все обычные HTTP-заголовки. В дополнение к исходному IP-адресу браузера, третья сторона также получает другие данные, такие как ссылка (в запросах, отличных от https) и любые файлы cookie, ранее установленные третьей стороной, например, при посещении веб-сайта другой организации, который также запускает сторонний скрипт.
 
-In many cases, this grants the third-party primary access to information on the organization's users / customers / clients. Additionally, if the third-party is sharing the script with other entities, it also collects secondary data from all the other entities, thus knowing who the organization's visitors are but also what other organizations they interact with.
+Во многих случаях это предоставляет сторонним организациям первичный доступ к информации о пользователях/заказчиках организации. Кроме того, если сторонняя организация совместно использует скрипт с другими объектами, она также собирает вторичные данные от всех других объектов, таким образом, узнавая, кто является посетителями организации, а также с какими другими организациями они взаимодействуют.
 
-A typical case is the current situation with major news/press sites that invoke third-party code (typically for ad engines, statistics and JavaScript APIs): any user visiting any of these websites also informs the 3rd parties of the visit. In many cases, the third-party also gets to know what news articles each individual user is clicking specifically (leakage occurs through the HTTP referrer field) and thus can establish deeper personality profiles.
+Типичным примером является текущая ситуация с крупными новостными сайтами/ прессой, которые используют сторонний код (обычно для рекламных систем, статистики и API JavaScript): любой пользователь, посещающий любой из этих веб-сайтов, также сообщает третьим лицам о своем посещении. Во многих случаях третья сторона также получает информацию о том, на какие новостные статьи конкретно нажимает каждый отдельный пользователь (утечка происходит через поле HTTP-ссылки), и, таким образом, может создать более глубокие профили личности.
 
-Typical defenses include, but are not restricted to: in-house script mirroring (to prevent leakage of HTTP requests to 3rd parties). Users can reduce their profiling by random clicking links on leaking websites/applications (such as press/news websites) to reduce profiling. See below for more details.
+Типичные средства защиты включают, но не ограничиваются ими: зеркальное отображение собственных скриптов (для предотвращения утечки HTTP-запросов третьим лицам). Пользователи могут уменьшить свое профилирование, случайным образом переходя по ссылкам на веб-сайтах/приложениях с утечкой (например, на сайтах прессы/ новостных сайтах), чтобы уменьшить профилирование. Смотрите ниже для получения более подробной информации.
 
-## Third-party JavaScript Deployment Architectures
+## Архитектуры развертывания JavaScript сторонних разработчиков
 
-There are three basic deployment mechanisms for **tags**. These mechanisms can be combined with each other.
+Существует три основных механизма развертывания **тегов**. Эти механизмы можно комбинировать друг с другом.
 
-### Vendor JavaScript on page
+### JavaScript поставщика на странице
 
-This is where the vendor provides the host with the JavaScript and the host puts it on the host page. To be secure the host company must review the code for any vulnerabilities like [XSS attacks](https://owasp.org/www-community/attacks/xss/) or malicious actions such as sending sensitive data from the DOM to a malicious site. This is often difficult because the JavaScript is commonly obfuscated.
+В этом случае поставщик предоставляет хосту JavaScript, а хост размещает его на странице хостинга. Для обеспечения безопасности хостинговая компания должна проверить код на наличие уязвимостей, таких как [XSS-атаки](https://owasp.org/www-community/attacks/xss/), или вредоносных действий, таких как отправка конфиденциальных данных из DOM на вредоносный сайт. Это часто бывает сложно, потому что JavaScript обычно запутан.
 
 ```html
-<!-- Some host, e.g. foobar.com, HTML code here -->
+<!-- Какой-нибудь хостинг, например foobar.com, HTML-код здесь -->
 <html>
 <head></head>
     <body>
         ...
-        <script type="text/javascript">/* 3rd party vendor javascript here */</script>
+        <script type="text/javascript">/* javascript стороннего поставщика здесь*/</script>
     </body>
 </html>
 ```
 
-### JavaScript Request to Vendor
+### JavaScript-запрос к поставщику
 
-This is where one or a few lines of code on the host page each request a JavaScript file or URL directly from the vendor site. When the host page is being created, the developer includes the lines of code provided by the vendor that will request the vendor JavaScript. Each time the page is accessed the requests are made to the vendor site for the javascript, which then executes on the user browser.
+Это когда одна или несколько строк кода на главной странице запрашивают файл JavaScript или URL-адрес непосредственно с сайта поставщика. При создании главной страницы разработчик включает строки кода, предоставленные поставщиком, которые будут запрашивать JavaScript поставщика. При каждом обращении к странице на сайт поставщика отправляются запросы на javascript, которые затем выполняются в браузере пользователя.
 
 ```html
-<!-- Some host, e.g. foobar.com, HTML code here -->`
+<!-- Какой-нибудь хостинг, например foobar.com, HTML-код здесь -->`
 <html>
     <head></head>
     <body>
         ...
-        <!-- 3rd party vendor javascript -->
+        <!-- avascript стороннего поставщика -->
         <script src="https://analytics.vendor.com/v1.1/script.js"></script>
-        <!-- /3rd party vendor javascript -->
+        <!-- /avascript стороннего поставщика -->
     </body>
 </html>
 ```
 
-### Indirect request to Vendor through Tag Manager
+### Косвенный запрос поставщику через диспетчер тегов
 
-This is where one or a few lines of code on the host page each request a JavaScript file or URL from a tag aggregator or **tag manager** site; not from the JavaScript vendor site. The tag aggregator or tag manager site returns whatever third party JavaScript files that the host company has configured to be returned. Each file or URL request to the tag manager site can return lots of other JavaScript files from multiple vendors.
+Это когда одна или несколько строк кода на главной странице запрашивают файл JavaScript или URL-адрес с сайта агрегатора тегов или **менеджера тегов**, а не с сайта поставщика JavaScript. Веб-сайт tag aggregator или tag manager возвращает любые сторонние файлы JavaScript, которые хостинговая компания настроила для возврата. Каждый запрос файла или URL-адреса на веб-сайт tag manager может возвращать множество других файлов JavaScript от нескольких поставщиков.
 
-The actual content that is returned from the aggregator or manager (i.e. the specific JavaScript files as well as exactly what they do) can be dynamically changed by host site employees using a graphical user interface for development, hosted on the tag manager site that non-technical users can work with, such as the marketing part of the business.
+Фактический контент, возвращаемый агрегатором или менеджером (т.е. конкретные файлы JavaScript, а также то, что именно они делают), может динамически изменяться сотрудниками хост-сайта с помощью графического пользовательского интерфейса для разработки, размещенного на сайте менеджера тегов, с которым могут работать нетехнические пользователи, такие как маркетологи. это часть бизнеса.
 
-The changes can be either:
+Изменения могут быть следующими:
 
-1. Get a different JavaScript file from the third-party vendor for the same request.
-2. Change what DOM object data is read, and when, to send to the vendor.
+1. Получите другой JavaScript-файл от стороннего поставщика для того же запроса.
+2. Измените, какие данные объекта DOM считываются и когда отправляются поставщику.
 
-The tag manager developer user interface will generate code that does what the marketing functionality requires, basically determining what data to get from the browser DOM and when to get it. The tag manager always returns a **container** JavaScript file to the browser which is basically a set of JavaScript functions that are used by the code generated by the user interface to implement the required functionality.
+Пользовательский интерфейс разработчика tag manager сгенерирует код, который выполняет то, что требуется для маркетинговых функций, в основном определяя, какие данные следует получать из DOM браузера и когда их получать. Диспетчер тегов всегда возвращает браузеру JavaScript-файл-контейнер, который по сути представляет собой набор функций JavaScript, которые используются кодом, сгенерированным пользовательским интерфейсом, для реализации требуемой функциональности.
 
-Similar to java frameworks that provide functions and global data to the developer, the container JavaScript executes on the browser and lets the business user use the tag manager developer user interface to specify high level functionality without needing to know JavaScript.
+Подобно фреймворкам java, которые предоставляют разработчику функции и глобальные данные, контейнерный JavaScript выполняется в браузере и позволяет бизнес-пользователю использовать пользовательский интерфейс разработчика менеджера тегов для определения функциональности высокого уровня без необходимости знать JavaScript.
 
 ```html
-<!-- Some host, e.g. foobar.com, HTML code here -->
+<!-- Какой-нибудь хостинг, например foobar.com, HTML-код здесь -->
  <html>
    <head></head>
      <body>
@@ -131,76 +131,76 @@ Similar to java frameworks that provide functions and global data to the develop
 </html>`
 ```
 
-#### Security Problems with requesting Tags
+#### Проблемы с безопасностью при запросе тегов
 
-The previously described mechanisms are difficult to make secure because you can only see the code if you proxy the requests or if you get access to the GUI and see what is configured. The JavaScript is generally obfuscated so even seeing it is usually not useful. It is also instantly deployable because each new page request from a browser executes the requests to the aggregator which gets the JavaScript from the third party vendor. So as soon as any JavaScript files are changed on the vendor, or modified on the aggregator, the next call for them from any browser will get the changed JavaScript. One way to manage this risk is with the *Subresource Integrity* standard described below.
+Ранее описанные механизмы сложно обезопасить, потому что вы можете увидеть код, только если вы передаете запросы через прокси или если вы получаете доступ к графическому интерфейсу и видите, что настроено. JavaScript, как правило, запутан, поэтому даже просмотр его обычно бесполезен. Он также может быть мгновенно развернут, поскольку каждый запрос новой страницы из браузера выполняет запросы к агрегатору, который получает JavaScript от стороннего поставщика. Таким образом, как только какие-либо файлы JavaScript изменяются у поставщика или в агрегаторе, при следующем обращении к ним из любого браузера будет получен измененный JavaScript. Одним из способов управления этим риском является стандарт *целостности подресурса*, описанный ниже.
 
-### Server Direct Data Layer
+### Уровень прямых данных сервера (Server Direct Data Layer)
 
-The tag manager developer user interface can be used to create JavaScript that can get data from anywhere in the browser DOM and store it anywhere on the page. This can allow vulnerabilities because the interface can be used to generate code to get unvalidated data from the DOM (e.g. URL parameters) and store it in some page location that would execute JavaScript.
+Пользовательский интерфейс разработчика tag manager можно использовать для создания JavaScript, который может получать данные из любой точки DOM браузера и сохранять их в любом месте страницы. Это может привести к появлению уязвимостей, поскольку интерфейс может использоваться для генерации кода для получения неподтвержденных данных из DOM (например, параметров URL) и сохранения их в некотором расположении страницы, которое будет выполнять JavaScript.
 
-The best way to make the generated code secure is to confine it to getting DOM data from a host defined data layer.
+Лучший способ обеспечить безопасность сгенерированного кода - ограничить его получением данных DOM с уровня данных, определенного хостом.
 
-The data layer is either:
+Уровень данных - это либо:
 
-1. a DIV object with attribute values that have the marketing or user behavior data that the third-party wants
-2. a set of JSON objects with the same data. Each variable or attribute contains the value of some DOM element or the description of a user action. The data layer is the complete set of values that all vendors need for that page. The data layer is created by the host developers.
+1. объект DIV со значениями атрибутов, которые содержат маркетинговые данные или данные о поведении пользователя, необходимые третьей стороне
+2. набор объектов JSON с одинаковыми данными. Каждая переменная или атрибут содержит значение некоторого элемента DOM или описание действия пользователя. Уровень данных - это полный набор значений, необходимых всем поставщикам для этой страницы. Уровень данных создается разработчиками хостинга.
 
-When specific events happen that the business has defined, a JavaScript handler for that event sends values from the data layer directly to the tag manager server. The tag manager server then sends the data to whatever third party or parties is supposed to get it. The event handler code is created by the host developers using the tag manager developer user interface. The event handler code is loaded from the tag manager servers on every page load.
+Когда происходят определенные события, определенные компанией, обработчик JavaScript для этого события отправляет значения из уровня данных непосредственно на сервер диспетчера тегов. Сервер диспетчера тегов затем отправляет данные любой третьей стороне или сторонам, которые должны их получить. Код обработчика событий создается разработчиками хостинга с использованием пользовательского интерфейса разработчика tag manager. Код обработчика событий загружается с серверов tag manager при каждой загрузке страницы.
 
-**This is a secure technique** because only your JavaScript executes on your users browser, and only the data you decide on is sent to the vendor.
+**Это безопасный метод**, поскольку в браузере пользователя выполняется только ваш JavaScript, и поставщику отправляются только те данные, которые вы выберете сами.
 
-This requires cooperation between the host, the aggregator or tag manager and the vendors.
+Это требует сотрудничества между хостом, агрегатором или менеджером тегов и поставщиками.
 
-The host developers have to work with the vendor in order to know what type of data the vendor needs to do their analysis. Then the host programmer determines what DOM element will have that data.
+Разработчики хоста должны работать с поставщиком, чтобы знать, какие данные нужны поставщику для проведения анализа. Затем программист хоста определяет, какой элемент DOM будет содержать эти данные.
 
-The host developers have to work with the tag manager or aggregator to agree on the protocol to send the data to the aggregator: what URL, parameters, format etc.
+Разработчики хостинга должны работать с менеджером тегов или агрегатором, чтобы согласовать протокол отправки данных в агрегатор: какой URL, параметры, формат и т.д.
 
-The tag manager or aggregator has to work with the vendor to agree on the protocol to send the data to the vendor: what URL, parameters, format etc. Does the vendor have an API?
+Менеджер тегов или агрегатор должен работать с поставщиком, чтобы согласовать протокол отправки данных поставщику: какой URL, параметры, формат и т.д. Есть ли у поставщика API?
 
-## Security Defense Considerations
+## Соображения безопасности и обороны
 
-### Server Direct Data Layer
+### Уровень прямых данных сервера (Server Direct Data Layer)
 
-The server direct mechanism is a good security standard for third party JavaScript management, deployment and execution. A good practice for the host page is to create a data layer of DOM objects.
+Механизм server direct является хорошим стандартом безопасности для стороннего управления, развертывания и выполнения JavaScript. Хорошей практикой для главной страницы является создание уровня данных из DOM-объектов.
 
-The data layer can perform any validation of the values, especially values from DOM objects exposed to the user like URL parameters and input fields, if these are required for the marketing analysis.
+Уровень данных может выполнять любую проверку значений, особенно значений из DOM-объектов, доступных пользователю, таких как параметры URL и поля ввода, если они требуются для маркетингового анализа.
 
-An example statement for a corporate standard document is 'The tag JavaScript can only access values in the host data layer. The tag JavaScript can never access a URL parameter.
+Примером утверждения для корпоративного стандартного документа является "Тег JavaScript может обращаться только к значениям на уровне данных хоста. Тег JavaScript никогда не сможет получить доступ к параметру URL.
 
-You the host page developer have to agree with the third-party vendors or the tag manager what attribute in the data layer will have what value so they can create the JavaScript to read that value.
+Вы, разработчик главной страницы, должны согласовать со сторонними поставщиками или менеджером тегов, какой атрибут на уровне данных будет иметь какое значение, чтобы они могли создать JavaScript для считывания этого значения.
 
-User interface tags cannot be made secure using the data layer architecture because their function (or one of their functions) is to change the user interface on the client, not to send data about the user actions.
+Теги пользовательского интерфейса невозможно защитить с помощью архитектуры уровня данных, поскольку их функция (или одна из их функций) заключается в изменении пользовательского интерфейса на клиенте, а не в отправке данных о действиях пользователя.
 
-Analytics tags can be made secure using the data layer architecture because the only action needed is to send data from the data layer to the third party. Only first party code is executed; first to populate the data layer (generally on page load); then event handler JavaScript sends whatever data is needed from that page to the third party database or tag manager.
+Теги аналитики могут быть защищены с помощью архитектуры уровня данных, поскольку единственное необходимое действие - это отправка данных с уровня данных третьей стороне. Выполняется только исходный код; сначала заполняется слой данных (обычно при загрузке страницы); затем обработчик событий JavaScript отправляет все необходимые данные с этой страницы в стороннюю базу данных или диспетчер тегов.
 
-This is also a very scalable solution. Large ecommerce sites can easily have hundreds of thousands of URL and parameter combinations, with different sets of URLs and parameters being included in different marketing analysis campaigns. The marketing logic could have 30 or 40 different vendor tags on a single page.
+Это также очень масштабируемое решение. Крупные сайты электронной коммерции могут легко содержать сотни тысяч комбинаций URL-адресов и параметров, при этом различные наборы URL-адресов и параметров могут быть включены в различные маркетинговые аналитические кампании. Маркетинговая логика может содержать 30 или 40 различных тегов поставщиков на одной странице.
 
-For example user actions in pages about specified cities, from specified locations on specified days should send data layer elements 1, 2 and 3. User actions in pages about other cities should send data layer elements 2 and 3 only. Since the event handler code to send data layer data on each page is controlled by the host developers or marketing technologists using the tag manager developer interface, the business logic about when and what data layer elements are sent to the tag manager server, can be changed and deployed in minutes. No interaction is needed with the third parties; they continue getting the data they expect but now it comes from different contexts that the host marketing technologists have chosen.
+Например, действия пользователя на страницах, посвященных указанным городам, из указанных местоположений в указанные дни должны отправлять элементы уровня данных 1, 2 и 3. Действия пользователя на страницах, посвященных другим городам, должны отправлять только элементы уровня данных 2 и 3. Поскольку код обработчика событий для отправки данных уровня данных на каждой странице контролируется разработчиками хостинга или специалистами по маркетингу с помощью интерфейса разработчика tag manager, бизнес-логика о том, когда и какие элементы уровня данных отправляются на сервер tag manager, может быть изменена и развернута за считанные минуты. Никакого взаимодействия с третьими лицами не требуется; они по-прежнему получают ожидаемые данные, но теперь они поступают из разных контекстов, выбранных специалистами по маркетингу хостинга.
 
-Changing third party vendors just means changing the data dissemination rules at the tag manager server, no changes are needed in the host code. The data also goes directly only to the tag manager so the execution is fast. The event handler JavaScript does not have to connect to multiple third party sites.
+Смена сторонних поставщиков означает просто изменение правил распространения данных на сервере tag manager, никаких изменений в коде хостинга не требуется. Данные также поступают напрямую только в диспетчер тегов, что обеспечивает быстрое выполнение. Обработчику событий JavaScript не нужно подключаться к нескольким сторонним сайтам.
 
-### Indirect Requests
+### Косвенные запросы
 
-For indirect requests to tag manager/aggregator sites that offer the GUI to configure the javascript, they may also implement:
+Для косвенных запросов к сайтам-менеджерам тегов/агрегаторам, которые предлагают графический интерфейс для настройки javascript, они также могут реализовывать:
 
-- Technical controls such as only allowing the JavaScript to access the data layer values, no other DOM element
-- Restricting the tag types deployed on a host site, e.g. disabling of custom HTML tags and JavaScript code
+- Технические средства управления, такие как разрешение JavaScript доступа только к значениям уровня данных, без использования других элементов DOM
+- Ограничение типов тегов, используемых на хост-сайте, например, отключение пользовательских HTML-тегов и кода JavaScript
 
-The host company should also verify the security practices of the tag manager site such as access controls to the tag configuration for the host company. It also can be two-factor authentication.
+Принимающая компания также должна проверить методы обеспечения безопасности сайта tag manager, такие как контроль доступа к конфигурации тегов для принимающей компании. Это также может быть двухфакторная аутентификация.
 
-Letting the marketing folks decide where to get the data they want can result in XSS because they may get it from a URL parameter and put it into a variable that is in a scriptable location on the page.
+Предоставление маркетологам возможности самим решать, где брать нужные им данные, может привести к появлению XSS, поскольку они могут получить их из параметра URL и поместить в переменную, которая находится в доступном для скриптов месте на странице.
 
-### Sandboxing Content
+### Содержимое песочницы
 
-Both of these tools be used by sites to sandbox/clean DOM data.
+Оба этих инструмента могут использоваться сайтами для изолирования / очистки данных DOM.
 
-- [DOMPurify](https://github.com/cure53/DOMPurify) is a fast, tolerant XSS sanitizer for HTML, MathML and SVG. DOMPurify works with a secure default, but offers a lot of configurability and hooks.
-- [MentalJS](https://github.com/hackvertor/MentalJS) is a JavaScript parser and sandbox. It allow-lists JavaScript code by adding a "$" suffix to variables and accessors.
+- [DOMPurify](https://github.com/cure53/DOMPurify) - это быстрое и толерантное средство очистки XSS для HTML, MathML и SVG. DOMPurify работает с защищенным кодом по умолчанию, но предлагает множество возможностей настройки и перехватов.
+- [MentalJS](https://github.com/hackvertor/MentalJS) - это синтаксический анализатор JavaScript и изолированная среда. Он позволяет отображать код JavaScript, добавляя суффикс "$" к переменным и средствам доступа.
 
-### Subresource Integrity
+### Целостность субресурса
 
-[Subresource Integrity](https://www.w3.org/TR/SRI/) will ensure that only the code that has been reviewed is executed. The developer generates integrity metadata for the vendor javascript, and adds it to the script element like this:
+[Целостность субресурса](https://www.w3.org/TR/SRI/) гарантирует, что будет выполнен только проверенный код. Разработчик генерирует метаданные целостности для javascript поставщика и добавляет их в элемент script следующим образом:
 
 ```javascript
 <script src="https://analytics.vendor.com/v1.1/script.js"
@@ -209,29 +209,29 @@ Both of these tools be used by sites to sandbox/clean DOM data.
 </script>
 ```
 
-It is important to know that in order for SRI to work, the vendor host needs [CORS](https://www.w3.org/TR/cors/) enabled. Also it is good idea to monitor vendor JavaScript for changes in regular way. Because sometimes you can get **secure** but **not working** third-party code when the vendor decides to update it.
+Важно знать, что для работы SRI на хосте поставщика должен быть включен [CORS](https://www.w3.org/TR/cors/). Также рекомендуется регулярно отслеживать изменения в JavaScript поставщика. Потому что иногда вы можете получить **безопасный**, но **не работающий** сторонний код, когда поставщик решает обновить его.
 
-### Keeping JavaScript libraries updated
+### Поддержание в актуальном состоянии библиотек JavaScript
 
-[OWASP Top 10 2013 A9](https://wiki.owasp.org/index.php/Top_10_2013-A9-Using_Components_with_Known_Vulnerabilities) describes the problem of using components with known vulnerabilities. This includes JavaScript libraries. JavaScript libraries must be kept up to date, as previous version can have known vulnerabilities which can lead to the site typically being vulnerable to [Cross Site Scripting](https://owasp.org/www-community/attacks/xss/). There are several tools out there that can help identify such libraries. One such tool is the free open source tool [RetireJS](https://retirejs.github.io)
+[OWASP Top 10 2013 A9](https://wiki.owasp.org/index.php/Top_10_2013-A9-Using_Components_with_Known_Vulnerabilities) описывает проблему использования компонентов с известными уязвимостями. Сюда входят библиотеки JavaScript. Библиотеки JavaScript необходимо постоянно обновлять, поскольку в предыдущей версии могли быть известные уязвимости, которые могут привести к тому, что сайт, как правило, будет уязвим для [межсайтового скриптинга] (https://owasp.org/www-community/attacks/xss/). Существует несколько инструментов, которые могут помочь идентифицировать такие библиотеки. Одним из таких инструментов является бесплатный инструмент с открытым исходным кодом [RetireJS](https://retirejs.github.io)
 
-### Sandboxing with iframe
+### Песочница с помощью iframe
 
-You can also put vendor JavaScript into an iframe from different domain (e.g. static data host). It will work as a "jail" and vendor JavaScript will not have direct access to the host page DOM and cookies.
+Вы также можете поместить JavaScript поставщика в iframe из другого домена (например, из хостинга статических данных). Это будет работать как "тюрьма", и JavaScript поставщика не будет иметь прямого доступа к DOM страницы хостинга и файлам cookie.
 
-The host main page and sandbox iframe can communicate between each other via the [postMessage mechanism](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage).
+Главная страница хоста и iframe изолированной среды могут взаимодействовать друг с другом с помощью [механизма отправки сообщений](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage).
 
-Also, iframes can be secured with the iframe [sandbox attribute](http://www.html5rocks.com/en/tutorials/security/sandboxed-iframes/).
+Кроме того, iframe могут быть защищены с помощью iframe [атрибута песочницы](http://www.html5rocks.com/en/tutorials/security/sandboxed-iframes/).
 
-For high risk applications, consider the use of [Content Security Policy (CSP)](https://www.w3.org/TR/CSP2/) in addition to iframe sandboxing. CSP makes hardening against XSS even stronger.
+Для приложений с высокой степенью риска рекомендуется использовать [Политику защиты содержимого (CSP)](https://www.w3.org/TR/CSP2/) в дополнение к изолированной среде iframe. CSP еще больше повышает защиту от XSS.
 
 ```html
-<!-- Some host, e.g. somehost.com, HTML code here -->
+<!-- Какой-нибудь хостинг, например somehost.com, HTML-код здесь -->
  <html>
    <head></head>
      <body>
        ...
-       <!-- Include iframe with 3rd party vendor javascript -->
+       <!-- Включите iframe с помощью javascript стороннего производителя -->
        <iframe
        src="https://somehost-static.net/analytics.html"
        sandbox="allow-same-origin allow-scripts">
@@ -250,55 +250,55 @@ For high risk applications, consider the use of [Content Security Policy (CSP)](
          if (event.origin !== "https://somehost.com:443") {
            return;
          } else {
-         // Make some DOM here and initialize other
-        //data required for 3rd party code
+         // Создайте здесь какой-нибудь DOM и инициализируйте другой
+        //данные, необходимые для получения кода третьей стороны
          }
        }
        </script>
-       <!-- 3rd party vendor javascript -->
+       <!-- сторонний поставщик javascript -->
        <script src="https://analytics.vendor.com/v1.1/script.js"></script>
-       <!-- /3rd party vendor javascript -->
+       <!-- /сторонний поставщик javascript -->
    </body>
  </html>
 ```
 
-### Virtual iframe Containment
+### Сдерживание виртуального iframe
 
-This technique creates iFrames that run asynchronously in relation to the main page. It also provides its own containment JavaScript that automates the dynamic implementation of the protected iFrames based on the marketing tag requirements.
+Этот метод создает фреймы, которые запускаются асинхронно по отношению к главной странице. Он также предоставляет собственный JavaScript-код, который автоматизирует динамическую реализацию защищенных IFRAME-файлов на основе требований к маркетинговым тегам.
 
-### Vendor Agreements
+### Соглашения с поставщиками
 
-You can have the agreement or request for proposal with the 3rd parties require evidence that they have implemented secure coding and general corporate server access security. But in particular you need to determine the monitoring and control of their source code in order to prevent and detect malicious changes to that JavaScript.
+Для заключения соглашения или запроса предложений с третьими сторонами могут потребоваться доказательства того, что они внедрили безопасное кодирование и общую защиту доступа к корпоративному серверу. Но, в частности, вам необходимо определить порядок мониторинга и контроля их исходного кода, чтобы предотвратить и обнаружить вредоносные изменения в этом JavaScript.
 
 ## MarTechSec
 
-Marketing Technology Security
+Marketing Technology Security (Безопасность маркетинговых технологий)
 
-This refers to all aspects of reducing the risk from marketing JavaScript. Controls include
+Это относится ко всем аспектам снижения риска, связанного с маркетингом JavaScript. Средства контроля включают
 
-1. Contractual controls for risk reduction; the contracts with any MarTech company should include a requirement to show evidence of code security and code integrity monitoring.
-2. Contractual controls for risk transference: the contracts with any MarTech company could include a penalty for serving malicious JavaScript
-3. Technical controls for malicious JavaScript execution prevention; Virtual Iframes,
-4. Technical controls for malicious JavaScript identification; [Subresource Integrity](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity).
-5. Technical controls including client side JavaScript malicious behavior in penetration testing requirements.
+1. Контрактный контроль для снижения рисков; контракты с любой компанией MarTech должны включать требование о предоставлении доказательств безопасности кода и мониторинге целостности кода.
+2. Контрактный контроль для передачи рисков: контракты с любой компанией MarTech могут предусматривать штраф за использование вредоносного JavaScript
+3. Технические средства контроля для предотвращения выполнения вредоносного JavaScript; Виртуальные фреймы,
+4. Технические средства контроля для идентификации вредоносного JavaScript; [Целостность подресурса](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity).
+5. Технический контроль, включая вредоносное поведение JavaScript на стороне клиента в соответствии с требованиями тестирования на проникновение.
 
 ## MarSecOps
 
-Marketing Security Operations
+Marketing Security Operations (Маркетинговые операции по обеспечению безопасности)
 
-This refers to the operational requirements to maintain some of the technical controls. This involves possible cooperation and information exchange between the marketing team, the martech provider and the run or operations team to update the information in the page controls (SRI hash change, changes in pages with SRI), the policies in the Virtual iFrames, tag manager configuration, data layer changes etc.
+Это относится к эксплуатационным требованиям по поддержанию некоторых технических средств контроля. Это предполагает возможное сотрудничество и обмен информацией между маркетинговой командой, поставщиком martech и командой запуска или эксплуатации для обновления информации в элементах управления страницами (изменение хэша SRI, изменения на страницах с помощью SRI), политик в виртуальных iFrames, конфигурации менеджера тегов, изменений уровня данных и т.д.
 
-The most complete and preventive controls for any site containing non-trivial marketing tags are -
+Наиболее полным и превентивным средством контроля для любого сайта, содержащего нетривиальные маркетинговые теги, являются -
 
-1. A data layer that calls the marketing server or tag manager APIs , so that only your code executes on your page (inversion of control).
+1. Уровень данных, который вызывает API маркетингового сервера или диспетчера тегов, чтобы на вашей странице выполнялся только ваш код (инверсия управления).
 
-2. [Subresource Integrity](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity).
+2. [Целостность субресурса](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity).
 
-3. Virtual frame Containment.
+3. Защита виртуального фрейма.
 
-The MarSecOps requirements to implement technical controls at the speed of change that marketing wants or without a significant number of dedicated resources, can make data layer and Subresource Integrity controls impractical.
+Требования MarSecOps к внедрению технических средств контроля со скоростью изменений, требуемой маркетингом, или без значительного количества выделенных ресурсов могут сделать контроль целостности уровня данных и подресурсов непрактичным.
 
-## References
+## Ссылки на литературу
 
 - [Widespread XSS Vulnerabilities in Ad Network Code Affecting Top Tier Publishers, Retailers](https://randywestergren.com/widespread-xss-vulnerabilities-ad-network-code-affecting-top-tier-publishers-retailers/).
 - [Inside and Beyond Ticketmaster: The Many Breaches of Magecart](https://www.riskiq.com/blog/labs/magecart-ticketmaster-breach/).
