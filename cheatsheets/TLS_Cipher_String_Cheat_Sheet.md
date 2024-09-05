@@ -1,5 +1,5 @@
-# DEPRECATED: TLS Cipher String Cheat Sheet
+# УДАЛЕНО: Таблица-шпаргалка по шифрованию строк TLS
 
-The TLS Cipher String Cheat Sheet has been deprecated.
+Таблица-шпаргалка по шифрованию строк TLS устарела.
 
-Please visit the [Transport Layer Security Cheat Sheet](Transport_Layer_Security_Cheat_Sheet.md) instead.
+Пожалуйста, ознакомьтесь с [Таблицей-шпаргалкой по безопасности транспортного уровня](Transport_Layer_Security_Cheat_Sheet.md).
