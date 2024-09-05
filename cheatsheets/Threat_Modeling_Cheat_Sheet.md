@@ -1,122 +1,122 @@
-# Threat Modeling Cheat Sheet
+# Шпаргалка по моделированию угроз
 
-## Introduction
+## Вступление
 
-Threat modeling is an important concept for modern application developers to understand. This goal of this cheatsheet is provide a concise, but actionable, reference for both those new to threat modeling and those seeking a refresher. The official project page is [https://owasp.org/www-project-threat-model/](https://owasp.org/www-project-threat-model/).
+Моделирование угроз - важная концепция, которую должны понимать современные разработчики приложений. Цель этой шпаргалки - предоставить краткое, но действенное руководство как для новичков в моделировании угроз, так и для тех, кто хочет повысить свою квалификацию. Официальная страница проекта находится по адресу [https://owasp.org/www-project-threat-model/](https://owasp.org/www-project-threat-model/).
 
-## Overview
+## Обзор
 
-In the context of application security, threat modeling is a structured, repeatable process used to gain actionable insights into the security characteristics of a particular system. It involves modeling a system from a security perspective, identifying applicable threats based on this model, and determining responses to these threats. Threat modeling analyzes a system from an adversarial perspective, focusing on ways in which an attacker can exploit a system.
+В контексте безопасности приложений моделирование угроз - это структурированный, повторяемый процесс, используемый для получения полезной информации о характеристиках безопасности конкретной системы. Он включает в себя моделирование системы с точки зрения безопасности, идентификацию применимых угроз на основе этой модели и определение мер реагирования на эти угрозы. Моделирование угроз анализирует систему с точки зрения соперничества, уделяя особое внимание способам, с помощью которых злоумышленник может воспользоваться системой.
 
-Threat modeling is ideally performed early in the SDLC, such as during the design phase. Moreover, it is not something that is performed once and never again. A threat model is something that should be maintained, updated and refined alongside the system. Ideally, threat modeling should be integrated seamlessly into a team's normal SDLC process; it should be treated as standard and necessary step in the process, not an add-on.
+Моделирование угроз в идеале выполняется на ранней стадии SDLC, например, на этапе проектирования. Более того, это не то, что выполняется один раз и никогда больше не повторяется. Модель угроз - это то, что следует поддерживать, обновлять и совершенствовать вместе с системой. В идеале моделирование угроз должно быть легко интегрировано в обычный процесс SDLC команды; его следует рассматривать как стандартный и необходимый этап процесса, а не как дополнение.
 
-According to the [Threat Model Manifesto](https://www.threatmodelingmanifesto.org/), the threat modeling process should answer the following four questions:
+Согласно [Манифесту о моделировании угроз] (https://www.threat modeling manifesto.или/), процесс моделирования угроз должен отвечать на следующие четыре вопроса:
 
-1. What are we working on?
-2. What can go wrong?
-3. What are we going to do about it?
-4. Did we do a good enough job?
+1. Над чем мы работаем?
+2. Что может пойти не так?
+3. Что мы собираемся с этим делать?
+4. Достаточно ли хорошо мы поработали?
 
-These four questions will act as the foundation for the four major phases described below.
+Эти четыре вопроса лягут в основу четырех основных этапов, описанных ниже.
 
-## Advantages
+## Преимущества
 
-Before turning to an overview of the process, it may be worth addressing the question: why threat model? Why bother adding more work to the development process? What are the benefits? The following section will briefly outline some answers to these questions.
+Прежде чем перейти к обзору процесса, возможно, стоит ответить на вопрос: зачем нужна модель угроз? Зачем усложнять процесс разработки? Каковы преимущества? В следующем разделе будут кратко изложены ответы на некоторые из этих вопросов.
 
-### Identify Risks Early-On
+### Выявляйте риски на ранней стадии
 
-Threat modeling seeks to identify potential security issues during the design phase. This allows security to be "built-into" a system rather than "bolted-on". This is far more efficient than having to identify and resolve security flaws after a system is in production.
+Моделирование угроз направлено на выявление потенциальных проблем безопасности на этапе проектирования. Это позволяет сделать систему безопасности "встроенной", а не "привинченной". Это гораздо эффективнее, чем выявлять и устранять недостатки безопасности после запуска системы в эксплуатацию.
 
-### Increased Security Awareness
+### Повышайте осведомленность о безопасности
 
-Proper threat modeling requires participants to think creatively and critically about the security and threat landscape of a specific application. It challenges individuals to "think like an attacker" and apply general security knowledge to a specific context. Threat modeling is also typically a team effort with members being encouraged to share ideas and provide feedback on others. Overall, threat modeling can prove to be a highly educational activity that benefits participants.
+Правильное моделирование угроз требует от участников творческого и критического подхода к анализу ситуации с безопасностью и угрозами конкретного приложения. Это заставляет участников "мыслить как злоумышленник" и применять общие знания в области безопасности в конкретном контексте. Моделирование угроз - это, как правило, командная работа, в ходе которой участников поощряют делиться идеями и предоставлять отзывы о других. В целом, моделирование угроз может оказаться весьма познавательным мероприятием, приносящим пользу участникам.
 
-### Improved Visibility of Target of Evaluation (TOE)
+### Улучшеайте видимость объекта оценки (ОО)
 
-Threat modeling requires a deep understanding of the system being evaluated. To properly threat model, one must understand data flows, trust boundaries, and other characteristics of the system. Thus, [Stiliyana Simeonova](https://securityintelligence.com/threat-modeling-in-the-enterprise-part-1-understanding-the-basics/) asserts that improved visibility into a system and its interactions is one advantage of threat modeling.
+Моделирование угроз требует глубокого понимания оцениваемой системы. Чтобы правильно смоделировать угрозы, необходимо понимать потоки данных, границы доверия и другие характеристики системы. Таким образом, [Stiliyan Simeonova](https://securityintelligence.com/threat-modeling-in-the-enterprise-part-1-understanding-the-basics/) утверждает, что улучшение видимости системы и ее взаимодействий является одним из преимуществ моделирования угроз.
 
-## Addressing Each Question
+## Решайте каждый вопрос
 
-There is no universally accepted industry standard for the threat modeling process, no "right" answer for every use case. However, despite this diversity, most approaches do include the the processes of system modeling, threat identification, and risk response in some form. Inspired by these commonalities and guided by the four key questions of threat modeling discussed above, this cheatsheet will break the threat modeling down into four basic steps: application decomposition, threat identification and ranking, mitigations, and review and validation. There are processes that are less aligned to this, including PASTA and OCTAVE, each of which has passionate advocates.
+Не существует общепринятого отраслевого стандарта для процесса моделирования угроз, нет "правильного" решения для каждого варианта использования. Однако, несмотря на это разнообразие, большинство подходов в той или иной форме включают процессы системного моделирования, идентификации угроз и реагирования на риски. Основываясь на этих общих чертах и руководствуясь четырьмя ключевыми вопросами моделирования угроз, рассмотренными выше, в этой инструкции моделирование угроз разбито на четыре основных этапа: декомпозиция приложения, идентификация и ранжирование угроз, меры по смягчению последствий, а также проверка и валидация. Есть процессы, которые в меньшей степени соответствуют этому, в том числе PASTA и OCTAVE, у каждого из которых есть страстные сторонники.
 
-### System Modeling
+### Системное моделирование
 
-The step of system modeling seeks to answer the question "what are we building"? Without understanding a system, one cannot truly understand what threats are most applicable to it; thus, this step provides a critical foundation for subsequent activities. Although different techniques may be used in this first step of threat modeling, data flow diagrams (DFDs) are arguably the most common approach.
+Этап моделирования системы направлен на то, чтобы ответить на вопрос "что мы создаем"? Без понимания системы невозможно по-настоящему понять, какие угрозы наиболее применимы к ней; таким образом, этот этап обеспечивает важную основу для последующих действий. Хотя на этом первом этапе моделирования угроз могут использоваться различные методы, диаграммы потоков данных (DFD), пожалуй, являются наиболее распространенным подходом.
 
-DFDs allow one to visually model a system and its interactions with data and other entities; they are created using a [small number of simple symbols](https://github.com/adamshostack/DFD3). DFDs may be created within dedicated threat modeling tools such as [OWASP's Threat Dragon](https://github.com/OWASP/threat-dragon) or [Microsoft's Threat Modeling Tool](https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool) or using general purpose diagraming solutions such as [draw.io](https://draw.io). If you prefer an -as-code approach, [OWASP's pytm](https://owasp.org/www-project-pytm/) can help there. Depending on the scale and complexity of the system being modeled, multiple DFDs may be required. For example, one could create a DFD representing a high-level overview of the entire system along with a number of more focused DFDs which detail sub-systems. Technical tools are not strictly necessary; whiteboarding may be sufficient in some instances, though it is preferable to have the DFDs in a form that can be easily stored, referenced, and updated as needed.
+DFD позволяют визуально моделировать систему и ее взаимодействие с данными и другими объектами; они создаются с использованием [небольшого количества простых символов](https://github.com/adamshostack/DFD3). DFD могут быть созданы с помощью специальных инструментов моделирования угроз, таких как [Threat Dragon от OWASP](https://github.com/OWASP/threat-dragon) или [Инструмент моделирования угроз от Microsoft] (https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool), или с использованием решений для построения диаграмм общего назначения, таких как [draw.io](https://draw.io). Если вы предпочитаете подход "в виде кода", в этом вам может помочь [OWASP's pytm](https://owasp.org/www-project-pytm/). В зависимости от масштаба и сложности моделируемой системы может потребоваться несколько DFD. Например, можно было бы создать DFD, представляющий собой высокоуровневый обзор всей системы, а также ряд более сфокусированных DFD, которые детализируют подсистемы. Технические средства не являются строго необходимыми; в некоторых случаях может быть достаточно использования белой доски, хотя предпочтительнее иметь DFD в форме, которую можно легко сохранять, на которую можно ссылаться и обновлять по мере необходимости.
 
-Regardless of how a DFD or comparable model is generated, it is important that the solution provides a clear view of trust boundaries, data flows, data stores, processes, and the external entities which may interact with the system. These often represent possible attack points and provide crucial input for the subsequent steps.
+Независимо от того, как создается DFD или аналогичная модель, важно, чтобы решение обеспечивало четкое представление о границах доверия, потоках данных, хранилищах данных, процессах и внешних объектах, которые могут взаимодействовать с системой. Они часто представляют собой возможные точки атаки и являются важной информацией для последующих шагов.
 
-Another approach to Data Flow Diagrams (DFD) could be the brainstorming technique, which is an effective method for generating ideas and discovering the project's domain. Applying brainstorming in this context can bring numerous benefits, such as increased team engagement, unification of knowledge and terminology, a shared understanding of the domain, and quick identification of key processes and dependencies. One of the main arguments for using brainstorming is its flexibility and adaptability to almost any scenario, including business logic. Additionally, this technique is particularly useful when less technical individuals participate in the session, as it eliminates barriers related to understanding and applying the components of DFD models and their correctness.
+Другим подходом к диаграммам потоков данных (DFD) может быть метод мозгового штурма, который является эффективным методом генерации идей и определения предметной области проекта. Применение мозгового штурма в этом контексте может принести множество преимуществ, таких как повышение вовлеченности команды, унификация знаний и терминологии, общее понимание предметной области и быстрое определение ключевых процессов и зависимостей. Одним из главных аргументов в пользу использования мозгового штурма является его гибкость и адаптивность практически к любому сценарию, включая бизнес-логику. Кроме того, этот метод особенно полезен, когда в занятии принимают участие менее подготовленные специалисты, поскольку он устраняет барьеры, связанные с пониманием и применением компонентов моделей DFD и их корректностью.
 
-Brainstorming engages all participants, fostering better communication and mutual understanding of issues. Every team member has the opportunity to contribute, which increases the sense of responsibility and involvement. During a brainstorming session, participants can collaboratively define and agree on key terms and concepts, leading to a unified language used in the project. This is especially important in complex projects where different teams might have different approaches to terminology. Due to the dynamic nature of brainstorming, the team can quickly identify key business processes and their interrelations.
+Мозговой штурм вовлекает всех участников, способствуя лучшему общению и взаимопониманию в решении проблем. У каждого члена команды есть возможность внести свой вклад, что повышает чувство ответственности и вовлеченности. Во время мозгового штурма участники могут совместно определить и согласовать ключевые термины и концепции, что приведет к созданию единого языка, используемого в проекте. Это особенно важно в сложных проектах, где у разных команд могут быть разные подходы к терминологии. Благодаря динамичному характеру мозгового штурма команда может быстро определить ключевые бизнес-процессы и их взаимосвязи.
 
-Integrating the results of brainstorming with formal modeling techniques can lead to a better understanding of the domain and more effective system design.
+Интеграция результатов мозгового штурма с формальными методами моделирования может привести к лучшему пониманию предметной области и более эффективному проектированию системы.
 
-### Threat Identification
+### Идентификация угроз
 
-After the system has been modeled, it is now time to address the question of "what can go wrong?". This question must be explored with the inputs from the first step in mind; that is, it should focus on identifying and ranking threats within the context of the specific system being evaluated. In attempting to answer this question, threat modelers have a wealth of data sources and techniques at their disposal. For illustration purposes, this cheatsheet will leverage STRIDE; however, in practice, other approaches may be used alongside or instead of STRIDE.
+После того, как система была смоделирована, пришло время ответить на вопрос "что может пойти не так?". Этот вопрос должен быть рассмотрен с учетом результатов первого этапа; то есть, он должен быть сосредоточен на выявлении и ранжировании угроз в контексте конкретной оцениваемой системы. Чтобы ответить на этот вопрос, разработчики моделей угроз имеют в своем распоряжении множество источников данных и методов. В качестве иллюстрации в этой таблице-инструкции используется STRIDE; однако на практике наряду со STRIDE или вместо него могут использоваться и другие подходы.
 
-STRIDE is a mature and popular threat modeling technique and mnemonic originally developed by Microsoft employees. To facilitate threat identification, STRIDE groups threats into one of six general prompts and engineers are encouraged to systematically consider how these general threats may materialize within the context of the specific system being evaluated. Each STRIDE threat may be considered a violation of a desirable security attribute; the categories and associated desirable attributes are are as follows:
+STRIDE - это развитая и популярная технология моделирования угроз и мнемоническая система, первоначально разработанная сотрудниками Microsoft. Чтобы облегчить идентификацию угроз, STRIDE группирует угрозы в одно из шести общих приглашений, и инженерам рекомендуется систематически рассматривать, как эти общие угрозы могут проявляться в контексте конкретной оцениваемой системы. Каждая угроза STRIDE может рассматриваться как нарушение желаемого атрибута безопасности; ниже приведены категории и связанные с ними желательные атрибуты:
 
 | Threat Category             | Violates          | Examples                                                                                                    |
 | --------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------- |
-| **S**poofing                | Authenticity      | An attacker steals the authentication token of a legitimate user and uses it to impersonate the user.       |
-| **T**ampering               | Integrity         | An attacker abuses the application to perform unintended updates to a database.                             |
-| **R**epudiation             | Non-repudiability | An attacker manipulates logs to cover their actions.                                                        |
-| **I**nformation Disclosure  | Confidentiality   | An attacker extract data from a database containing user account info.                                      |
-| **D**enial of Service       | Availability      | An attacker locks a legitimate user out of their account by performing many failed authentication attempts. |
-| **E**levation of Privileges | Authorization     | An attacker tampers with a JWT to change their role.                                                        |
+| **S**poofing                | Подлинность        | Злоумышленник крадет токен аутентификации легитимного пользователя и использует его для выдачи себя за этого пользователя.       |
+| **T**ampering               | Целостность        | Злоумышленник злоупотребляет приложением для выполнения непреднамеренных обновлений базы данных.                            |
+| **R**epudiation             | Неотрицаемость     | Злоумышленник манипулирует журналами, чтобы скрыть свои действия.                                                        |
+| **I**nformation Disclosure  | Конфиденциальность | Злоумышленник извлекает данные из базы данных, содержащей информацию об учетной записи пользователя.                                      |
+| **D**enial of Service       | Доступность        | Злоумышленник блокирует доступ легитимного пользователя к своей учетной записи, выполняя множество неудачных попыток аутентификации. |
+| **E**levation of Privileges | Авторизация        | Злоумышленник вмешивается в JWT, чтобы изменить свою роль.                                                        |
 
-STRIDE provides valuable structure for responding to the question of "what can go wrong". It is also a highly flexible approach and getting started need not be complex. Simple techniques such as brainstorming and whiteboarding or even [games](https://github.com/adamshostack/eop/) may be used initially. STRIDE is also incorporated into popular threat modeling tools such as [OWASP's Threat Dragon](https://github.com/OWASP/threat-dragon) and [Microsoft's Threat Modeling Tool](https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool). Additionally, as a relatively high-level process, STRIDE pairs well with more tactical approaches such as kill chains or [MITRE's ATT&CK](https://attack.mitre.org/) (please refer to [this article](https://blog.isc2.org/isc2_blog/2020/02/under-attack-how-mitres-methodology-to-find-threats-and-embed-counter-measures-might-work-in-your-or.html) for an overview of how STRIDE and ATT&CK can work together).
+STRIDE предоставляет ценную структуру для ответа на вопрос "что может пойти не так". Кроме того, это очень гибкий подход, и начало работы не обязательно должно быть сложным. На начальном этапе можно использовать простые методы, такие как мозговой штурм, работа с белой доской или даже [игры](https://github.com/adamshostack/eop/). STRIDE также включен в популярные инструменты моделирования угроз, такие как [Threat Dragon от OWASP] (https://github.com/OWASP/threat-dragon) и [Инструмент моделирования угроз от Microsoft] (https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool). Кроме того, как процесс относительно высокого уровня, STRIDE хорошо сочетается с более тактическими подходами, такими как цепочки убийств или [ATT&CK от MITRE] (https://attack.mitre.org/) (пожалуйста, обратитесь к [этому заголовку](https://blog.isc2.org/isc2_blog/2020/02/under-attack-how-mitres-methodology-to-find-threats-and-embed-counter-measures-might-work-in-your-or.html), чтобы узнать, как STRIDE и ATT& CK могут работать вместе).
 
-After possible threats have been identified, people will frequently rank them. In theory, ranking should be based on the mathematical product of an identified threat's likelihood and its impact. A threat that is likely to occur and result in serious damage would be prioritized much higher than one that is unlikely to occur and would only have a moderate impact. However, these both can be challenging to calculate, and they ignore the work to fix a problem. Some advocate for including that in a single prioritization.
+После выявления возможных угроз пользователи часто ранжируют их. Теоретически, ранжирование должно основываться на математическом соотношении вероятности выявленных угроз и их воздействия. Угроза, которая может возникнуть и привести к серьезному ущербу, будет иметь гораздо более высокий приоритет, чем угроза, которая маловероятна и окажет лишь умеренное воздействие. Однако и то, и другое может оказаться сложным для расчета, и они игнорируют работу по устранению проблемы. Некоторые выступают за включение этого вопроса в единую систему определения приоритетов.
 
-### Response and Mitigations
+### Ответные меры и меры по смягчению последствий
 
-Equipped with an understanding of both the system and applicable threats, it is now time to answer "what are we going to do about it"?. Each threat identified earlier must have a response. Threat responses are similar, but not identical, to risk responses. [Adam Shostack](https://shostack.org/resources/threat-modeling) lists the following responses:
+Имея представление как о системе, так и о применимых угрозах, теперь пришло время ответить на вопрос "что мы собираемся с этим делать"?. На каждую выявленную ранее угрозу должны быть приняты ответные меры. Меры реагирования на угрозы похожи на меры реагирования на риски, но не идентичны им. [Адам Шостак](https://shostack.org/resources/threat-modeling) перечислены следующие ответы:
 
-- **Mitigate:** Take action to reduce the likelihood that the threat will materialize.
-- **Eliminate:** Simply remove the feature or component that is causing the threat.
-- **Transfer:** Shift responsibility to another entity such as the customer.
-- **Accept:** Do not mitigate, eliminate, or transfer the risk because none of the above options are acceptable given business requirements or constraints.
+- **Смягчение:** Принятие мер для снижения вероятности реализации угрозы.
+- **Устранение:** Простое удаление функции или компонента, вызывающего угрозу.
+- **Передача:** Передача ответственности другому субъекту, например заказчику.
+- **Принятие:** Не снижайте, не устраняйте и не переносите риск, поскольку ни один из вышеперечисленных вариантов не является приемлемым с учетом бизнес-требований или ограничений.
 
-If one decides to mitigates a threat, mitigation strategies must be formulated and documented as requirements. Depending on the complexity of the system, nature of threats identified, and the process used for identifying threats (STRIDE or another method), mitigation responses may be applied at either the category or individual threat level. In the former case, the mitigation would apply to all threats within that category. Mitigations strategies must be actionable not hypothetical; they must be something that can actually be built into to the system being developed. Although mitigations strategies must be tailored to the particular application, resources such as as [OWASP's ASVS](https://owasp.org/www-project-application-security-verification-standard/) and [MITRE's CWE list](https://cwe.mitre.org/index.html) can prove valuable when formulating these responses.
+Если кто-то решает устранить угрозу, то стратегии устранения должны быть сформулированы и задокументированы в виде требований. В зависимости от сложности системы, характера выявленных угроз и процесса, используемого для выявления угроз (STRIDE или другой метод), меры по устранению могут применяться как на уровне категории, так и на уровне отдельных угроз. В первом случае меры по смягчению последствий будут применяться ко всем угрозам, входящим в эту категорию. Стратегии по смягчению последствий должны быть не гипотетическими, а реально осуществимыми; они должны быть встроены в разрабатываемую систему. Хотя стратегии смягчения последствий должны быть адаптированы к конкретному приложению, такие ресурсы, как [Owasp ASVS](https://owasp.org/www-project-application-security-verification-standard/) и [список CWE MITRE](https://cwe.mitre.org/index.html), могут оказаться полезными при разработке этих мер реагирования.
 
-### Review and Validation
+### Проверка и валидация
 
-Finally, it is time to answer the question "did we do a good enough job"? The threat model must be reviewed by all stakeholders, not just the development or security teams. Areas to focus on include:
+Наконец, пришло время ответить на вопрос: "Достаточно ли хорошо мы поработали"? Модель угроз должна быть рассмотрена всеми заинтересованными сторонами, а не только командами разработчиков или безопасности. К числу областей, на которых следует сосредоточить внимание, относятся:
 
-- Does the DFD (or comparable) accurately reflect the system?
-- Have all threats been identified?
-- For each identified threat, has a response strategy been agreed upon?
-- For identified threats for which mitigation is the desired response, have mitigation strategies been developed which reduce risk to an acceptable level?
-- Has the threat model been formally documented? Are artifacts from the threat model process stored in such a way that it can be accessed by those with "need to know"?
-- Can the agreed upon mitigations be tested? Can success or failure of the requirements and recommendations from the the threat model be measured?
+- Точно ли DFD (или аналогичный) отражает систему?
+- Все ли угрозы были идентифицированы?
+- Была ли согласована стратегия реагирования на каждую выявленную угрозу?
+- Были ли разработаны стратегии снижения рисков до приемлемого уровня для выявленных угроз, устранение которых является желательной мерой реагирования?
+- Была ли модель угроз официально задокументирована? Хранятся ли артефакты процесса моделирования угроз таким образом, чтобы к ним могли получить доступ те, кому "необходимо знать"?
+- Можно ли протестировать согласованные меры по снижению рисков? Можно ли оценить успешность или неуспешность выполнения требований и рекомендаций, содержащихся в модели угроз?
 
-## Threat Modeling and the Development Team
+## Моделирование угроз и команда разработчиков
 
-### Challenges
+### Проблемы
 
-Threat modeling can be challenging for development teams for several key reasons. Firstly, many developers lack sufficient knowledge and experience in the field of security, which hinders their ability to effectively use methodologies and frameworks, identify, and model threats. Without proper training and understanding of basic security principles, developers may overlook potential threats or incorrectly assess their risks.
+Моделирование угроз может быть сложной задачей для команд разработчиков по нескольким ключевым причинам. Во-первых, многим разработчикам не хватает достаточных знаний и опыта в области безопасности, что мешает им эффективно использовать методологии и фреймворки, выявлять и моделировать угрозы. Без надлежащей подготовки и понимания основных принципов безопасности разработчики могут упустить из виду потенциальные угрозы или неправильно оценить свои риски.
 
-Additionally, the threat modeling process can be complex and time-consuming. It requires a systematic approach and in-depth analysis, which is often difficult to reconcile with tight schedules and the pressure to deliver new functionalities. Development teams may feel a lack of tools and resources to support them in this task, leading to frustration and discouragement.
+Кроме того, процесс моделирования угроз может быть сложным и отнимать много времени. Он требует системного подхода и углубленного анализа, что часто бывает трудно согласовать с жесткими графиками и необходимостью внедрения новых функциональных возможностей. Команды разработчиков могут испытывать нехватку инструментов и ресурсов для выполнения этой задачи, что приводит к разочарованию и унынию.
 
-Another challenge is the communication and collaboration between different departments within the organization. Without effective communication between development teams, security teams, and other stakeholders, threat modeling can be incomplete or misdirected.
+Еще одной проблемой является взаимодействие и коллаборация между различными подразделениями организации. Без эффективной коммуникации между группами разработчиков, служб безопасности и другими заинтересованными сторонами моделирование угроз может быть неполным или неправильно направленным.
 
-### Addressing the Challenges
+### Решение проблем
 
-In many cases, the solution lies in inviting members of the security teams to threat modeling sessions, which can significantly improve the process. Security specialists bring essential knowledge about potential threats that is crucial for effective identification, risk analysis, and mitigation. Their experience and understanding of the latest trends and techniques used by cybercriminals can provide key insights for learning and developing the competencies of development teams. Such joint sessions not only enhance developers' knowledge but also build a culture of collaboration and mutual support within the organization, leading to a more comprehensive approach to security.
+Во многих случаях решение заключается в приглашении сотрудников служб безопасности на занятия по моделированию угроз, что может значительно улучшить процесс. Специалисты по безопасности обладают необходимыми знаниями о потенциальных угрозах, которые имеют решающее значение для эффективной идентификации, анализа рисков и снижения их последствий. Их опыт и понимание последних тенденций и методов, используемых киберпреступниками, могут стать ключом к обучению и развитию компетенций команд разработчиков. Такие совместные занятия не только расширяют знания разработчиков, но и формируют культуру сотрудничества и взаимной поддержки внутри организации, что приводит к более комплексному подходу к обеспечению безопасности.
 
-To change the current situation, organizations should invest in regular IT security training for their development teams. These training sessions should be conducted by experts and tailored to the specific needs of the team. Additionally, it is beneficial to implement processes and tools that simplify and automate threat modeling. These tools can help in identifying and assessing threats, making the process more accessible and less time-consuming.
+Чтобы изменить текущую ситуацию, организациям следует инвестировать в регулярные тренинги по ИТ-безопасности для своих команд разработчиков. Эти тренинги должны проводиться экспертами и соответствовать конкретным потребностям команды. Кроме того, полезно внедрять процессы и инструменты, которые упрощают и автоматизируют моделирование угроз. Эти инструменты могут помочь в выявлении и оценке угроз, делая процесс более доступным и отнимающим меньше времени.
 
-It is also important to promote a culture of security throughout the organization, where threat modeling is seen as an integral part of the Software Development Life Cycle (SDLC), rather than an additional burden. Regular review sessions and cross-team workshops can improve collaboration and communication, leading to a more effective and comprehensive approach to security. Through these actions, organizations can make threat modeling a less burdensome and more efficient process, bringing real benefits to the security of their systems.
+Также важно продвигать культуру безопасности во всей организации, где моделирование угроз рассматривается как неотъемлемая часть жизненного цикла разработки программного обеспечения (SDLC), а не как дополнительное бремя. Регулярные обзорные сессии и межкомандные семинары могут улучшить взаимодействие и коммуникацию, что приведет к более эффективному и всестороннему подходу к обеспечению безопасности. Благодаря этим действиям организации могут сделать моделирование угроз менее обременительным и более эффективным процессом, что принесет реальную пользу безопасности их систем.
 
-## References
+## Ссылки на литературу
 
-### Methods and Techniques
+### Методы и техники
 
-An alphabetical list of techniques:
+Список техник в алфавитмом порядке:
 
 - [LINDDUN](https://linddun.org/)
 - [PASTA](https://cdn2.hubspot.net/hubfs/4598121/Content%20PDFs/VerSprite-PASTA-Threat-Modeling-Process-for-Attack-Simulation-Threat-Analysis.pdf)
@@ -124,7 +124,7 @@ An alphabetical list of techniques:
 - [OCTAVE](https://insights.sei.cmu.edu/library/introduction-to-the-octave-approach/)
 - [VAST](https://go.threatmodeler.com/vast-methodology-data-sheet)
 
-### Tools
+### Инструменты
 
 - [Cairis](https://github.com/cairis-platform/cairis)
 - [draw.io](https://draw.io) - see also [threat modeling libraries](https://github.com/michenriksen/drawio-threatmodeling) for the tool
@@ -134,7 +134,7 @@ An alphabetical list of techniques:
 - [OWASP's pytm](https://owasp.org/www-project-pytm/)
 - [TaaC-AI](https://github.com/yevh/TaaC-AI) - AI-driven Threat modeling-as-a-Code (TaaC)
 
-### General Reference
+### Общие ссылки на литературу
 
 - [Awesome Threat Modeling](https://github.com/hysnsec/awesome-threat-modelling) - resource list
 - [Tactical Threat Modeling](https://safecode.org/wp-content/uploads/2017/05/SAFECode_TM_Whitepaper.pdf)
