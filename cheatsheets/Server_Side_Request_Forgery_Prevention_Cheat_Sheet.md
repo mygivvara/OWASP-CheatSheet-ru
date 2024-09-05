@@ -1,140 +1,140 @@
-# Server-Side Request Forgery Prevention Cheat Sheet
+# Шпаргалка по предотвращению подделки запросов на стороне сервера (SSRF)
 
-## Introduction
+## Введение
 
-The objective of the cheat sheet is to provide advices regarding the protection against [Server Side Request Forgery](https://www.acunetix.com/blog/articles/server-side-request-forgery-vulnerability/) (SSRF) attack.
+Цель шпаргалки - предоставить рекомендации по защите от [подделки запросов на стороне сервера](https://www.acunetix.com/blog/articles/server-side-request-forgery-vulnerability/) (SSRF) атаки.
 
-This cheat sheet will focus on the defensive point of view and will not explain how to perform this attack. This [talk](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_Orange_Tsai_Talk.pdf) from the security researcher [Orange Tsai](https://twitter.com/orange_8361) as well as this [document](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_SSRF_Bible.pdf) provide techniques on how to perform this kind of attack.
+Эта шпаргалка будет посвящена защитной точке зрения и не будет объяснять, как выполнять эту атаку. Это [выступление](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_Orange_Tsai_Talk.pdf) от исследователя безопасности [Orange Tsai](https://twitter.com/orange_8361 ), а также этот [документ](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_SSRF_Bible.pdf) содержат методы проведения такого рода атак.
 
-## Context
+## Контекст
 
-SSRF is an attack vector that abuses an application to interact with the internal/external network or the machine itself. One of the enablers for this vector is the mishandling of URLs, as showcased in the following examples:
+SSRF - это вектор атаки, который использует приложение для взаимодействия с внутренней/внешней сетью или самим компьютером. Одним из факторов, способствующих этому вектору, является неправильное использование URL-адресов, как показано в следующих примерах:
 
-- Image on an external server (*e.g.* user enters image URL of their avatar for the application to download and use).
-- Custom [WebHook](https://en.wikipedia.org/wiki/Webhook) (users have to specify Webhook handlers or Callback URLs).
-- Internal requests to interact with another service to serve a specific functionality. Most of the times, user data is sent along to be processed, and if poorly handled, can perform specific injection attacks.
+- Изображение на внешнем сервере (*например,* пользователь вводит URL-адрес изображения своего аватара, чтобы приложение могло загрузить и использовать его).
+- Пользовательский [WebHook](https://en.wikipedia.org/wiki/Webhook) (пользователи должны указать обработчики Webhook или URL-адреса обратного вызова).
+- Внутренние запросы на взаимодействие с другим сервисом для выполнения определенной функциональности. В большинстве случаев пользовательские данные отправляются на обработку, и при неправильной обработке могут быть использованы для выполнения специфических атак путем внедрения.
 
-## Overview of a SSRF common flow
+## Обзор общего потока SSRF
 
 ![SSRF Common Flow](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_SSRF_Common_Flow.png)
 
-*Notes:*
+*Примечания:*
 
-- SSRF is not limited to the HTTP protocol. Generally, the first request is HTTP, but in cases where the application itself performs the second request, it could use different protocols (*e.g.* FTP, SMB, SMTP, etc.) and schemes (*e.g.* `file://`, `phar://`, `gopher://`, `data://`, `dict://`, etc.).
-- If the application is vulnerable to [XML eXternal Entity (XXE) injection](https://portswigger.net/web-security/xxe) then it can be exploited to perform a [SSRF attack](https://portswigger.net/web-security/xxe#exploiting-xxe-to-perform-ssrf-attacks), take a look at the [XXE cheat sheet](XML_External_Entity_Prevention_Cheat_Sheet.md) to learn how to prevent the exposure to XXE.
+- SSRF не ограничивается протоколом HTTP. Как правило, первым запросом является HTTP, но в тех случаях, когда приложение само выполняет второй запрос, оно может использовать другие протоколы (*например,* FTP, SMB, SMTP и т.д.) и схемы (*например, * `file://`, `phar://`, `gopher://`, `data://`, `dict://` и т.д.).
+- Если приложение уязвимо для [внедрения внешнего объекта XML (XXE)] (https://portswigger.net/web-security/xxe), то оно может быть использовано для выполнения [SSRF-атаки](https://portswigger.net/web-security/xxe#exploiting-xxe-to-perform-ssrf-attacks), ознакомьтесь с [шпаргалкой по XXE](XML_External_Entity_Prevention_Cheat_Sheet.md), чтобы узнать, как предотвратить воздействие XXE.
 
-## Cases
+## Случаи
 
-Depending on the application's functionality and requirements, there are two basic cases in which SSRF can happen:
+В зависимости от функциональности и требований приложения, существует два основных случая, в которых может произойти SSRF:
 
-- Application can send request only to **identified and trusted applications**: Case when [allowlist](https://en.wikipedia.org/wiki/Whitelisting) approach is available.
-- Application can send requests to **ANY external IP address or domain name**: Case when [allowlist](https://en.wikipedia.org/wiki/Whitelisting) approach is unavailable.
+- Приложение может отправлять запросы только в **идентифицированные и надежные приложения**: В случае, если доступен метод [allowlist](https://en.wikipedia.org/wiki/Whitelisting).
+- Приложение может отправлять запросы на **ЛЮБОЙ внешний IP-адрес или доменное имя**: В случае, если метод [allowlist](https://en.wikipedia.org/wiki/Whitelisting) недоступен.
 
-Because these two cases are very different, this cheat sheet will describe defences against them separately.
+Поскольку эти два случая сильно отличаются друг от друга, в этой шпаргалке будут отдельно описаны способы защиты от них.
 
-### Case 1 - Application can send request only to identified and trusted applications
+### Случай 1 - Приложение может отправлять запросы только идентифицированным и надежным приложениям
 
-Sometimes, an application needs to perform a request to another application, often located on another network, to perform a specific task. Depending on the business case, user input is required for the functionality to work.
+Иногда приложению требуется выполнить запрос к другому приложению, часто расположенному в другой сети, для выполнения определенной задачи. В зависимости от бизнес-ситуации для работы функциональности требуется ввод данных пользователем.
 
-#### Example
+#### Пример
 
- > Take the example of a web application that receives and uses personal information from a user, such as their first name, last name, birth date etc. to create a profile in an internal HR system. By design, that web application will have to communicate using a protocol that the HR system understands to process that data.
- > Basically, the user cannot reach the HR system directly, but, if the web application in charge of receiving user information is vulnerable to SSRF, the user can leverage it to access the HR system.
- > The user leverages the web application as a proxy to the HR system.
+ > Рассмотрим пример веб-приложения, которое получает и использует личную информацию от пользователя, такую как его имя, фамилия, дата рождения и т.д. для создания профиля во внутренней системе управления персоналом. По замыслу, это веб-приложение должно взаимодействовать с использованием протокола, понятного системе управления персоналом для обработки этих данных.
+ > В принципе, пользователь не может связаться с системой управления персоналом напрямую, но, если веб-приложение, отвечающее за получение пользовательской информации, уязвимо для SSRF, пользователь может использовать его для доступа к системе управления персоналом.
+ > Пользователь использует веб-приложение в качестве посредника для системы управления персоналом.
 
-The allowlist approach is a viable option since the internal application called by the *VulnerableApplication* is clearly identified in the technical/business flow. It can be stated that the required calls will only be targeted between those identified and trusted applications.
+Подход с использованием списка разрешений является приемлемым вариантом, поскольку внутреннее приложение, вызываемое уязвимым приложением, четко идентифицируется в техническом/бизнес-потоке. Можно утверждать, что требуемые вызовы будут осуществляться только между этими идентифицированными и надежными приложениями.
 
-#### Available protections
+#### Доступные средства защиты
 
-Several protective measures are possible at the **Application** and **Network** layers. To apply the **defense in depth** principle, both layers will be hardened against such attacks.
+На уровнях **приложения** и **сети** возможно несколько защитных мер. Для применения принципа **глубокой защиты** оба уровня будут защищены от подобных атак.
 
-##### Application layer
+##### Прикладной уровень
 
-The first level of protection that comes to mind is [Input validation](Input_Validation_Cheat_Sheet.md).
+Первый уровень защиты, который приходит на ум, - это [Проверка ввода](Input_Validation_Cheat_Sheet.md).
 
-Based on that point, the following question comes to mind: *How to perform this input validation?*
+Исходя из этого, возникает следующий вопрос: *Как выполнить эту проверку ввода?*
 
-As [Orange Tsai](https://twitter.com/orange_8361) shows in his [talk](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_Orange_Tsai_Talk.pdf), depending on the programming language used, parsers can be abused. One possible countermeasure is to apply the [allowlist approach](Input_Validation_Cheat_Sheet.md#allow-list-vs-block-list) when input validation is used because, most of the time, the format of the information expected from the user is globally known.
+Как [Orange Tsai](https://twitter.com/orange_8361 ) показывает в своем [talk](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_Orange_Tsai_Talk.pdf), что в зависимости от используемого языка программирования синтаксическими анализаторами можно злоупотреблять. Одной из возможных мер противодействия является применение подхода [allowlist](Input_Validation_Cheat_Sheet.md#allow-list-vs-block-list) при проверке ввода, поскольку в большинстве случаев формат информации, ожидаемой от пользователя, известен во всем мире.
 
-The request sent to the internal application will be based on the following information:
+Запрос, отправленный во внутреннее приложение, будет основан на следующей информации:
 
-- String containing business data.
-- IP address (V4 or V6).
-- Domain name.
+- Строка, содержащая бизнес-данные.
+- IP-адрес (V4 или V6).
+- Доменное имя.
 - URL.
 
-**Note:** Disable the support for the following of the [redirection](https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections) in your web client in order to prevent the bypass of the input validation described in the section `Exploitation tricks > Bypassing restrictions > Input validation > Unsafe redirect` of this [document](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_SSRF_Bible.pdf).
+**Примечание:** Отключите поддержку следующего [перенаправления](https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections) в вашем веб-клиенте, чтобы предотвратить обход проверки ввода, описанной в разделе "Приемы использования > Обход ограничений > Проверка ввода > Небезопасное перенаправление` этого [документа](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_SSRF_Bible.pdf).
 
-###### String
+###### Строка
 
-In the context of SSRF, validations can be added to ensure that the input string respects the business/technical format expected.
+В контексте SSRF можно добавить проверки, чтобы убедиться, что входная строка соответствует ожидаемому деловому/техническому формату.
 
-A [regex](https://www.regular-expressions.info/) can be used to ensure that data received is valid from a security point of view if the input data have a simple format (*e.g.* token, zip code, etc.). Otherwise, validation should be conducted using the libraries available from the `string` object because regex for complex formats are difficult to maintain and are highly error-prone.
+A [регулярное выражение](https://www.regular-expressions.info /) может использоваться для обеспечения достоверности полученных данных с точки зрения безопасности, если входные данные имеют простой формат (токен, почтовый индекс и т.д.). В противном случае проверка должна проводиться с использованием библиотек, доступных из "строки` возражаю, потому что регулярные выражения для сложных форматов сложны в обслуживании и очень подвержены ошибкам.
 
-User input is assumed to be non-network related and consists of the user's personal information.
+Предполагается, что вводимые пользователем данные не связаны с сетью и состоят из личной информации пользователя.
 
-Example:
+Пример:
 
 ```java
-//Regex validation for a data having a simple format
+//Проверка регулярных выражений для данных, имеющих простой формат
 if(Pattern.matches("[a-zA-Z0-9\\s\\-]{1,50}", userInput)){
-    //Continue the processing because the input data is valid
+    //Продолжайте обработку, поскольку входные данные являются действительными
 }else{
-    //Stop the processing and reject the request
+    //Остановите обработку и отклоните запрос
 }
 ```
 
-###### IP address
+###### IP адресс
 
-In the context of SSRF, there are 2 possible validations to perform:
+IВ контексте SRF существует 2 возможных способа проверки:
 
-1. Ensure that the data provided is a valid IP V4 or V6 address.
-2. Ensure that the IP address provided belongs to one of the IP addresses of the identified and trusted applications.
+1. Убедитесь, что предоставленные данные являются действительным адресом IPV4 или V6.
+2. Убедитесь, что указанный IP-адрес принадлежит одному из IP-адресов идентифицированных и надежных приложений.
 
-The first layer of validation can be applied using libraries that ensure the security of the IP address format, based on the technology used (library option is proposed here to delegate the managing of the IP address format and leverage battle-tested validation function):
+Первый уровень проверки может быть применен с использованием библиотек, которые обеспечивают безопасность формата IP-адреса на основе используемой технологии (здесь предлагается вариант библиотеки, позволяющий делегировать управление форматом IP-адреса и использовать проверенную в боях функцию проверки).:
 
-> Verification of the proposed libraries has been performed regarding the exposure to bypasses (Hex, Octal, Dword, URL and Mixed encoding) described in this [article](https://medium.com/@vickieli/bypassing-ssrf-protection-e111ae70727b).
+> Была проведена проверка предлагаемых библиотек на предмет использования обходных кодировок (шестнадцатеричных, восьмеричных, Word, URL и смешанных кодировок), описанных в этой [статье](https://medium.com/@vickieli/bypassing-ssrf-protection-e111ae70727b).
 
-- **JAVA:** Method [InetAddressValidator.isValid](http://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/InetAddressValidator.html#isValid(java.lang.String)) from the [Apache Commons Validator](http://commons.apache.org/proper/commons-validator/) library.
-    - **It is NOT exposed** to bypass using Hex, Octal, Dword, URL and Mixed encoding.
-- **.NET**: Method [IPAddress.TryParse](https://docs.microsoft.com/en-us/dotnet/api/system.net.ipaddress.tryparse?view=netframework-4.8) from the SDK.
-    - **It is exposed** to bypass using Hex, Octal, Dword and Mixed encoding but **NOT** the URL encoding.
-    - As allowlisting is used here, any bypass tentative will be blocked during the comparison against the allowed list of IP addresses.
-- **JavaScript**: Library [ip-address](https://www.npmjs.com/package/ip-address).
-    - **It is NOT exposed** to bypass using Hex, Octal, Dword, URL and Mixed encoding.
-- **Ruby**: Class [IPAddr](https://ruby-doc.org/stdlib-2.0.0/libdoc/ipaddr/rdoc/IPAddr.html) from the SDK.
-    - **It is NOT exposed** to bypass using Hex, Octal, Dword, URL and Mixed encoding.
+- **JAVA:** Метод [InetAddressValidator.isValid](http://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/InetAddressValidator.html#isValid(java.lang.String)) из библиотеки [Apache Commons Validator](http://commons.apache.org/proper/commons-validator/).
+    - **Его невозможно обойти**, используя шестнадцатеричную, восьмеричную, Dword, URL и смешанную кодировку.
+- **.NET**: Метод [IPAddress.TryParse](https://docs.microsoft.com/en-us/dotnet/api/system.net.ipaddress.tryparse?view=netframework-4.8) из пакета SDK.
+    - **Его можно обойти**, используя шестнадцатеричную, восьмеричную, Dword и смешанную кодировку, но не кодировку URL.
+    - Поскольку здесь используется список разрешенных адресов, любая предварительная попытка обхода будет заблокирована при сравнении с разрешенным списком IP-адресов.
+- **JavaScript**: Библиотека [ip-адрес](https://www.npmjs.com/package/ip-address).
+    - **Его невозможно обойти**, используя шестнадцатеричную, восьмеричную, Dword, URL и смешанную кодировку.
+- **Ruby**: Класс [IPAddr](https://ruby-doc.org/stdlib-2.0.0/libdoc/ipaddr/rdoc/IPAddr.html) из SDK.
+    - **Его невозможно обойти**, используя шестнадцатеричную, восьмеричную, Dword, URL и смешанную кодировку.
 
-> **Use the output value of the method/library as the IP address to compare against the allowlist.**
+> **Используйте выходное значение метода/библиотеки в качестве IP-адреса для сравнения со списком разрешений.**
 
-After ensuring the validity of the incoming IP address, the second layer of validation is applied. An allowlist is created after determining all the IP addresses (v4 and v6 to avoid bypasses) of the identified and trusted applications. The valid IP is cross-checked with that list to ensure its communication with the internal application (string strict comparison with case sensitive).
+После проверки достоверности входящего IP-адреса применяется второй уровень проверки. После определения всех IP-адресов (v4 и v6 во избежание обходов) идентифицированных и надежных приложений создается список разрешений. Действительный IP-адрес сверяется с этим списком, чтобы обеспечить его связь с внутренним приложением (строгое сравнение строк с учетом регистра).
 
-###### Domain name
+###### Доменное имя
 
-In the attempt of validate domain names, it is apparent to do a DNS resolution to verify the existence of the domain. In general, it is not a bad idea, yet it opens up the application to attacks depending on the configuration used regarding the DNS servers used for the domain name resolution:
+При попытке проверки доменных имен, очевидно, необходимо выполнить разрешение DNS для проверки существования домена. В целом, это неплохая идея, но она открывает приложение для атак в зависимости от конфигурации, используемой в отношении DNS-серверов, используемых для разрешения доменных имен:
 
-- It can disclose information to external DNS resolvers.
-- It can be used by an attacker to bind a legit domain name to an internal IP address. See the section `Exploitation tricks > Bypassing restrictions > Input validation > DNS pinning` of this [document](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_SSRF_Bible.pdf).
-- An attacker can use it to deliver a malicious payload to the internal DNS resolvers and the API (SDK or third-party) used by the application to handle the DNS communication and then, potentially, trigger a vulnerability in one of these components.
+- Он может передавать информацию внешним распознавателям DNS.
+- Он может быть использован злоумышленником для привязки законного доменного имени к внутреннему IP-адресу. Смотрите раздел `Приемы использования > Обход ограничений > Проверка ввода данных > Закрепление DNS` этого [документа](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_SSRF_Bible.pdf).
+- Злоумышленник может использовать его для доставки вредоносной полезной нагрузки внутренним преобразователям DNS и API (SDK или сторонним), используемым приложением для обработки DNS-сообщений, а затем, возможно, активировать уязвимость в одном из этих компонентов.
 
-In the context of SSRF, there are two validations to perform:
+В контексте SSRF необходимо выполнить две проверки:
 
-1. Ensure that the data provided is a valid domain name.
-2. Ensure that the domain name provided belongs to one of the domain names of the identified and trusted applications (the allowlisting comes to action here).
+1. Убедитесь, что предоставленные данные соответствуют действительному доменному имени.
+2. Убедитесь, что указанное доменное имя принадлежит одному из доменных имен идентифицированных и надежных приложений (здесь вступает в действие список разрешений).
 
-Similar to the IP address validation, the first layer of validation can be applied using libraries that ensure the security of the domain name format, based on the technology used (library option is proposed here in order to delegate the managing of the domain name format and leverage battle tested validation function):
+Аналогично проверке IP-адреса, первый уровень проверки может быть применен с использованием библиотек, которые обеспечивают безопасность формата доменного имени на основе используемой технологии (здесь предлагается опция библиотеки, чтобы делегировать управление форматом доменного имени и использовать проверенную временем функцию проверки).:
 
-> Verification of the proposed libraries has been performed to ensure that the proposed functions do not perform any DNS resolution query.
+> Была проведена проверка предлагаемых библиотек, чтобы убедиться, что предлагаемые функции не выполняют никаких запросов разрешения DNS.
 
-- **JAVA:** Method [DomainValidator.isValid](https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/DomainValidator.html#isValid(java.lang.String)) from the [Apache Commons Validator](http://commons.apache.org/proper/commons-validator/) library.
-- **.NET**: Method [Uri.CheckHostName](https://docs.microsoft.com/en-us/dotnet/api/system.uri.checkhostname?view=netframework-4.8) from the SDK.
-- **JavaScript**: Library [is-valid-domain](https://www.npmjs.com/package/is-valid-domain).
-- **Python**: Module [validators.domain](https://validators.readthedocs.io/en/latest/#module-validators.domain).
-- **Ruby**: No valid dedicated gem has been found.
-    - [domainator](https://github.com/mhuggins/domainator), [public_suffix](https://github.com/weppos/publicsuffix-ruby) and [addressable](https://github.com/sporkmonger/addressable) has been tested but unfortunately they all consider `<script>alert(1)</script>.owasp.org` as a valid domain name.
-    - This regex, taken from [here](https://stackoverflow.com/a/26987741), can be used: `^(((?!-))(xn--|_{1,1})?[a-z0-9-]{0,61}[a-z0-9]{1,1}\.)*(xn--)?([a-z0-9][a-z0-9\-]{0,60}|[a-z0-9-]{1,30}\.[a-z]{2,})$`
+- **JAVA:** Метод [DomainValidator.isValid](https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/DomainValidator.html#isValid(java.lang.String)) из библиотеки [Apache Commons Validator](http://commons.apache.org/proper/commons-validator/).
+- **.NET**: Метод [Uri.CheckHostName](https://docs.microsoft.com/en-us/dotnet/api/system.uri.checkhostname?view=netframework-4.8) из пакета SDK.
+- **JavaScript**: Библиотека [is-valid-domain](https://www.npmjs.com/package/is-valid-domain).
+- **Python**: модуль [validators.domain](https://validators.readthedocs.io/en/latest/#module-validators.domain).
+- **Ruby**: Не найден допустимый выделенный gem.
+    - [domainator](https://github.com/mhuggins/domainator), [public_suffix](https://github.com/weppos/publicsuffix-ruby) и [addressable](https://github.com/sporkmonger/addressable) были протестированы, но, к сожалению, все они рассматривают `<script>alert(1)</script>.owasp.org` как допустимое доменное имя.
+    - Это регулярное выражение, взятое из [здесь](https://stackoverflow.com/a/26987741), можно использовать: `^(((?!-))(xn--|_{1,1})?[a-z0-9-]{0,61}[a-z0-9]{1,1}\.)*(xn--)?([a-z0-9][a-z0-9\-]{0,60}|[a-z0-9-]{1,30}\.[a-z]{2,})$`
 
-Example of execution of the proposed regex for Ruby:
+Пример выполнения предложенного регулярного выражения для Ruby:
 
 ```ruby
 domain_names = ["owasp.org","owasp-test.org","doc-test.owasp.org","doc.owasp.org",
@@ -158,36 +158,36 @@ $ ruby test.rb
 [!] <script>alert(1)</script>.owasp.org is INVALID
 ```
 
-After ensuring the validity of the incoming domain name, the second layer of validation is applied:
+После проверки правильности входящего доменного имени применяется второй уровень проверки:
 
-1. Build an allowlist with all the domain names of every identified and trusted applications.
-2. Verify that the domain name received is part of this allowlist (string strict comparison with case sensitive).
+1. Создайте список разрешений, содержащий все доменные имена всех идентифицированных и надежных приложений.
+2. Убедитесь, что полученное доменное имя является частью этого списка разрешений (строгое сравнение строк с учетом регистра).
 
-Unfortunately here, the application is still vulnerable to the `DNS pinning` bypass mentioned in this [document](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_SSRF_Bible.pdf). Indeed, a DNS resolution will be made when the business code will be executed. To address that issue, the following action must be taken in addition of the validation on the domain name:
+К сожалению, приложение по-прежнему уязвимо для обхода `DNS-привязки`, упомянутого в этом [документе](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_SSRF_Bible.pdf). Действительно, разрешение DNS будет выполнено, когда будет выполнен бизнес-код. Для решения этой проблемы необходимо выполнить следующие действия в дополнение к проверке доменного имени:
 
-1. Ensure that the domains that are part of your organization are resolved by your internal DNS server first in the chains of DNS resolvers.
-2. Monitor the domains allowlist in order to detect when any of them resolves to a/an:
-   - Local IP address (V4 + V6).
-   - Internal IP of your organization (expected to be in private IP ranges) for the domain that are not part of your organization.
+1. Убедитесь, что домены, входящие в состав вашей организации, разрешены вашим внутренним DNS-сервером первыми в цепочках распознавателей DNS.
+2. Следите за списком разрешенных доменов, чтобы определить, когда какой-либо из них разрешен как a/an:
+   - Локальный IP-адрес (версии 4 + 6).
+   - Внутренний IP-адрес вашей организации (ожидается, что он будет находиться в частных диапазонах IP-адресов) для домена, который не является частью вашей организации.
 
-The following Python3 script can be used, as a starting point, for the monitoring mentioned above:
+Следующий скрипт на Python3 может быть использован в качестве отправной точки для мониторинга, упомянутого выше:
 
 ```python
-# Dependencies: pip install ipaddress dnspython
+# Зависимости: pip устанавливает ip-адрес dnspython
 import ipaddress
 import dns.resolver
 
-# Configure the allowlist to check
+# Настройте список разрешений для проверки
 DOMAINS_ALLOWLIST = ["owasp.org", "labslinux"]
 
-# Configure the DNS resolver to use for all DNS queries
+# Настройте распознаватель DNS, который будет использоваться для всех DNS-запросов
 DNS_RESOLVER = dns.resolver.Resolver()
 DNS_RESOLVER.nameservers = ["1.1.1.1"]
 
 def verify_dns_records(domain, records, type):
     """
-    Verify if one of the DNS records resolve to a non public IP address.
-    Return a boolean indicating if any error has been detected.
+    Проверьте, не является ли одна из записей DNS непубличным IP-адресом.
+    Возвращает логическое значение, указывающее, была ли обнаружена какая-либо ошибка.
     """
     error_detected = False
     if records is not None:
@@ -207,26 +207,26 @@ def verify_dns_records(domain, records, type):
 
 def check():
     """
-    Perform the check of the allowlist of domains.
-    Return a boolean indicating if any error has been detected.
+    Выполните проверку списка разрешенных доменов.
+    Верните логическое значение, указывающее, была ли обнаружена какая-либо ошибка.
     """
     error_detected = False
     for domain in DOMAINS_ALLOWLIST:
-        # Get the IPs of the current domain
-        # See https://en.wikipedia.org/wiki/List_of_DNS_record_types
+        # Получите IP-адреса текущего домена
+        # Смотрите https://en.wikipedia.org/wiki/List_of_DNS_record_types
         try:
-            # A = IPv4 address record
+            # A = Запись IPv4-адреса
             ip_v4_records = DNS_RESOLVER.query(domain, "A")
         except Exception as e:
             ip_v4_records = None
             print("[i] Cannot get A record for domain '%s': %s\n" % (domain,e))
         try:
-            # AAAA = IPv6 address record
+            # AAAA = Запись IPv6-адреса
             ip_v6_records = DNS_RESOLVER.query(domain, "AAAA")
         except Exception as e:
             ip_v6_records = None
             print("[i] Cannot get AAAA record for domain '%s': %s\n" % (domain,e))
-        # Verify the IPs obtained
+        # Проверка полученных IP-адресов
         if verify_dns_records(domain, ip_v4_records, "A")
         or verify_dns_records(domain, ip_v6_records, "AAAA"):
             error_detected = True
@@ -241,103 +241,103 @@ if __name__== "__main__":
 
 ###### URL
 
-Do not accept complete URLs from the user because URL are difficult to validate and the parser can be abused depending on the technology used as showcased by the following [talk](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_Orange_Tsai_Talk.pdf) of [Orange Tsai](https://twitter.com/orange_8361).
+Не принимайте полные URL-адреса от пользователя, потому что URL-адреса трудно проверить, а анализатором можно злоупотреблять в зависимости от используемой технологии, как показано в следующем [talk](../assets/server_side_request_forgery_prevention_cheat_sheet_orange_tsai.pdf) из [Orange Tsai](https://twitter.com/orange_8361 ).
 
-If network related information is really needed then only accept a valid IP address or domain name.
+Если вам действительно нужна информация, связанная с сетью, то принимайте только действительный IP-адрес или доменное имя.
 
-##### Network layer
+##### Сетевой уровень
 
-The objective of the Network layer security is to prevent the *VulnerableApplication* from performing calls to arbitrary applications. Only allowed *routes* will be available for this application in order to limit its network access to only those that it should communicate with.
+Цель безопасности сетевого уровня - предотвратить выполнение *уязвимым приложением* вызовов произвольных приложений. Для этого приложения будут доступны только разрешенные *маршруты*, чтобы ограничить его доступ к сети только теми, с которыми оно должно взаимодействовать.
 
-The Firewall component, as a specific device or using the one provided within the operating system, will be used here to define the legitimate flows.
+Компонент брандмауэра, как отдельное устройство или с использованием того, которое предоставляется в операционной системе, будет использоваться здесь для определения допустимых потоков.
 
-In the schema below, a Firewall component is leveraged to limit the application's access, and in turn, limit the impact of an application vulnerable to SSRF:
+В приведенной ниже схеме компонент брандмауэра используется для ограничения доступа приложения и, в свою очередь, для ограничения воздействия приложения, уязвимого для SSRF:
 
-![Case 1 for Network layer protection about flows that we want to prevent](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_Case1_NetworkLayer_PreventFlow.png)
+![Случай 1 для защиты сетевого уровня от потоков, которых мы хотим избежать](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_Case1_NetworkLayer_PreventFlow.png)
 
-[Network segregation](https://www.mwrinfosecurity.com/our-thinking/making-the-case-for-network-segregation) (see this set of [implementation advice](https://www.cyber.gov.au/acsc/view-all-content/publications/implementing-network-segmentation-and-segregation) can also be leveraged and **is highly recommended in order to block illegitimate calls directly at network level itself**.
+[Сетевая сегрегация](https://www.mwrinfosecurity.com/our-thinking/making-the-case-for-network-segregation) (посмотрите на этот набор [рекомендаций по внедрению](https://www.cyber.gov.au/acsc/view-all-content/publications/implementing-network-segmentation-and-segregation) также может быть использован и **настоятельно рекомендуется для того, чтобы блокировать незаконные вызовы непосредственно на сетевом уровне**.
 
-### Case 2 - Application can send requests to ANY external IP address or domain name
+### Случай 2 - Приложение может отправлять запросы на любой внешний IP-адрес или доменное имя
 
-This case happens when a user can control a URL to an **External** resource and the application makes a request to this URL (e.g. in case of [WebHooks](https://en.wikipedia.org/wiki/Webhook)). Allow lists cannot be used here because the list of IPs/domains is often unknown upfront and is dynamically changing.
+Это происходит, когда пользователь может управлять URL-адресом **внешнего** ресурса, и приложение отправляет запрос на этот URL-адрес (например, в случае [WebHooks](https://en.wikipedia.org/wiki/Webhook)). Здесь нельзя использовать разрешенные списки, поскольку список IP-адресов/доменов часто заранее неизвестен и динамически меняется.
 
-In this scenario, *External* refers to any IP that doesn't belong to the internal network, and should be reached by going over the public internet.
+В этом случае *Внешний* относится к любому IP-адресу, который не принадлежит внутренней сети, и должен быть доступен через общедоступный Интернет.
 
-Thus, the call from the *Vulnerable Application*:
+Таким образом, вызов из *уязвимого приложения*:
 
-- **Is NOT** targeting one of the IP/domain *located inside* the company's global network.
-- Uses a convention defined between the *VulnerableApplication* and the expected IP/domain in order to *prove* that the call has been legitimately initiated.
+- **НЕ** нацелен ни на один из IP-адресов/доменов, расположенных внутри глобальной сети компании.
+- Использует соглашение, установленное между *уязвимым приложением* и ожидаемым IP-адресом/доменом, чтобы *доказать*, что вызов был инициирован законным образом.
 
-#### Challenges in blocking URLs at application layer
+#### Проблемы с блокировкой URL-адресов на прикладном уровне
 
-Based on the business requirements of the above mentioned applications, the allowlist approach is not a valid solution. Despite knowing that the block-list approach is not an impenetrable wall, it is the best solution in this scenario. It is informing the application what it should **not** do.
+Исходя из бизнес-требований вышеупомянутых приложений, подход с использованием разрешенных списков не является приемлемым решением. Несмотря на то, что мы знаем, что подход с использованием запрещенных списков не является непробиваемой стеной, в данном случае это лучшее решение. Он информирует приложение о том, чего ему **не** следует делать.
 
-Here is why filtering URLs is hard at the Application layer:
+Вот почему фильтрация URL-адресов на прикладном уровне является сложной задачей:
 
-- It implies that the application must be able to detect, at the code level, that the provided IP (V4 + V6) is not part of the official [private networks ranges](https://en.wikipedia.org/wiki/Private_network) including also *localhost* and *IPv4/v6 Link-Local* addresses. Not every SDK provides a built-in feature for this kind of verification, and leaves the handling up to the developer to understand all of its pitfalls and possible values, which makes it a demanding task.
-- Same remark for domain name: The company must maintain a list of all internal domain names and provide a centralized service to allow an application to verify if a provided domain name is an internal one. For this verification, an internal DNS resolver can be queried by the application but this internal DNS resolver must not resolve external domain names.
+- Это означает, что приложение должно быть способно определять на уровне кода, что указанный IP (версии 4 + 6) не входит в официальные [диапазоны частных сетей].(https://en.wikipedia.org/wiki/Private_network ), включая также адреса *localhost* и *IPv4/v6 Link-Local*. Не каждый SDK предоставляет встроенную функцию для такого рода проверки, и разработчику остается разобраться во всех ее подводных камнях и возможных значениях, что делает ее сложной задачей.
+- То же самое касается доменного имени: Компания должна вести список всех внутренних доменных имен и предоставлять централизованный сервис, позволяющий приложению проверять, является ли предоставленное доменное имя внутренним. Для этой проверки приложение может запросить внутренний DNS-распознаватель, но этот внутренний DNS-распознаватель не должен разрешать внешние доменные имена.
 
-#### Available protections
+#### Доступные средства защиты
 
-Taking into consideration the same assumption in the following [example](Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md#example) for the following sections.
+Принимая во внимание то же предположение в следующем [примере](Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md#example) для следующих разделов.
 
-##### Application layer
+##### Прикладной уровень
 
-Like for the case [n°1](Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md#case-1-application-can-send-request-only-to-identified-and-trusted-applications), it is assumed that the `IP Address` or `domain name` is required to create the request that will be sent to the *TargetApplication*.
+Как и в случае с [n°1](Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md#case-1-application-can-send-request-only-to-identified-and-trusted-applications), предполагается, что для создания запроса, который будет отправлен в *Целевое приложение*, требуется `IP-адрес` или `доменное имя`.
 
-The first validation on the input data presented in the case [n°1](Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md#application-layer) on the 3 types of data will be the same for this case **BUT the second validation will differ**. Indeed, here we must use the block-list approach.
+Первая проверка входных данных, представленных в случае [n°1](Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md#application-layer) для 3 типов данных, будет одинаковой для этого случая, **но вторая проверка будет отличаться**. Действительно, здесь мы должны использовать подход, основанный на блок-листе.
 
-> **Regarding the proof of legitimacy of the request**: The *TargetedApplication* that will receive the request must generate a random token (ex: alphanumeric of 20 characters) that is expected to be passed by the caller (in body via a parameter for which the name is also defined by the application itself and only allow characters set `[a-z]{1,10}`) to perform a valid request. The receiving endpoint must only accept HTTP POST requests.
+> **Что касается подтверждения законности запроса**: *Целевое приложение*, которое получит запрос, должно сгенерировать случайный токен (например, буквенно-цифровой из 20 символов), который, как ожидается, будет передан вызывающей стороной (в теле запроса через параметр, для которого имя также определяется самим приложением и разрешать только набор символов `[a-z]{1,10}`) для выполнения допустимого запроса. Принимающая конечная точка должна принимать только HTTP POST-запросы.
 
-**Validation flow (if one the validation steps fail then the request is rejected):**
+**Процесс проверки (если один из этапов проверки не выполняется, запрос отклоняется):**
 
-1. The application will receive the IP address or domain name of the *TargetedApplication* and it will apply the first validation on the input data using the libraries/regex mentioned in this [section](Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md#application-layer).
-2. The second validation will be applied against the IP address or domain name of the *TargetedApplication* using the following block-list approach:
-   - For IP address:
-     - The application will verify that it is a public one (see the hint provided in the next paragraph with the python code sample).
-   - For domain name:
-        1. The application will verify that it is a public one by trying to resolve the domain name against the DNS resolver that will only resolve internal domain name. Here, it must return a response indicating that it do not know the provided domain because the expected value received must be a public domain.
-        2. To prevent the `DNS pinning` attack described in this [document](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_SSRF_Bible.pdf), the application will retrieve all the IP addresses behind the domain name provided (taking records *A* + *AAAA* for IPv4 + IPv6) and it will apply the same verification described in the previous point about IP addresses.
-3. The application will receive the protocol to use for the request via a dedicated input parameter for which it will verify the value against an allowed list of protocols (`HTTP` or `HTTPS`).
-4. The application will receive the parameter name for the token to pass to the *TargetedApplication* via a dedicated input parameter for which it will only allow the characters set `[a-z]{1,10}`.
-5. The application will receive the token itself via a dedicated input parameter for which it will only allow the characters set `[a-zA-Z0-9]{20}`.
-6. The application will receive and validate (from a security point of view) any business data needed to perform a valid call.
-7. The application will build the HTTP POST request **using only validated information** and will send it (*don't forget to disable the support for [redirection](https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections) in the web client used*).
+1. Приложение получит IP-адрес или доменное имя *целевого приложения* и применит первую проверку к входным данным, используя библиотеки/регулярные выражения, упомянутые в этом [разделе] (Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md#прикладной уровень).
+2. Вторая проверка будет применена к IP-адресу или доменному имени *целевого приложения* с использованием следующего подхода к блокировке списков:
+   - Для IP-адреса:
+     - Приложение проверит, является ли оно общедоступным (смотрите подсказку, приведенную в следующем абзаце с примером кода на python).
+   - Для доменного имени:
+        1. Приложение проверит, является ли оно общедоступным, попытавшись разрешить доменное имя с помощью средства распознавания DNS, которое разрешит только внутреннее доменное имя. Здесь оно должно вернуть ответ, указывающий на то, что оно не знает указанный домен, поскольку полученное ожидаемое значение должно быть общедоступным доменом.
+        2. Чтобы предотвратить атаку `закрепления DNS (DNS pinning)`, описанную в этом [документе](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_SSRF_Bible.pdf), приложение извлекает все IP-адреса, указанные в указанном доменном имени (используя записи *A* + *AAAA* для IPv4 + IPv6), и применяет ту же проверку, что и описанная выше. в предыдущем пункте говорилось об IP-адресах.
+3. Приложение получит протокол, который будет использоваться для запроса, через специальный входной параметр, значение которого оно сверит с разрешенным списком протоколов (`HTTP` или `HTTPS`).
+4. Приложение получит имя параметра для токена, который будет передан в *TargetedApplication*, через специальный входной параметр, для которого разрешено использовать только символы `[a-z]{1,10}`.
+5. Приложение само получит токен через специальный входной параметр, для которого оно разрешит использовать только символы `[a-zA-Z0-9]{20}`.
+6. Приложение будет получать и проверять (с точки зрения безопасности) любые бизнес-данные, необходимые для выполнения корректного вызова.
+7. Приложение создаст HTTP POST-запрос, **используя только проверенную информацию**, и отправит его (*не забудьте отключить поддержку [перенаправления](https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections) в используемом веб-клиенте*).
 
-##### Network layer
+##### Сетевой уровень
 
-Similar to the following [section](Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md#network-layer).
+Аналогично следующему [разделу](Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md#сетевой уровень).
 
-## IMDSv2 in AWS
+## IMDSv2 в AWS
 
-In cloud environments SSRF is often used to access and steal credentials and access tokens from metadata services (e.g. AWS Instance Metadata Service, Azure Instance Metadata Service, GCP metadata server).
+В облачных средах SSRF часто используется для доступа и кражи учетных данных и токенов доступа из служб метаданных (например, службы метаданных экземпляров AWS, службы метаданных экземпляров Azure, сервера метаданных GCP).
 
-[IMDSv2](https://aws.amazon.com/blogs/security/defense-in-depth-open-firewalls-reverse-proxies-ssrf-vulnerabilities-ec2-instance-metadata-service/) is an additional defence-in-depth mechanism for AWS that mitigates some of the instances of SSRF.
+[IMDSv2](https://aws.amazon.com/blogs/security/defense-in-depth-open-firewalls-reverse-proxies-ssrf-vulnerabilities-ec2-instance-metadata-service/ ) - это дополнительный механизм глубокой защиты AWS, который устраняет некоторые проблемы, связанные с SSRF.
 
-To leverage this protection migrate to IMDSv2 and disable old IMDSv1. Check out [AWS documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html) for more details.
+Чтобы усилить эту защиту, перейдите на IMDSv2 и отключите старый IMDSv1. Более подробную информацию смотрите в [документации AWS](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html).
 
-## Semgrep Rules
+## Правила Semgrep
 
-[Semgrep](https://semgrep.dev/) is a command-line tool for offline static analysis. Use pre-built or custom rules to enforce code and security standards in your codebase.
-Checkout the Semgrep rule for SSRF to identify/investigate for SSRF vulnerabilities in Java
+[Semgrep] (https://semgrep.dev/) - это инструмент командной строки для автономного статического анализа. Используйте готовые или пользовательские правила для обеспечения соблюдения кода и стандартов безопасности в вашей кодовой базе.
+Ознакомьтесь с правилом Semgrep для SSRF, чтобы выявить/исследовать уязвимости SSRF в Java
 [https://semgrep.dev/salecharohit:owasp_java_ssrf](https://semgrep.dev/salecharohit:owasp_java_ssrf)
 
-## References
+## Ссылки на литерутуру
 
-Online version of the [SSRF bible](https://docs.google.com/document/d/1v1TkWZtrhzRLy0bYXBcdLUedXGb9njTNIJXa3u9akHM) (PDF version is used in this cheat sheet).
+Онлайн-версия Библии [SSRF](https://docs.google.com/document/d/1v1TkWZtrhzRLy0bYXBcdLUedXGb9njTNIJXa3u9akHM) (в этой шпаргалке использована версия в формате PDF).
 
-Article about [Bypassing SSRF Protection](https://medium.com/@vickieli/bypassing-ssrf-protection-e111ae70727b).
+Статья о [обходе защиты CSRF](https://medium.com/@vickieli/bypassing-ssrf-protection-e111ae70727b).
 
-Articles about SSRF attacks: [Part 1](https://medium.com/poka-techblog/server-side-request-forgery-ssrf-attacks-part-1-the-basics-a42ba5cc244a), [part 2](https://medium.com/poka-techblog/server-side-request-forgery-ssrf-attacks-part-2-fun-with-ipv4-addresses-eb51971e476d) and  [part 3](https://medium.com/poka-techblog/server-side-request-forgery-ssrf-part-3-other-advanced-techniques-3f48cbcad27e).
+Статьи о SSRF-атаках: [Часть 1](https://medium.com/poka-techblog/server-side-request-forgery-ssrf-attacks-part-1-the-basics-a42ba5cc244a), [часть 2](https://medium.com/poka-techblog/server-side-request-forgery-ssrf-attacks-part-2-fun-with-ipv4-addresses-eb51971e476d) и [часть 3](https://medium.com/poka-techblog/server-side-request-forgery-ssrf-part-3-other-advanced-techniques-3f48cbcad27e).
 
-Article about [IMDSv2](https://aws.amazon.com/blogs/security/defense-in-depth-open-firewalls-reverse-proxies-ssrf-vulnerabilities-ec2-instance-metadata-service/)
+Статья о [IMDSv2](https://aws.amazon.com/blogs/security/defense-in-depth-open-firewalls-reverse-proxies-ssrf-vulnerabilities-ec2-instance-metadata-service/)
 
-## Tools and code used for schemas
+## Инструменты и код, используемые для создания схем
 
-- [Mermaid Online Editor](https://mermaidjs.github.io/mermaid-live-editor) and [Mermaid documentation](https://mermaidjs.github.io/).
+- [Mermaid Online Editor](https://mermaidjs.github.io/mermaid-live-editor) и [Mermaid documentation](https://mermaidjs.github.io/).
 - [Draw.io Online Editor](https://www.draw.io/).
 
-Mermaid code for SSRF common flow (printscreen are used to capture PNG image inserted into this cheat sheet):
+Код Mermaid для SSRF common flow (print screen используется для захвата изображения в формате PNG, вставленного в эту шпаргалку):
 
 ```text
 sequenceDiagram
@@ -352,4 +352,4 @@ sequenceDiagram
     Note left of VulnerableApplication: Include response<br>from the<br>TargetedApplication
 ```
 
-Draw.io schema XML code for the "[case 1 for network layer protection about flows that we want to prevent](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_Case1_NetworkLayer_PreventFlow.xml)" schema (printscreen are used to capture PNG image inserted into this cheat sheet).
+Draw.io XML-код схемы для схемы "[Случай 1 для защиты сетевого уровня от потоков, которых мы хотим избежать](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_Case1_NetworkLayer_PreventFlow.xml)" (printscreen используется для захвата изображения в формате PNG, вставленного в эту шпаргалку). 
