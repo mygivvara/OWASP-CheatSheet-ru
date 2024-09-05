@@ -1,24 +1,24 @@
-# SQL Injection Prevention Cheat Sheet
+# Шпаргалка по предотвращению SQL-инъекций
 
-## Introduction
+## Вступление
 
-This cheat sheet will help you prevent SQL injection flaws in your applications. It will define what SQL injection is, explain where those flaws occur, and provide four options for defending against SQL injection attacks. [SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection) attacks are common because:
+Эта шпаргалка поможет вам предотвратить ошибки SQL-внедрения в ваших приложениях. В ней будет дано определение того, что такое SQL-внедрение, объяснено, где возникают эти ошибки, и представлены четыре варианта защиты от атак с использованием SQL-внедрения. Атаки [SQL-внедрение](https://owasp.org/www-community/attacks/SQL_Injection) распространены, потому что:
 
-1. SQL Injection vulnerabilities are very common, and
-2. The application's database is a frequent target for attackers because it typically contains interesting/critical data.
+1. Уязвимости, связанные с внедрением SQL, очень распространены, и
+2. База данных приложения является частой мишенью для злоумышленников, поскольку обычно содержит интересные/критически важные данные.
 
-## What Is a SQL Injection Attack?
+## Что такое атака с помощью SQL-инъекции?
 
-Attackers can use SQL injection on an application if it has dynamic database queries that use string concatenation and user supplied input. To avoid SQL injection flaws, developers need to:
+Злоумышленники могут использовать SQL-инъекцию в приложении, если в нем есть динамические запросы к базе данных, использующие конкатенацию строк и пользовательский ввод. Чтобы избежать ошибок SQL-инъекции, разработчикам необходимо:
 
-1. Stop writing dynamic queries with string concatenation or
-2. Prevent malicious SQL input from being included in executed queries.
+1. Прекратить писать динамические запросы с конкатенацией строк или
+2. Предотвратите включение вредоносных данных SQL в выполняемые запросы.
 
-There are simple techniques for preventing SQL injection vulnerabilities and they can be used with practically any kind of programming language and any type of database. While XML databases can have similar problems (e.g., XPath and XQuery injection), these techniques can be used to protect them as well.
+Существуют простые методы предотвращения уязвимостей, связанных с внедрением SQL, и их можно использовать практически с любым языком программирования и базами данных любого типа. Хотя с базами данных XML могут возникать аналогичные проблемы (например, с внедрением XPath и XQuery), эти методы также можно использовать для их защиты.
 
-## Anatomy of A Typical SQL Injection Vulnerability
+## Анатомия типичной уязвимости SQL-инъекции
 
-A common SQL injection flaw in Java is below. Because its unvalidated "customerName" parameter is simply appended to the query, an attacker can enter SQL code into that query and the application would take the attacker's code and execute it on the database.
+Ниже приведен распространенный недостаток SQL-внедрения в Java. Поскольку к запросу просто добавляется неподтвержденный параметр "CustomerName", злоумышленник может ввести SQL-код в этот запрос, а приложение возьмет код злоумышленника и выполнит его в базе данных.
 
 ```java
 String query = "SELECT account_balance FROM user_data WHERE user_name = "
@@ -31,38 +31,38 @@ try {
 ...
 ```
 
-## Primary Defenses
+## Основные средства защиты
 
-- **Option 1: Use of Prepared Statements (with Parameterized Queries)**
-- **Option 2: Use of Properly Constructed Stored Procedures**
-- **Option 3: Allow-list Input Validation**
-- **Option 4: STRONGLY DISCOURAGED: Escaping All User Supplied Input**
+- **Вариант 1: Использование подготовленных инструкций (с параметризованными запросами)**
+- **Вариант 2: Использование правильно построенных хранимых процедур**
+- **Вариант 3: Разрешить проверку ввода списком**
+- **Вариант 4: НАСТОЯТЕЛЬНО НЕ РЕКОМЕНДУЕТСЯ: Экранирование всего пользовательского ввода**
 
-### Defense Option 1: Prepared Statements (with Parameterized Queries)
+### Вариант защиты 1: Подготовленные инструкции (с параметризованными запросами)
 
-When developers are taught how to write database queries, they should be told to use prepared statements with variable binding (aka parameterized queries). Prepared statements are simple to write and easier to understand than dynamic queries and parameterized queries force the developer to define all SQL code first and pass in each parameter to the query later.
+Когда разработчиков учат писать запросы к базе данных, им следует посоветовать использовать подготовленные инструкции с привязкой к переменным (они же параметризованные запросы). Подготовленные инструкции просты в написании и более понятны, чем динамические запросы, а параметризованные запросы вынуждают разработчика сначала определять весь SQL-код, а затем передавать каждый параметр в запрос.
 
-If database queries use this coding style, the database will always distinguish between code and data, regardless of what user input is supplied. Also, prepared statements ensure that an attacker is not able to change the intent of a query, even if SQL commands are inserted by an attacker.
+Если запросы к базе данных используют этот стиль кодирования, база данных всегда будет различать код и данные, независимо от того, какие данные вводятся пользователем. Кроме того, подготовленные инструкции гарантируют, что злоумышленник не сможет изменить цель запроса, даже если он введет команды SQL.
 
-#### Safe Java Prepared Statement Example
+#### Пример безопасной инструкции, подготовленной на Java
 
-In the safe Java example below, if an attacker were to enter the userID of `tom' or '1'='1`, the parameterized query would look for a username which literally matched the entire string `tom' or '1'='1`. Thus, the database would be protected against injections of malicious SQL code.
+В приведенном ниже примере с безопасной Java, если злоумышленник введет идентификатор пользователя `tom` или `1`=`1`, параметризованный запрос будет искать имя пользователя, которое буквально соответствует всей строке `tom` или `1`=`1`. Таким образом, база данных будет защищена от внедрения вредоносного SQL-кода.
 
-The following code example uses a `PreparedStatement`, Java's implementation of a parameterized query, to execute the same database query.
+В следующем примере кода используется `PreparedStatement`, Java-реализация параметризованного запроса, для выполнения того же запроса к базе данных.
 
 ```java
-// This should REALLY be validated too
+// Это тоже действительно должно быть валидировано
 String custname = request.getParameter("customerName");
-// Perform input validation to detect attacks
+// Выполните проверку вводимых данных для обнаружения атак
 String query = "SELECT account_balance FROM user_data WHERE user_name = ? ";
 PreparedStatement pstmt = connection.prepareStatement( query );
 pstmt.setString( 1, custname);
 ResultSet results = pstmt.executeQuery( );
 ```
 
-#### Safe C\# .NET Prepared Statement Example
+#### Пример безопасной инструкции, подготовленной на C\# .NET
 
-In .NET, the creation and execution of the query doesn't change. Just pass the parameters to the query using the `Parameters.Add()` call as shown below.
+В .NET процесс создания и выполнения запроса не меняется. Просто передайте параметры запросу, используя вызов `Parameters.Add()`, как показано ниже.
 
 ```csharp
 String query = "SELECT account_balance FROM user_data WHERE user_name = ?";
@@ -76,58 +76,58 @@ try {
 }
 ```
 
-While we have shown examples in Java and .NET, practically all other languages (including Cold Fusion and Classic ASP) support parameterized query interfaces. Even SQL abstraction layers, like the [Hibernate Query Language](http://hibernate.org/) (HQL) with the same type of injection problems (called [HQL Injection](http://cwe.mitre.org/data/definitions/564.html))  supports parameterized queries as well:
+Хотя мы показали примеры на Java и .NET, практически все другие языки (включая ColdFusion и классический ASP) поддерживают параметризованные интерфейсы запросов. Даже уровни абстракции SQL, такие как [Hibernate Query Language](http://hibernate.org/) (HQL), с такими же проблемами при внедрении (называемые [HQL Injection](http://cwe.mitre.org/data/definitions/564.html))  также поддерживают параметризованные запросы:
 
-#### Hibernate Query Language (HQL) Prepared Statement (Named Parameters) Example
+#### Пример подготовленной инструкции (именованные параметры) языка запросов Hibernate Query Language (HQL)
 
 ```java
-// This is an unsafe HQL statement
+// Это небезопасный оператор HQL
 Query unsafeHQLQuery = session.createQuery("from Inventory where productID='"+userSuppliedParameter+"'");
-// Here is a safe version of the same query using named parameters
+// Вот безопасная версия того же запроса с использованием именованных параметров
 Query safeHQLQuery = session.createQuery("from Inventory where productID=:productid");
 safeHQLQuery.setParameter("productid", userSuppliedParameter);
 ```
 
-#### Other Examples of Safe Prepared Statements
+#### Другие примеры безопасных подготовленных заявлений
 
-If you need examples of prepared queries/parameterized languages, including Ruby, PHP, Cold Fusion, Perl, and Rust, see the [Query Parameterization Cheat Sheet](Query_Parameterization_Cheat_Sheet.md) or this [site](http://bobby-tables.com/).
+Если вам нужны примеры готовых запросов/параметризованных языков, включая Ruby, PHP, Cold Fusion, Perl и Rust, смотрите [Шпаргалку по параметризации запросов](Query_Parameterization_Cheat_Sheet.md) или этот [сайт](http://bobby-tables.com/).
 
-Generally, developers like prepared statements because all the SQL code stays within the application, which makes your application relatively database independent.
+Как правило, разработчикам нравятся подготовленные инструкции, потому что весь SQL-код остается внутри приложения, что делает ваше приложение относительно независимым от базы данных.
 
-### Defense Option 2: Stored Procedures
+### Вариант защиты 2: Хранимые процедуры
 
-Though stored procedures are not always safe from SQL injection, developers can use certain standard stored procedure programming constructs. This approach has the same effect as the use of parameterized queries as long as the stored procedures are implemented safely (which is the norm for most stored procedure languages).
+Хотя хранимые процедуры не всегда защищены от внедрения SQL, разработчики могут использовать определенные стандартные конструкции программирования хранимых процедур. Этот подход дает тот же эффект, что и использование параметризованных запросов, при условии, что хранимые процедуры реализованы безопасно (что является нормой для большинства языков хранимых процедур).
 
-#### Safe Approach to Stored Procedures
+#### Безопасный подход к хранимым процедурам
 
-If stored procedures are needed, the safest approach to using them requires the developer to build SQL statements with parameters that are automatically parameterized, unless the developer does something largely out of the norm. The difference between prepared statements and stored procedures is that the SQL code for a stored procedure is defined and stored in the database itself, and then called from the application. Since prepared statements and safe stored procedures are equally effective in preventing SQL injection, your organization should choose the approach that makes the most sense for you.
+Если необходимы хранимые процедуры, то самый безопасный подход к их использованию требует, чтобы разработчик создавал инструкции SQL с параметрами, которые автоматически параметризуются, если только разработчик не делает что-то в значительной степени нестандартное. Разница между подготовленными инструкциями и хранимыми процедурами заключается в том, что SQL-код для хранимой процедуры определяется и хранится в самой базе данных, а затем вызывается из приложения. Поскольку подготовленные инструкции и безопасные хранимые процедуры одинаково эффективны для предотвращения внедрения SQL-запросов, вашей организации следует выбрать наиболее подходящий для вас подход.
 
-#### When Stored Procedures Can Increase Risk
+#### Когда Хранимые Процедуры Могут Увеличить Риск
 
-Occasionally, stored procedures can increase risk when a system is attacked. For example, on MS SQL Server, you have three main default roles: `db_datareader`, `db_datawriter` and `db_owner`. Before stored procedures came into use, DBAs would give `db_datareader` or `db_datawriter` rights to the webservice's user, depending on the requirements.
+Иногда хранимые процедуры могут увеличить риск атаки на систему. Например, в MS SQL Server у вас есть три основные роли по умолчанию: `db_datareader`, `db_datawriter` и `db_owner`. До того, как начали использоваться хранимые процедуры, базы данных предоставляли права `db_datareader` или `db_datawriter` пользователю веб-службы, в зависимости от требований.
 
-However, stored procedures require execute rights, a role that is not available by default. In some setups where user management has been centralized, but is limited to those 3 roles, web apps would have to run as `db_owner` so stored procedures could work. Naturally, that means that if a server is breached the attacker has full rights to the database, where previously they might only have had read-access.
+Однако для хранимых процедур требуются права на выполнение, роль, которая по умолчанию недоступна. В некоторых установках, где управление пользователями централизовано, но ограничено этими тремя ролями, веб-приложения должны запускаться от имени `db_owner`, чтобы хранимые процедуры могли работать. Естественно, это означает, что в случае взлома сервера злоумышленник получает полные права на базу данных, где ранее у него мог быть доступ только для чтения.
 
-#### Safe Java Stored Procedure Example
+#### Пример безопасной хранимой процедуры Java
 
-The following code example uses Java's implementation of the stored procedure interface (`CallableStatement`) to execute the same database query. The `sp_getAccountBalance` stored procedure has to be predefined in the database and use the same functionality as the query above.
+В следующем примере кода используется Java-реализация интерфейса хранимой процедуры (`CallableStatement`) для выполнения того же запроса к базе данных. Хранимая процедура `sp_getAccountBalance` должна быть предварительно определена в базе данных и использовать ту же функциональность, что и запрос, приведенный выше.
 
 ```java
-// This should REALLY be validated
+// Это действительно должно быть валидировано
 String custname = request.getParameter("customerName");
 try {
   CallableStatement cs = connection.prepareCall("{call sp_getAccountBalance(?)}");
   cs.setString(1, custname);
   ResultSet results = cs.executeQuery();
-  // … result set handling
+  // … обработка результирующего набора
 } catch (SQLException se) {
-  // … logging and error handling
+  // … ведение журнала и обработка ошибок
 }
 ```
 
-#### Safe VB .NET Stored Procedure Example
+#### Пример безопасной хранимой процедуры VB .NET
 
-The following code example uses a `SqlCommand`, .NET's implementation of the stored procedure interface, to execute the same database query. The `sp_getAccountBalance` stored procedure must be predefined in the database and use the same functionality as the query defined above.
+В следующем примере кода используется `SqlCommand`, реализация интерфейса хранимой процедуры в .NET, для выполнения того же запроса к базе данных. Хранимая процедура `sp_getAccountBalance` должна быть предварительно определена в базе данных и использовать ту же функциональность, что и запрос, определенный выше.
 
 ```vbnet
  Try
@@ -141,15 +141,15 @@ The following code example uses a `SqlCommand`, .NET's implementation of the sto
  End Try
 ```
 
-### Defense Option 3: Allow-list Input Validation
+### Вариант защиты 3: Разрешить проверку ввода списком
 
-If you are faced with parts of SQL queries that can't use bind variables, such as the names of tables or columns as well as the sort order indicator (ASC or DESC), input validation or query redesign is the most appropriate defense. When names of tables or columns are needed, ideally those values come from the code and not from user parameters.
+Если вы сталкиваетесь с частями SQL-запросов, которые не могут использовать переменные привязки, такие как имена таблиц или столбцов, а также индикатор порядка сортировки (ASC или DESC), наиболее подходящей защитой является проверка введенных данных или перепроектирование запроса. Когда требуются имена таблиц или столбцов, в идеале эти значения берутся из кода, а не из пользовательских параметров.
 
-#### Sample Of Safe Table Name Validation
+#### Пример Проверки Безопасного Имени Таблицы
 
-WARNING: If user parameter values are used for targeting different table names and column names, this is a symptom of poor design and a full rewrite should be considered if time allows. If that is not possible, developers should map the parameter values to the legal/expected table or column names to make sure unvalidated user input doesn't end up in the query.
+ПРЕДУПРЕЖДЕНИЕ: Если значения пользовательских параметров используются для определения разных имен таблиц и столбцов, это является признаком плохого дизайна, и, если позволяет время, следует рассмотреть возможность полной перезаписи. Если это невозможно, разработчикам следует сопоставить значения параметров с допустимыми/ожидаемыми именами таблиц или столбцов, чтобы убедиться, что неподтвержденный пользовательский ввод не попадет в запрос.
 
-In the example below, since `tableName` is identified as one of the legal and expected values for a table name in this query, it can be directly appended to the SQL query. Keep in mind that generic table validation functions can lead to data loss as table names are used in queries where they are not expected.
+В приведенном ниже примере, поскольку `tableName` определено как одно из допустимых и ожидаемых значений для имени таблицы в этом запросе, оно может быть непосредственно добавлено к SQL-запросу. Имейте в виду, что общие функции проверки таблиц могут привести к потере данных, поскольку имена таблиц используются в запросах, где они не ожидаются.
 
 ```text
 String tableName;
@@ -163,17 +163,17 @@ switch(PARAM):
                                                   + " for table name");
 ```
 
-#### Safest Use Of Dynamic SQL Generation (DISCOURAGED)
+#### Безопасное Использование Динамической Генерации SQL (НЕ РЕКОМЕНДУЕТСЯ)
 
-When we say a stored procedure is "implemented safely," that means it does not include any unsafe dynamic SQL generation. Developers do not usually generate dynamic SQL inside stored procedures. However, it can be done, but should be avoided.
+Когда мы говорим, что хранимая процедура "реализована безопасно", это означает, что она не содержит небезопасной динамической генерации SQL. Разработчики обычно не генерируют динамический SQL внутри хранимых процедур. Однако это возможно, но этого следует избегать.
 
-If it can't be avoided, the stored procedure must use input validation or proper escaping as described in this article to make sure that all user supplied input to the stored procedure can't be used to inject SQL code into the dynamically generated query. Auditors should always look for uses of `sp_execute`, `execute` or `exec` within SQL Server stored procedures. Similar audit guidelines are necessary for similar functions for other vendors.
+Если этого невозможно избежать, хранимая процедура должна использовать проверку ввода или надлежащее экранирование, как описано в этой статье, чтобы убедиться, что все введенные пользователем данные хранимой процедуры не могут быть использованы для ввода SQL-кода в динамически сгенерированный запрос. Аудиторам всегда следует обращать внимание на использование `sp_execute`, `execute` или `exec exec` в хранимых процедурах SQL Server. Аналогичные рекомендации по аудиту необходимы для аналогичных функций других поставщиков.
 
-#### Sample of Safer Dynamic Query Generation (DISCOURAGED)
+#### Пример более безопасной генерации динамических запросов (НЕ РЕКОМЕНДУЕТСЯ)
 
-For something simple like a sort order, it would be best if the user supplied input is converted to a boolean, and then that boolean is used to select the safe value to append to the query. This is a very standard need in dynamic query creation.
+Для чего-то простого, например, для порядка сортировки, было бы лучше, если бы введенные пользователем данные преобразовались в логическое значение, а затем это логическое значение использовалось для выбора безопасного значения для добавления в запрос. Это очень стандартная необходимость при создании динамического запроса.
 
-For example:
+Например:
 
 ```java
 public String someMethod(boolean sortOrder) {
@@ -181,85 +181,85 @@ public String someMethod(boolean sortOrder) {
  ...
 ```
 
-Any time user input can be converted to a non-String, like a date, numeric, boolean, enumerated type, etc. before it is appended to a query, or used to select a value to append to the query, this ensures it is safe to do so.
+В любой момент пользовательский ввод может быть преобразован в нестроковый, например, в дату, числовой, логический, перечислимый тип и т.д., Прежде чем он будет добавлен к запросу или использован для выбора значения для добавления в запрос, это гарантирует безопасность такого действия.
 
-Input validation is also recommended as a secondary defense in ALL cases, even when using bind variables as discussed earlier in this article. More techniques on how to implement strong input validation is described in the [Input Validation Cheat Sheet](Input_Validation_Cheat_Sheet.md).
+Проверка входных данных также рекомендуется в качестве дополнительной защиты во всех случаях, даже при использовании переменных привязки, как обсуждалось ранее в этой статье. Дополнительные методы реализации надежной проверки входных данных описаны в [Шпаргалке по проверке входных данных](Input_Validation_Cheat_Sheet.md).
 
-### Defense Option 4: STRONGLY DISCOURAGED: Escaping All User-Supplied Input
+### Вариант защиты 4: НАСТОЯТЕЛЬНО НЕ РЕКОМЕНДУЕТСЯ: Экранирование всех вводимых пользователем данных
 
-In this approach, the developer will escape all user input before putting it in a query. It is very database specific in its implementation.  This methodology is frail compared to other defenses and we CANNOT guarantee that this option will prevent all SQL injections in all situations.
+При таком подходе разработчик будет избегать всех вводимых пользователем данных, прежде чем вводить их в запрос. Реализация этого метода очень специфична для базы данных.  Эта методология является хрупкой по сравнению с другими средствами защиты, и мы НЕ можем гарантировать, что этот параметр предотвратит все SQL-инъекции во всех ситуациях.
 
-If an application is built from scratch or requires low risk tolerance, it should be built or re-written using parameterized queries, stored procedures, or some kind of Object Relational Mapper (ORM) that builds your queries for you.
+Если приложение создается с нуля или требует низкой толерантности к рискам, его следует создать или переписать заново, используя параметризованные запросы, хранимые процедуры или какой-либо объектно-реляционный картограф (ORM), который создает ваши запросы за вас.
 
-## Additional Defenses
+## Дополнительные средства защиты
 
-Beyond adopting one of the four primary defenses, we also recommend adopting all of these additional defenses in order to provide defense in depth. These additional defenses are:
+Помимо использования одной из четырех основных средств защиты, мы также рекомендуем использовать все эти дополнительные средства защиты, чтобы обеспечить глубокую оборону. Эти дополнительные средства защиты включают:
 
-- **Least Privilege**
-- **Allow-list Input Validation**
+- **Наименьшие привилегии**
+- **Разрешить проверку ввода списком**
 
-### Least Privilege
+### Наименьшие привилегии
 
-To minimize the potential damage of a successful SQL injection attack, you should minimize the privileges assigned to every database account in your environment. Start from the ground up to determine what access rights your application accounts require, rather than trying to figure out what access rights you need to take away.
+Чтобы свести к минимуму потенциальный ущерб от успешной атаки с использованием SQL-инъекции, вам следует минимизировать привилегии, назначенные каждой учетной записи базы данных в вашей среде. Начните с нуля, чтобы определить, какие права доступа требуются вашим учетным записям приложений, а не пытаться выяснить, какие права доступа вам нужно лишить.
 
-Make sure that accounts that only need read access are only granted read access to the tables they need access to. DO NOT ASSIGN DBA OR ADMIN TYPE ACCESS TO YOUR APPLICATION ACCOUNTS. We understand that this is easy, and everything just "works" when you do it this way, but it is very dangerous.
+Убедитесь, что учетным записям, которым требуется доступ только на чтение, предоставляется доступ на чтение только к тем таблицам, к которым им нужен доступ. НЕ НАЗНАЧАЙТЕ СВОИМ УЧЕТНЫМ ЗАПИСЯМ В ПРИЛОЖЕНИЯХ ПРАВА АДМИНИСТРАТОРА БАЗЫ ДАННЫХ ИЛИ ДОСТУПА ТИПА ADMIN. Мы понимаем, что это легко, и все просто "работает", когда вы делаете это таким образом, но это очень опасно.
 
-#### Minimizing Application and OS Privileges
+#### Минимизация привилегий приложений и операционной системы
 
-SQL injection is not the only threat to your database data. Attackers can simply change the parameter values from one of the legal values they are presented with, to a value that is unauthorized for them, but the application itself might be authorized to access. As such, minimizing the privileges granted to your application will reduce the likelihood of such unauthorized access attempts, even when an attacker is not trying to use SQL injection as part of their exploit.
+SQL-инъекция - не единственная угроза для вашей базы данных. Злоумышленники могут просто изменить значения параметров с одного из допустимых значений, которые им предоставляются, на неавторизованное для них значение, но доступ к самому приложению может быть разрешен. Таким образом, минимизация привилегий, предоставляемых вашему приложению, снизит вероятность таких попыток несанкционированного доступа, даже если злоумышленник не пытается использовать SQL-инъекцию как часть своего эксплойта.
 
-While you are at it, you should minimize the privileges of the operating system account that the DBMS runs under. Don't run your DBMS as root or system! Most DBMSs run out of the box with a very powerful system account. For example, MySQL runs as system on Windows by default! Change the DBMS's OS account to something more appropriate, with restricted privileges.
+При этом вам следует минимизировать привилегии учетной записи операционной системы, под которой работает СУБД. Не запускайте свою СУБД от имени root или system! Большинство СУБД "из коробки" запускаются с очень мощной системной учетной записью. Например, MySQL по умолчанию работает как системный в Windows! Измените учетную запись операционной системы СУБД на более подходящую, с ограниченными привилегиями.
 
-#### Details Of Least Privilege When Developing
+#### Детали принципа минимальных привелегий при разработке
 
-If an account only needs access to portions of a table, consider creating a view that limits access to that portion of the data and assigning the account access to the view instead, rather than the underlying table. Rarely, if ever, grant create or delete access to database accounts.
+Если учетной записи требуется доступ только к части таблицы, рассмотрите возможность создания представления, которое ограничивает доступ к этой части данных, и вместо этого назначьте учетной записи доступ к представлению, а не к базовой таблице. Редко, если вообще когда-либо, предоставляйте учетным записям базы данных доступ для создания или удаления.
 
-If you adopt a policy where you use stored procedures everywhere, and don't allow application accounts to directly execute their own queries, then restrict those accounts to only be able to execute the stored procedures they need. Don't grant them any rights directly to the tables in the database.
+Если вы придерживаетесь политики, в соответствии с которой хранимые процедуры используются повсеместно, и не разрешаете учетным записям приложений напрямую выполнять свои запросы, то ограничьте этим учетным записям возможность выполнять только те хранимые процедуры, которые им нужны. Не предоставляйте им никаких прав непосредственно на таблицы в базе данных.
 
-#### Least Admin Privileges For Multiple DBs
+#### Минимальные права Администратора для нескольких баз данных
 
-The designers of web applications should avoid using the same owner/admin account in the web applications to connect to the database. Different DB users should be used for different web applications.
+Разработчикам веб-приложений следует избегать использования одной и той же учетной записи владельца/администратора в веб-приложениях для подключения к базе данных. Для разных веб-приложений следует использовать разных пользователей базы данных.
 
-In general, each separate web application that requires access to the database should have a designated database user account that the application will use to connect to the DB. That way, the designer of the application can have good granularity in the access control, thus reducing the privileges as much as possible. Each DB user will then have select access to what it needs only, and write-access as needed.
+В общем, каждое отдельное веб-приложение, которому требуется доступ к базе данных, должно иметь определенную учетную запись пользователя базы данных, которую приложение будет использовать для подключения к базе данных. Таким образом, разработчик приложения может обеспечить хорошую степень детализации в управлении доступом, что максимально снизит привилегии. Затем каждый пользователь базы данных получит доступ по выбору только к тому, что ему нужно, и доступ на запись по мере необходимости.
 
-As an example, a login page requires read access to the username and password fields of a table, but no write access of any form (no insert, update, or delete). However, the sign-up page certainly requires insert privilege to that table; this restriction can only be enforced if these web apps use different DB users to connect to the database.
+Например, для страницы входа в систему требуется доступ на чтение к полям имени пользователя и пароля в таблице, но нет доступа на запись в любой форме (без вставки, обновления или удаления). Однако страница регистрации, безусловно, требует привилегии insert для этой таблицы; это ограничение может быть применено только в том случае, если эти веб-приложения используют разных пользователей базы данных для подключения к базе данных.
 
-#### Enhancing Least Privilege with SQL Views
+#### Повышение минимальных привилегий с помощью SQL-представлений
 
-You can use SQL views to further increase the granularity of access by limiting the read access to specific fields of a table or joins of tables. It could have additional benefits.
+Вы можете использовать SQL views для дальнейшего повышения детализации доступа, ограничивая доступ для чтения определенными полями таблицы или объединениями таблиц. Это может иметь дополнительные преимущества.
 
-For example, if the system is required (perhaps due to some specific legal requirements) to store the passwords of the users, instead of salted-hashed passwords, the designer could use views to compensate for this limitation. They could revoke all access to the table (from all DB users except the owner/admin) and create a view that outputs the hash of the password field and not the field itself.
+Например, если системе требуется (возможно, из-за каких-то особых требований законодательства) хранить пароли пользователей, а не пароли с соленым хэшем, разработчик мог бы использовать представления, чтобы компенсировать это ограничение. Они могли бы отозвать весь доступ к таблице (у всех пользователей базы данных, кроме владельца/администратора) и создать представление, которое выводит хэш поля пароля, а не само поле.
 
-Any SQL injection attack that succeeds in stealing DB information will be restricted to stealing the hash of the passwords (could even be a keyed hash), since no DB user for any of the web applications has access to the table itself.
+Любая атака с использованием SQL-инъекций, которая приведет к успешной краже информации из базы данных, будет ограничена кражей хэша паролей (может быть даже хэша с ключом), поскольку ни один пользователь базы данных ни в одном из веб-приложений не имеет доступа к самой таблице.
 
-### Allow-list Input Validation
+### Проверка ввода с помощью разрешенного списка
 
-In addition to being a primary defense when nothing else is possible (e.g., when a bind variable isn't legal), input validation can also be a secondary defense used to detect unauthorized input before it is passed to the SQL query. For more information please see the [Input Validation Cheat Sheet](Input_Validation_Cheat_Sheet.md). Proceed with caution here. Validated data is not necessarily safe to insert into SQL queries via string building.
+Помимо того, что проверка ввода является основной защитой, когда ничто другое невозможно (например, когда переменная привязки не является допустимой), она также может быть вторичной защитой, используемой для обнаружения несанкционированного ввода до того, как он будет передан в SQL-запрос. Для получения дополнительной информации, пожалуйста, ознакомьтесь с [Инструкцией по проверке правильности ввода](Input_Validation_Cheat_Sheet.md). Действуйте здесь с осторожностью. Проверенные данные необязательно безопасно вставлять в SQL-запросы с помощью построения строк.
 
-## Related Articles
+## Статьи по теме
 
-**SQL Injection Attack Cheat Sheets**:
+**Шпаргалки по атакам с использованием SQL-инъекций**:
 
-The following articles describe how to exploit different kinds of SQL injection vulnerabilities on various platforms (that this article was created to help you avoid):
+В следующих статьях описывается, как использовать различные виды уязвимостей SQL-инъекций на различных платформах (эта статья была создана для того, чтобы помочь вам избежать их).:
 
 - [SQL Injection Cheat Sheet](https://www.netsparker.com/blog/web-security/sql-injection-cheat-sheet/)
-- Bypassing WAF's with SQLi - [SQL Injection Bypassing WAF](https://owasp.org/www-community/attacks/SQL_Injection_Bypassing_WAF)
+- Обход того, что происходит с SQLi - [SQL Injection Bypassing WAF](https://owasp.org/www-community/attacks/SQL_Injection_Bypassing_WAF)
 
-**Description of SQL Injection Vulnerabilities**:
+**Описание уязвимостей SQL-инъекций**:
 
-- OWASP article on [SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection) Vulnerabilities
-- OWASP article on [Blind_SQL_Injection](https://owasp.org/www-community/attacks/Blind_SQL_Injection) Vulnerabilities
+- Статья OWASP об уязвимостях [SQL-инъекции](https://owasp.org/www-community/attacks/SQL_Injection)
+- Статья OWASP об уязвимостях [Blind_SQL_Injection](https://owasp.org/www-community/attacks/Blind_SQL_Injection)
 
-**How to Avoid SQL Injection Vulnerabilities**:
+**Как избежать уязвимостей SQL-инъекций**:
 
-- [OWASP Developers Guide](https://github.com/OWASP/DevGuide) article on how to avoid SQL injection vulnerabilities
-- OWASP Cheat Sheet that provides [numerous language specific examples of parameterized queries using both Prepared Statements and Stored Procedures](Query_Parameterization_Cheat_Sheet.md)
-- [The Bobby Tables site (inspired by the XKCD webcomic) has numerous examples in different languages of parameterized Prepared Statements and Stored Procedures](http://bobby-tables.com/)
+- [Руководство для разработчиков OWASP](https://github.com/OWASP/DevGuide) статья о том, как избежать уязвимостей SQL-инъекций
+- Шпаргалка по OWASP, содержащая [многочисленные языковые примеры параметризованных запросов с использованием как подготовленных инструкций, так и хранимых процедур](Query_Parameterization_Cheat_Sheet.md)
+- [Сайт Bobby Tables (созданный по мотивам веб-комикса XKCD) содержит множество примеров параметризованных подготовленных инструкций и хранимых процедур на разных языках](http://bobby-tables.com/)
 
-**How to Review Code for SQL Injection Vulnerabilities**:
+**Как проверить код на наличие уязвимостей SQL-инъекций**:
 
-- [OWASP Code Review Guide](https://wiki.owasp.org/index.php/Category:OWASP_Code_Review_Project) article on how to [Review Code for SQL Injection](https://wiki.owasp.org/index.php/Reviewing_Code_for_SQL_Injection) Vulnerabilities
+- [Руководство по проверке кода OWASP](https://wiki.owasp.org/index.php/Category:OWASP_Code_Review_Project) статья о том, как [проверить код для SQL-инъекций](https://wiki.owasp.org/index.php/Reviewing_Code_for_SQL_Injection) Уязвимости
 
-**How to Test for SQL Injection Vulnerabilities**:
+**Как протестировать SQL-инъекцию на наличие уязвимостей**:
 
-- [OWASP Testing Guide](https://owasp.org/www-project-web-security-testing-guide) article on how to [Test for SQL Injection](https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection.html) Vulnerabilities
+- [Руководство по тестированию OWASP](https://owasp.org/www-project-web-security-testing-guide) статья о том, как [тестировать SQL на наличие инъекций](https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection.html) уязвимостей
