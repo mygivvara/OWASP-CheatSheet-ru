@@ -1,92 +1,92 @@
-# Secure Product Design Cheat Sheet
+# Шпаргалка по безопасному дизайну продукта
 
-## Introduction
+## Вступление
 
-The purpose of Secure Product Design is to ensure that all products meet or exceed the security requirements laid down by the organization as part of the development lifecycle and to ensure that all security decisions made about the product being developed are explicit choices and result in the correct level of security for the product being developed.
+Целью разработки безопасного продукта является обеспечение того, чтобы все продукты соответствовали требованиям безопасности, установленным организацией в рамках жизненного цикла разработки, или превосходили их, а также обеспечение того, чтобы все решения по обеспечению безопасности, принимаемые в отношении разрабатываемого продукта, были четким выбором и обеспечивали надлежащий уровень безопасности разрабатываемого продукта.
 
-## Methodology
+## Методология
 
-As a basic start, establish secure defaults, minimise the attack surface area, and fail securely to those well-defined and understood defaults.
+Для начала установите безопасные настройки по умолчанию, сведите к минимуму площадь поверхности атаки и обеспечьте надежное выполнение этих четко определенных и понятных настроек по умолчанию.
 
-Secure Product Design comes about through two processes:
+Разработка безопасного продукта осуществляется с помощью двух процессов:
 
-1. **_Product Inception_**; and
-2. **_Product Design_**
+1. **_Разработка продукта_**; и
+2. **_Дизайн продукта_**
 
-The first process happens when a product is conceived, or when an existing product is being re-invented. The latter is continuous, evolutionary, and done in an agile way, close to where the code is being written.
+Первый процесс происходит при разработке продукта или при переосмыслении существующего продукта. Второй процесс является непрерывным, эволюционным и выполняется гибким способом, близким к тому, на котором пишется код.
 
-## Security Principles
+## Принципы безопасности
 
-### 1. The principle of Least Privilege and Separation of Duties
+### 1. Принцип наименьших привилегий и разделения обязанностей
 
-Least Privilege is a security principle that states that users should only be given the minimum amount of access necessary to perform their job. This means that users should only be given access to the resources they need to do their job, and no more. This helps to reduce the risk of unauthorized access to sensitive data or systems, as users are only able to access the resources they need. Least Privilege is an important security principle that should be followed in order to ensure the security of an organization's data and systems.
+Принцип наименьших привилегий - это принцип безопасности, который гласит, что пользователям должен быть предоставлен только минимальный объем доступа, необходимый для выполнения их работы. Это означает, что пользователям должен быть предоставлен доступ только к тем ресурсам, которые необходимы им для выполнения их работы, и не более того. Это помогает снизить риск несанкционированного доступа к конфиденциальным данным или системам, поскольку пользователи могут получить доступ только к тем ресурсам, которые им необходимы. Принцип наименьших привилегий - важный принцип безопасности, которому следует следовать для обеспечения безопасности данных и систем организации.
 
-Separation of duties is a fundamental principle of internal control in business and organizations. It is a system of checks and balances that ensures that no single individual has control over all aspects of a transaction. This is done by assigning different tasks to different people, so that no one person has control over the entire process. This helps to reduce the risk of fraud and errors, as well as ensuring that all tasks are completed in a timely manner. Separation of duties is an important part of any organization's internal control system, and is essential for maintaining the integrity of the organization's financial records.
+Разделение обязанностей является основополагающим принципом внутреннего контроля в бизнесе и организациях. Это система сдержек и противовесов, которая гарантирует, что ни один человек не контролирует все аспекты транзакции. Это достигается путем назначения разных задач разным людям, чтобы ни один человек не контролировал весь процесс. Это помогает снизить риск мошенничества и ошибок, а также обеспечивает своевременное выполнение всех задач. Разделение обязанностей является важной частью системы внутреннего контроля любой организации и имеет важное значение для поддержания целостности финансовой отчетности организации.
 
-### 2. The principle of Defense-in-Depth
+### 2. Принцип глубокой защиты (Defense-in-Depth)
 
-The principle of Defense-in-Depth is a security strategy that involves multiple layers of security controls to protect an organization’s assets. It is based on the idea that if one layer of security fails, the other layers will still be able to protect the asset. The layers of security can include physical security, network security, application security, and data security. The goal of Defense-in-Depth is to create a secure environment that is resilient to attack and can quickly detect and respond to any security incidents. By implementing multiple layers of security, organizations can reduce the risk of a successful attack and minimize the damage caused by any successful attack.
+Принцип глубокой защиты - это стратегия безопасности, которая включает в себя несколько уровней контроля безопасности для защиты активов организации. Она основана на идее, что если один уровень безопасности выходит из строя, другие уровни все равно смогут защитить активы. Уровни безопасности могут включать физическую безопасность, сетевую безопасность, безопасность приложений и безопасность данных. Целью комплексной защиты является создание защищенной среды, устойчивой к атакам и способной быстро обнаруживать любые инциденты безопасности и реагировать на них. Внедряя несколько уровней безопасности, организации могут снизить риск успешной атаки и свести к минимуму ущерб, причиняемый любой успешной атакой.
 
-### 3. The principle of Zero Trust
+### 3. Принцип нулевого доверия
 
-Zero Trust is a security model that assumes that all users, devices, and networks are untrusted and must be verified before access is granted. It is based on the idea that organizations should not trust any user, device, or network, even if they are inside the organization’s network. Instead, all requests for access must be authenticated and authorized before access is granted. Zero Trust also requires organizations to continuously monitor and audit user activity to ensure that access is only granted to those who need it. This model is designed to reduce the risk of data breaches and other security incidents by ensuring that only authorized users have access to sensitive data.
+Нулевое доверие - это модель безопасности, которая предполагает, что все пользователи, устройства и сети не заслуживают доверия и должны быть проверены перед предоставлением доступа. Она основана на идее, что организации не должны доверять никаким пользователям, устройствам или сетям, даже если они находятся внутри сети организации. Вместо этого все запросы на доступ должны быть аутентифицированы и авторизованы перед предоставлением доступа. Нулевое доверие также требует от организаций постоянного мониторинга и аудита активности пользователей, чтобы гарантировать, что доступ предоставляется только тем, кто в нем нуждается. Эта модель разработана для снижения риска утечки данных и других инцидентов безопасности за счет обеспечения того, чтобы только авторизованные пользователи имели доступ к конфиденциальным данным.
 
-### 4. The principle of Security-in-the-Open
+### 4. Принцип Security-in-the-Open
 
-Security-in-the-Open is a concept that emphasizes the importance of security in open source software development. It focuses on the need for developers to be aware of the security implications of their code and to take steps to ensure that their code is secure. This includes using secure coding practices, testing for vulnerabilities, and using secure development tools. Security-in-the-Open also encourages developers to collaborate with security experts to ensure that their code is secure.
+Концепция Security-in-the-Open подчеркивает важность безопасности при разработке программного обеспечения с открытым исходным кодом. Она направлена на то, чтобы разработчики осознавали последствия своего кода для безопасности и предпринимали шаги для обеспечения безопасности своего кода. Это включает в себя использование методов безопасного программирования, тестирование на наличие уязвимостей и использование безопасных инструментов разработки. Программа Security-in-the-Open также поощряет разработчиков сотрудничать с экспертами по безопасности, чтобы обеспечить безопасность своего кода.
 
-## Security Focus Areas
+## Приоритетные области обеспечения безопасности
 
-### 1. Context
+### 1. Контекст
 
-Where does this application under consideration fit into the ecosystem of the organization, which departments use it and for what reason? What kinds of data might it contain, and what is the risk profile as a result?
+Как рассматриваемое приложение вписывается в экосистему организации, какие отделы его используют и по какой причине? Какие типы данных оно может содержать и каков в результате профиль рисков?
 
-The processes employed to build the security context for an application include [Threat Modeling](Threat_Modeling_Cheat_Sheet.md) - which results in security related stories being added during **_Product Design_** at every iteration of *product delivery* - and when performing a Business Impact Assessment - which results in setting the correct Product Security Levels for a given product during **_Product Inception_**.
+Процессы, используемые для создания контекста безопасности для приложения, включают [Моделирование угроз](Threat_Modeling_Cheat_Sheet.md), что приводит к добавлению историй, связанных с безопасностью, во время **_Дизайн продукта_** на каждой итерации *доставки продукта*, а также при проведении оценки влияния на бизнес, что приводит к установке правильного Уровни безопасности продукта для данного продукта во время **_Разработки продукта_**.
 
-Context is all important because over-engineering for security can have even greater cost implications than over-engineering for scale or performance, but under-engineering can have devastating consequences too.
+Контекст очень важен, потому что чрезмерная проработка вопросов безопасности может привести к еще большим финансовым последствиям, чем чрезмерная проработка масштабов или производительности, но недостаточная проработка также может иметь разрушительные последствия.
 
-### 2. Components
+### 2. Компоненты
 
-From libraries in use by the application (selected during any **_Product Design_** stage) through to external services it might make use of (changing of which happen during **_Product Inception_**), what makes up this application and how are those parts kept secure? In order to do this we leverage a library of secure design patterns and ready to use components defined in your Golden Path / Paved Road documentation and by analyzing those choices through [Threat Modeling](Threat_Modeling_Cheat_Sheet.md).
+Начиная с библиотек, используемых приложением (выбранных на любом этапе **_Дизайна продукта_**), и заканчивая внешними службами, которые оно может использовать (изменения в которых происходят во время **_Разработки продукта_**), из чего состоит это приложение и как обеспечивается безопасность этих частей? Для этого мы используем библиотеку шаблонов безопасного проектирования и готовых к использованию компонентов, определенных в вашей документации Golden Path / Paved Road, и анализируем эти варианты с помощью [Моделирования угроз](Threat_Modeling_Cheat_Sheet.md).
 
-A part of this component review must also include the more commercial aspects of selecting the right components (licensing and maintenance) as well as the limits on usage that might be required.
+Часть этого обзора компонентов также должна включать в себя более коммерческие аспекты выбора правильных компонентов (лицензирование и техническое обслуживание), а также ограничения на использование, которые могут потребоваться.
 
-### 3. Connections
+### 3. Связи
 
-How do you interact with this application and how does it connect to those components and services mentioned before? Where is the data stored and how is it accessed? Connections can also describe any intentional lack of connections. Think about the segregation of tiers that might be required depending on the Product Security Levels required and the potential segregation of data or whole environments if required for different tenants.
+Как вы взаимодействуете с этим приложением и как оно подключается к упомянутым ранее компонентам и службам? Где хранятся данные и как осуществляется доступ к ним? Подключениями также можно описать любое намеренное отсутствие подключений. Подумайте о разделении уровней, которое может потребоваться в зависимости от требуемых уровней безопасности продукта, и о возможном разделении данных или целых сред, если это потребуется для разных клиентов.
 
-Adding (or removing) connections is probably a sign that **_Product Inception_** is happening.
+Добавление (или удаление) подключений, вероятно, является признаком того, что происходит **_Разработка продукта_**.
 
-### 4. Code
+### 4. Код
 
-Code is the ultimate expression of the intention for a product and as such it must be functional first and foremost. But there is a quality to how that functionality is provided that must meet or exceed the expectations of it.
+Код - это конечное выражение замысла продукта, и как таковой он должен быть функциональным в первую очередь. Но качество предоставления этой функциональности должно соответствовать ожиданиям или превосходить их.
 
-Some basics of secure coding include:
+Некоторые основы безопасного кодирования включают в себя:
 
-   1. Input validation: Verify that all input data is valid and of the expected type, format, and length before processing it. This can help prevent attacks such as SQL injection and buffer overflows.
-   2. Error handling: Handle errors and exceptions in a secure manner, such as by logging them in a secure way and not disclosing sensitive information to an attacker.
-   3. Authentication and Authorization: Implement strong authentication and authorization mechanisms to ensure that only authorized users can access sensitive data and resources.
-   4. Cryptography: Use cryptographic functions and protocols to protect data in transit and at rest, such as HTTPS and encryption - the expected levels for a given Product Security Level can often be found by reviewing your Golden Path / Paved Road documentation.
-   5. Least privilege: Use the principle of the least privilege when writing code, such that the code and the system it runs on are given the minimum access rights necessary to perform their functions.
-   6. Secure memory management: Use high-level languages recommended in your Golden Path / Paved Road documentation or properly manage memory to prevent memory-related vulnerabilities such as buffer overflows and use-after-free.
-   7. Avoiding hardcoded secrets: Hardcoded secrets such as passwords and encryption keys should be avoided in the code and should be stored in a secure storage.
-   8. Security testing: Test the software for security vulnerabilities during development and just prior to deployment.
-   9. Auditing and reviewing the code: Regularly audit and review the code for security vulnerabilities, such as by using automated tools or having a third party review the code.
-   10. Keeping up-to-date: Keep the code up-to-date with the latest security best practices and vulnerability fixes to ensure that the software is as secure as possible.
+   1. Проверка правильности ввода: перед обработкой убедитесь, что все входные данные корректны и соответствуют ожидаемому типу, формату и длине. Это может помочь предотвратить такие атаки, как SQL-инъекция и переполнение буфера.
+   2. Обработка ошибок: Обрабатывайте ошибки и исключения безопасным способом, например, регистрируя их безопасным способом и не раскрывая конфиденциальную информацию злоумышленнику.
+   3. Аутентификация и авторизация: Внедрите надежные механизмы аутентификации и авторизации, чтобы гарантировать, что только авторизованные пользователи смогут получить доступ к конфиденциальным данным и ресурсам.
+   4. Криптография: Используйте криптографические функции и протоколы для защиты передаваемых и сохраняемых данных, такие как HTTPS и шифрование. Ожидаемые уровни безопасности для данного продукта часто можно найти, просмотрев документацию Golden Path / Paved Road.
+   5. Наименьшие привилегии: при написании кода используйте принцип наименьших привилегий, чтобы коду и системе, в которой он выполняется, были предоставлены минимальные права доступа, необходимые для выполнения их функций.
+   6. Безопасное управление памятью: Используйте языки высокого уровня, рекомендованные в документации по Golden Path / Paved Road, или правильно управляйте памятью, чтобы предотвратить уязвимости, связанные с памятью, такие как переполнение буфера и неиспользование после освобождения.
+   7. Избегайте использования жестко закодированный секретов: в коде следует избегать использования жестко закодированный секретов, таких как пароли и ключи шифрования, и хранить их в защищенном хранилище.
+   8. Тестирование безопасности: Тестируйте программное обеспечение на наличие уязвимостей в системе безопасности во время разработки и непосредственно перед развертыванием.
+   9. Аудит и проверка кода: Регулярно проводите аудит и проверяйте код на наличие уязвимостей в системе безопасности, например, с помощью автоматизированных средств или с привлечением третьей стороны для проверки кода.
+   10. Постоянное обновление: Обновляйте код с учетом последних рекомендаций по обеспечению безопасности и исправлений уязвимостей, чтобы обеспечить максимальную безопасность программного обеспечения.
 
-Ensure that you integrate plausibility checks at each tier of your application (e.g., from frontend to backend) and ensure that you write unit and integration tests to validate that all threats discovered during [Threat Modeling](Threat_Modeling_Cheat_Sheet.md) have been mitigated to a level of risk acceptable to the organization. Use that to compile use-cases and [abuse-cases](Abuse_Case_Cheat_Sheet.md) for each tier of your application.
+Убедитесь, что вы интегрировали проверки достоверности на каждом уровне вашего приложения (например, от интерфейса до серверной части), и убедитесь, что вы написали модульные и интеграционные тесты для проверки всех угроз, обнаруженных в ходе [Моделирования угроз].(Threat_Modeling_Cheat_Sheet.md ) были снижены до уровня риска, приемлемого для организации. Используйте это для составления сценариев использования и [случаев злоупотребления](Abuse_Case_Cheat_Sheet.md) для каждого уровня вашего приложения.
 
-### 5. Configuration
+### 5. Конфигурация
 
-Building an application securely can all too easily be undone if it's not securely configured. At a minimum we should ensure the following:
+Безопасное создание приложения может быть легко отменено, если оно не настроено должным образом. Как минимум, мы должны обеспечить следующее:
 
-1. Bearing in mind the principle of Least Privilege: Limit the access and permissions of system components and users to the minimum required to perform their tasks.
-2. Remembering Defense-in-Depth: Implement multiple layers of security controls to protect against a wide range of threats.
-3. Ensuring Secure by Default: Configure systems and software to be secure by default, with minimal manual setup or configuration required.
-4. Secure Data: Protect sensitive data, such as personal information and financial data, by encrypting it in transit and at rest. Protecting that data also means ensuring it's correctly backed up and that the data retention is set correctly for the desired Product Security Level.
-5. Plan to have the configuration Fail Securely: Design systems to fail in a secure state, rather than exposing vulnerabilities when they malfunction.
-6. Always use Secure Communications: Use secure protocols for communication, such as HTTPS, to protect against eavesdropping and tampering.
-7. Perform regular updates - or leverage [maintained images](https://www.cisecurity.org/cis-hardened-images): Keeping software, docker images and base operating systems up-to-date with the [latest security patches](https://csrc.nist.gov/publications/detail/sp/800-40/rev-4/final) is an essential part of maintaining a secure system.
-8. Have a practiced Security Incident response plan: Having a plan in place for how to respond to a security incident is essential for minimizing the damage caused by any successful attack and a crucial part of the Product Support Model.
+1. Принимая во внимание принцип наименьших привилегий: ограничьте доступ и разрешения системных компонентов и пользователей до минимума, необходимого для выполнения их задач.
+2. Не забывайте об углубленной защите: реализуйте несколько уровней контроля безопасности для защиты от широкого спектра угроз.
+3. Обеспечение безопасности по умолчанию: Настройте системы и программное обеспечение таким образом, чтобы они были защищены по умолчанию, с минимальными затратами на ручную настройку.
+4. Защищенные данные: Защищайте конфиденциальные данные, такие как личная информация и финансовые данные, шифруя их при передаче и хранении. Защита этих данных также означает обеспечение их надлежащего резервного копирования и настройки режима хранения данных в соответствии с требуемым уровнем безопасности продукта.
+5. Планируйте безопасный сбой конфигурации: проектируйте системы так, чтобы они выходили из строя в защищенном состоянии, а не выявляли уязвимости при сбоях в работе.
+6. Всегда используйте безопасные средства связи: Используйте безопасные протоколы для связи, такие как HTTPS, для защиты от подслушивания и несанкционированного доступа.
+7. Выполняйте регулярные обновления или используйте [поддерживаемые образы] (https://www.cisecurity.org/cis-hardened-images): Обновление программного обеспечения, образов docker и базовых операционных систем с помощью [последних исправлений безопасности] (https://csrc.nist.gov/publications/detail/sp/800-40/rev-4/final) является важной частью обеспечения безопасности системы.
+8. Наличие отработанного плана реагирования на инциденты безопасности: Наличие плана реагирования на инциденты безопасности имеет важное значение для минимизации ущерба, причиняемого любой успешной атакой, и является важной частью модели поддержки продукта.
 
-Details of how to precisely ensure secure configuration can be found in [Infrastructure as Code Security Cheat Sheet](Infrastructure_as_Code_Security_Cheat_Sheet.md)
+Подробную информацию о том, как точно обеспечить безопасную конфигурацию, можно найти в [Шпаргалке по безопасности инфраструктуры как кода](Infrastructure_as_Code_Security_Cheat_Sheet.md)
