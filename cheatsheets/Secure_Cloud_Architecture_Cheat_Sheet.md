@@ -1,337 +1,337 @@
-# Cloud Architecture Security Cheat Sheet
+# Шпаргалка по безопасности облачной архитектуры
 
-## Introduction
+## Вступление
 
-This cheat sheet will discuss common and necessary security patterns to follow when creating and reviewing cloud architectures. Each section will cover a specific security guideline or cloud design decision to consider. This sheet is written for a medium to large scale enterprise system, so additional overhead elements will be discussed, which may be unecessary for smaller organizations.
+В этом руководстве-шпаргалке будут рассмотрены общие и необходимые шаблоны безопасности, которым следует следовать при создании и анализе облачных архитектур. В каждом разделе будут рассмотрены конкретные рекомендации по безопасности или решения по проектированию облака, которые следует учитывать. Этот лист написан для средне- и крупномасштабной корпоративной системы, поэтому будут рассмотрены дополнительные накладные расходы, которые могут оказаться ненужными для небольших организаций.
 
-## Risk Analysis, Threat Modeling, and Attack Surface Assessments
+## Анализ рисков, моделирование угроз и оценка поверхности атаки
 
-With any application architecture, understanding the risks and threats is extremely important for proper security. No one can spend their entire budget or bandwidth focused on security, so properly allocating security resources is necessary.
-Therefore, enterprises must perform risk assessments, threat modeling activites, and attack surface assessments to identify the following:
+В любой архитектуре приложений понимание рисков и угроз чрезвычайно важно для обеспечения надлежащей безопасности. Никто не может потратить весь свой бюджет или пропускную способность на обеспечение безопасности, поэтому необходимо правильно распределять ресурсы безопасности.
+Поэтому предприятия должны проводить оценку рисков, моделирование угроз и оценку поверхности атаки, чтобы определить следующее:
 
-- What threats an application might face
-- The likelihood of those threats actualizing as attacks
-- The attack surface with which those attacks could be targeted
-- The business impact of losing data or functionality due to said attack
+- С какими угрозами может столкнуться приложение
+- Вероятность того, что эти угрозы проявятся в виде атак
+- Поверхность атаки, с помощью которой эти атаки могут быть нацелены
+- Влияние потери данных или функциональности в результате указанной атаки на бизнес
 
-This is all necessary to properly scope the security of an architecture. However, these are subjects that can/should be discussed in greater detail. Use the resources link below to investigate further as part of a healthy secure architecture conversation.
+Все это необходимо для надлежащего определения уровня безопасности архитектуры. Однако эти темы можно/нужно обсудить более подробно. Воспользуйтесь приведенной ниже ссылкой на ресурсы для дальнейшего изучения в рамках обсуждения вопросов, связанных с безопасной архитектурой.
 
-- [Threat Modeling Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html)
-- [Attack Surface Analysis Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Attack_Surface_Analysis_Cheat_Sheet.html)
-- [CISA Cyber Risk Assessment](https://www.cisa.gov/sites/default/files/2023-02/22_1201_safecom_guide_to_cybersecurity_risk_assessment_508-r1.pdf)
+- [Шпаргалка по моделированию угроз](https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html)
+- [Шпаргалка для анализа поверхности атаки](https://cheatsheetseries.owasp.org/cheatsheets/Attack_Surface_Analysis_Cheat_Sheet.html)
+- [Оценка киберрисков CISA](https://www.cisa.gov/sites/default/files/2023-02/22_1201_safecom_guide_to_cybersecurity_risk_assessment_508-r1.pdf)
 
-## Public and Private Components
+## Государственные и частные компоненты
 
-### Secure Object Storage
+### Безопасное хранение объектов
 
-Object storage usually has the following options for accessing data:
+Объектное хранилище обычно имеет следующие возможности доступа к данным:
 
-- Accessing resources using built-in Identity and Access Management policies
-- Using cryptographically signed URLs and HTTP requests
-- Directly accessing with public storage
+- Доступ к ресурсам с использованием встроенных политик идентификации и управления доступом
+- Использование криптографически подписанных URL-адресов и HTTP-запросов
+- Прямой доступ к общедоступному хранилищу
 
-#### IAM Access
+#### Доступ через IAM 
 
-This method involves indirect access on tooling such as a managed or self-managed service running on ephemeral or persistent infrastructure. This infrastructure contains a persistent control plane IAM credential, which interacts with the object storage on the user's behalf. The method is best used when the application has other user interfaces or data systems available, when it is important to hide as much of the storage system as possible, or when the information shouldn't/won't be seen by an end user (metadata). It can be used in combination with web authentication and logging to better track and control access to resources. The key security concern for this approach is relying on developed code or policies which could contain weaknesses.
+Этот метод предполагает непрямой доступ к инструментам, таким как управляемая или самоуправляемая служба, работающая на временной или постоянной инфраструктуре. Эта инфраструктура содержит постоянные учетные данные IAM уровня управления, которые взаимодействуют с хранилищем объектов от имени пользователя. Этот метод лучше всего использовать, когда в приложении доступны другие пользовательские интерфейсы или системы обработки данных, когда важно скрыть как можно большую часть системы хранения или когда информация не должна/не будет видна конечному пользователю (метаданные). Его можно использовать в сочетании с веб-аутентификацией и ведением журнала, чтобы лучше отслеживать и контролировать доступ к ресурсам. Ключевой проблемой безопасности при таком подходе является использование разработанного кода или политик, которые могут содержать слабые места.
 
-|                 Pros                 |                       Cons                         |
-|:------------------------------------:|:--------------------------------------------------:|
-|       No direct access to data       |          Potential use of broad IAM policy         |
-| No user visibility to object storage | Credential loss gives access to control plane APIs |
-|   Identifiable and loggable access   |           Credentials could be hardcoded           |
+|                          Плюсы                         |                                   Минусы                                   |
+|:------------------------------------------------------:|:--------------------------------------------------------------------------:|
+|              Нет прямого доступа к данным              |               Потенциальное использование широкой политики IAM             |
+| Отсутствие доступа пользователя к объектному хранилищу | Потеря учетных данных открывает доступ к API-интерфейсам уровня управления |
+|        Идентифицируемый и регистрируемый доступ        |                Учетные данные могут быть жестко закодированы               |
 
-This approach is acceptable for sensitive user data, but must follow rigorous coding and cloud best practices, in order to properly secure data.
+Такой подход приемлем для конфиденциальных пользовательских данных, но для обеспечения надлежащей защиты данных необходимо строго соблюдать правила кодирования и лучшие облачные практики.
 
-#### Signed URLs
+#### Подписанные URL-адреса
 
-URL Signing for object storage involves using some method or either statically or dynamically generating URLs, which cryptographically guarantee that an entity can access a resource in storage. This is best used when direct access to specific user files is necessary or preferred, as there is no file transfer overhead. It is advisable to only use this method for user data which is not very sensitive. This method can be secure, but has notable cons. Code injection may still be possible if the method of signed URL generation is custom, dynamic and injectable, and anyone can access the resource anonymously, if given the URL. Developers must also consider if and when the signed URL should expire, adding to the complexity of the approach.
+Подписание URL-адресов для хранилища объектов предполагает использование некоторого метода или статической или динамической генерации URL-адресов, которые криптографически гарантируют, что объект может получить доступ к ресурсу в хранилище. Это лучше всего использовать, когда необходим или предпочтителен прямой доступ к определенным пользовательским файлам, поскольку при этом не возникает затрат на передачу файлов. Рекомендуется использовать этот метод только для тех пользовательских данных, которые не являются особо конфиденциальными. Этот метод может быть безопасным, но имеет существенные недостатки. Внедрение кода все еще возможно, если метод генерации подписанного URL-адреса является пользовательским, динамическим и поддающимся внедрению, и любой желающий может получить доступ к ресурсу анонимно, если ему указан URL-адрес. Разработчики также должны учитывать, истекает ли срок действия подписанного URL-адреса и когда, что усложняет подход.
 
-|                    Pros                   |                    Cons                   |
-|:-----------------------------------------:|:-----------------------------------------:|
-|        Access to only one resource        |              Anonymous Access             |
-| Minimal user visibility to object storage |         Anyone can access with URL        |
-|           Efficient file transfer         | Possibility of injection with custom code |
+|                          Плюсы                         |                         Минусы                         |
+|:------------------------------------------------------:|:------------------------------------------------------:|
+|              Доступ только к одному ресурсу            |                     Анонимный доступ                   |
+| Минимальный доступ пользователя к объектному хранилищу |   Любой желающий может получить доступ по URL-адресу   |
+|                Эффективная передача файлов             | Возможность внедрения с помощью пользовательского кода |
 
-#### Public Object Storage
+#### Хранилище общедоступных объектов
 
-**This is not an advisable method for resource storage and distribution**, and should only be used for public, non-sensitive, generic resources. This storage approach will provide threat actors additional reconnaissance into a cloud environment, and any data which is stored in this configuration for any period of time must be considered publicly accessed (leaked to the public).
+**Это нецелесообразный метод хранения и распространения ресурсов**, и его следует использовать только для общедоступных, конфиденциальных, универсальных ресурсов. Такой подход к хранению данных позволит злоумышленникам провести дополнительную разведку в облачной среде, и любые данные, которые хранятся в этой конфигурации в течение любого периода времени, должны рассматриваться как общедоступные (утечка информации).
 
-|                 Pros                |                 Cons                 |
-|:-----------------------------------:|:------------------------------------:|
-| Efficient access to many resources  |     Anyone can access/No privacy     |
-|       Simple public file share      |  Unauthenticated access to objects   |
-|                                     |  Visibility into full file system    |
-|                                     |     Accidently leak stored info      |
+|                 Плюсы                 |                          Минусы                          |
+|:-------------------------------------:|:--------------------------------------------------------:|
+| Эффективный доступ ко многим ресурсам | Любой может получить доступ / Никакой конфиденциальности |
+| Простой общедоступный файловый ресурс |            Неавторизованный доступ к объектам            |
+|                                       |              Доступ ко всей файловой системе             |
+|                                       |         Случайная утечка сохраненной информации          |
 
-### VPCs and Subnets
+### VPC и подсети
 
-Virtual Private Clouds (VPC) and public/private network subnets allow an application and its network to be segmented into distinct chunks, adding layers of security within a cloud system. Unlike other private vs public trade-offs, an application will likely incorporate most or all of these components in a mature architecture. Each is explained below.
+Виртуальные частные облака (VPC) и подсети общедоступной/частной сети позволяют сегментировать приложение и его сеть на отдельные блоки, повышая уровень безопасности облачной системы. В отличие от других компромиссов между частным и общедоступным, приложение, скорее всего, будет включать большинство или все эти компоненты в зрелой архитектуре. Каждый из них описан ниже.
 
 #### VPCs
 
-VPC's are used to create network boundaries within an application, where-in components can talk to each other, much like a physical network in a data center. The VPC will be made up of some number of subnets, both public and private. VPCs can be used to:
+VPC используются для создания сетевых границ внутри приложения, в которых компоненты могут взаимодействовать друг с другом, подобно физической сети в центре обработки данных. VPC будет состоять из некоторого количества подсетей, как общедоступных, так и частных. VPC могут использоваться для:
 
-- Separate entire applications within the same cloud account.
-- Separate large components of application into distinct VPCs with isolated networks.
-- Create separations between duplicate applications used for different customers or data sets.
+- Разделяйте целые приложения в рамках одной облачной учетной записи.
+- Разделяйте крупные компоненты приложения на отдельные VPC с изолированными сетями.
+- Создавайте разделители между дублирующимися приложениями, используемыми для разных клиентов или наборов данных.
 
-#### Public Subnets
+#### Общедоступные подсети
 
-Public subnets house components which will have an internet facing presence. The subnet will contain network routing elements to allow components within the subnet to connect directly to the internet. Some use cases include:
+В общедоступных подсетях размещаются компоненты, которые будут подключены к Интернету. Подсеть будет содержать элементы сетевой маршрутизации, позволяющие компонентам внутри подсети напрямую подключаться к Интернету. Некоторые варианты использования включают:
 
-- Public facing resources, like front-end web applications.
-- Initial touch points for applications, like load balancers and routers.
-- Developer access points, like [bastions](https://aws-quickstart.github.io/quickstart-linux-bastion/) (note, these can be very insecure if engineered/deployed incorrectly).
+- Общедоступные ресурсы, такие как интерфейсные веб-приложения.
+- Начальные точки соприкосновения для приложений, таких как балансировщики нагрузки и маршрутизаторы.
+- Точки доступа разработчика, такие как [bastions](https://aws-quickstart.github.io/quickstart-linux-bastion/) (обратите внимание, что они могут быть очень небезопасными, если спроектированы/развернуты неправильно).
 
-#### Private Subnets
+#### Частные подсети
 
-Private subnets house components which should not have direct internet access. The subnet will likely contain network routing to connect it to public subnets, to receive internet traffic in a structured and protected way. Private subnets are great for:
+Частные подсети содержат компоненты, которые не должны иметь прямого доступа к Интернету. Подсеть, скорее всего, будет содержать сетевую маршрутизацию для подключения к общедоступным подсетям, чтобы получать интернет-трафик структурированным и защищенным способом. Частные подсети отлично подходят для:
 
-- Databases and data stores.
-- Backend servers and associated file systems.
-- Anything deemed too sensitive for direct internet access.
+- Баз данных и хранилищ данных.
+- Внутренние серверы и связанные с ними файловые системы.
+- Все, что считается слишком конфиденциальным для прямого доступа в Интернет.
 
-#### Simple Architecture Example
+#### Простой пример архитектуры
 
-Consider the simple architecture diagram below. A VPC will house all of the components for the application, but elements will be in a specific subnet depending on its role within the system. The normal flow for interacting with this application might look like:
+Рассмотрим простую архитектурную схему, приведенную ниже. На виртуальном компьютере будут размещены все компоненты приложения, но элементы будут находиться в определенной подсети в зависимости от его роли в системе. Обычный процесс взаимодействия с этим приложением может выглядеть следующим образом:
 
-1. Accessing the application through some sort of internet gateway, API gateway or other internet facing component.
-2. This gateway connects to a load balancer or a web server in a public subnet. Both components provide public facing functions and are secured accordingly.
-3. These components then interact with their appropriate backend counterparts, a database or backend server, contained in a private VPC. This connections are more limited, preventing extraneous access to the possibly "soft" backend systems.
+1. Доступ к приложению осуществляется через какой-либо интернет-шлюз, API-шлюз или другой компонент, подключенный к Интернету.
+2. Этот шлюз подключается к балансировщику нагрузки или веб-серверу в общедоступной подсети. Оба компонента предоставляют общедоступные функции и защищены соответствующим образом.
+3. Затем эти компоненты взаимодействуют со своими соответствующими серверными аналогами, базой данных или серверным сервером, расположенными в частном VPC. Эти соединения более ограничены, что предотвращает посторонний доступ к, возможно, "мягким" серверным системам.
 
-![VPC Diagram](../assets/Secure_Cloud_Architecture_VPC.png)
+![Диаграмма VPC](../assets/Secure_Cloud_Architecture_VPC.png)
 
-*Note: This diagram intentionally skips routing and IAM elements for subnet interfacing, for simplicity and to be service provider agnostic.*
+*Примечание: На этой диаграмме намеренно пропущены элементы маршрутизации и элементы элементов для взаимодействия с подсетями, для простоты и независимости от поставщика услуг.*
 
-This architecture prevents less hardened backend components or higher risk services like databases from being exposed to the internet directly. It also provides common, public functionality access to the internet to avoid additional routing overhead. This architecture can be secured more easily by focusing on security at the entry points and separating functionality, putting non-public or sensitive information inside a private subnet where it will be harder to access by external parties.
+Такая архитектура предотвращает прямой доступ к Интернету менее защищенных серверных компонентов или служб с более высоким уровнем риска, таких как базы данных. Она также обеспечивает общий, общедоступный функциональный доступ к Интернету, что позволяет избежать дополнительных затрат на маршрутизацию. Эту архитектуру можно упростить, сосредоточив внимание на безопасности в точках входа и разделив функциональность, поместив закрытую или конфиденциальную информацию в частную подсеть, где внешним сторонам будет труднее получить к ней доступ.
 
-## Trust Boundaries
+## Границы доверия
 
-Trust boundaries are connections between components within a system where a trust decision has to be made by the components. Another way to phrase it, this boundary is a point where two components with potentially different trust levels meet. These boundaries can range in scale, from the degrees of trust given to users interacting with an application, to trusting or verifying specific claims between code functions or components within a cloud architecture. Generally speaking however, trusting each component to perform its function correctly and securely, suffices. Therefore, trust boundaries likely will occur in the connections between cloud components, and between the application and third party elements, like end users and other vendors.
+Границы доверия - это связи между компонентами в системе, при которых решение о доверии должно приниматься самими компонентами. Другими словами, эта граница - это точка, в которой встречаются два компонента с потенциально разными уровнями доверия. Эти границы могут варьироваться по масштабу, от степени доверия, предоставляемой пользователям, взаимодействующим с приложением, до доверия или проверки конкретных утверждений между функциями кода или компонентами в облачной архитектуре. Однако, в целом, достаточно доверять правильному и безопасному выполнению функций каждым компонентом. Таким образом, границы доверия, скорее всего, возникнут в соединениях между облачными компонентами, а также между приложением и сторонними элементами, такими как конечные пользователи и другие поставщики.
 
-As an example, consider the architecture below. An API gateway connects to a compute instance (ephemeral or persistent), which then accesses a persistent storage resource. Separately, there exists a server which can verify the authentication, authorization and/or identity of the caller. This is a generic representation of an OAuth, IAM or directory system, which controls access to these resources. Additionally, there exists an Ephemeral IAM server which controls access for the stored resources (using an approach like the [IAM Access](#iam-access) section above). As shown by the dotted lines, trust boundaries exist between each compute component, the API gateway and the auth/identity server, even though many or all of the elements could be in the same application.
+В качестве примера рассмотрим архитектуру, представленную ниже. Шлюз API подключается к вычислительному экземпляру (временному или постоянному), который затем получает доступ к ресурсу постоянного хранилища. Отдельно существует сервер, который может проверять аутентификацию, авторизацию и/или идентификационные данные вызывающего устройства. Это общее представление OAuth, I AM или системы каталогов, которая управляет доступом к этим ресурсам. Кроме того, существует временный сервер IAM, который управляет доступом к сохраненным ресурсам (используя подход, подобный [Доступ через IAM] (#iam-access) в разделе выше). Как показано пунктирными линиями, границы доверия существуют между каждым вычислительным компонентом, шлюзом API и сервером аутентификации, даже если многие или все элементы могут находиться в одном приложении.
 
-![Trust Boundaries](../assets/Secure_Cloud_Architecture_Trust_Boundaries_1.png)
+![Границы доверия](../assets/Secure_Cloud_Architecture_Trust_Boundaries_1.png)
 
-### Exploring Different Levels of Trust
+### Изучение различных уровней доверия
 
-Architects have to select a trust configuration between components, using quantative factors like risk score/tolerance, velocity of project, as well as subjective security goals. Each example below details trust boundary relationships to better explain the implications of trusting a certain resource. The threat level of a specific resource as a color from green (safe) to red (dangerous) will outline which resources shouldn't be trusted.
+Архитекторы должны выбрать конфигурацию доверия между компонентами, используя количественные факторы, такие как оценка риска/толерантность, скорость проекта, а также субъективные цели в области безопасности. В каждом примере ниже подробно описываются границы доверия, чтобы лучше объяснить последствия доверия к определенному ресурсу. Уровень угрозы для конкретного ресурса в виде цвета от зеленого (безопасный) до красного (опасный) указывает, каким ресурсам не следует доверять.
 
-#### 1. No trust example
+#### 1. Пример отсутствия доверия
 
-As shown in the diagram below, this example outlines a model where no component trusts any other component, regardless of criticality or threat level. This type of trust configuration would likely be used for incredibly high risk applications, where either very personal data or important business data is contained, or where the application as a whole has an extremely high business criticality.
+Как показано на диаграмме ниже, в этом примере описана модель, в которой ни один компонент не доверяет никакому другому компоненту, независимо от критичности или уровня угрозы. Такой тип конфигурации доверия, скорее всего, будет использоваться для приложений с невероятно высоким уровнем риска, где содержатся либо очень личные данные, либо важные бизнес-данные, либо где приложение в целом имеет чрезвычайно высокую бизнес-критичность.
 
-Notice that both the API gateway and compute components call out to the auth/identity server. This implies that no data passing between these components, even when right next to each other "inside" the application, is considered trusted. The compute instance must then assume an ephemeral identity to access the storage, as the compute instance isn't trusted to a specific resource even if the user is trusted to the instance.
+Обратите внимание, что и шлюз API, и вычислительные компоненты обращаются к серверу аутентификации. Это означает, что никакие данные, передаваемые между этими компонентами, даже если они находятся рядом друг с другом "внутри" приложения, не считаются надежными. Затем вычислительный экземпляр должен получить временный идентификатор для доступа к хранилищу, поскольку вычислительному экземпляру не доверен определенный ресурс, даже если пользователь доверен экземпляру.
 
-Also note the lack of trust between the auth/identity server and ephemeral IAM server and each component. While not displayed in the diagram, this would have additional impacts, like more rigorous checks before authentication, and possibly more overhead dedicated to cryptographic operations.
+Также обратите внимание на отсутствие доверия между сервером аутентификации/удостоверения личности и временным сервером IAM и каждым компонентом. Хотя это и не показано на диаграмме, это может привести к дополнительным последствиям, таким как более тщательные проверки перед аутентификацией и, возможно, к увеличению затрат на криптографические операции.
 
-![No Trust Across Boundaries](../assets/Secure_Cloud_Architecture_Trust_Boundaries_2.png)
+![Отсутствие взаимного доверия](../assets/Secure_Cloud_Architecture_Trust_Boundaries_2.png)
 
-This could be a necessary approach for applications found in financial, military or critical infrastructure systems. However, security must be careful when advocating for this model, as it will have significant performance and maintenance drawbacks.
+Это может быть необходимым подходом для приложений, используемых в финансовых, военных или критически важных инфраструктурных системах. Однако при выборе этой модели следует проявлять осторожность в вопросах безопасности, поскольку она будет иметь существенные недостатки в производительности и обслуживании.
 
-|              Pros                |         Cons          |
-|:--------------------------------:|:---------------------:|
-| High assurance of data integrity | Slow and inefficient  |
-|         Defense in depth         |      Complicated      |
-|                                  | Likely more expensive |
+|               Плюсы                 |          Минусы           |
+|:-----------------------------------:|:-------------------------:|
+| Высокая гарантия целостности данных | Медленная и неэффективная |
+|           Глубокая защита           |          Сложная          |
+|                                     |   Скорее всего, дорогая   |
 
-#### 2. High trust example
+#### 2. Пример высокого доверия
 
-Next, consider the an opposite approach, where everything is trusted. In this instance, the "dangerous" user input is trusted and essentially handed directly to a high criticality business component. The auth/identity resource is not used at all. In this instance, there is higher likelihood of a successful attack against the system, because there are no controls in place to prevent it. Additionally, this setup could be considered wasteful, as both the auth/identity and ephemeral IAM servers are not necessarily performing their intended function. *(These could be shared corporate resources that aren't being used to their full potential).*
+Далее рассмотрим противоположный подход, при котором все является надежным. В этом случае "опасный" пользовательский ввод является надежным и, по сути, передается непосредственно бизнес-компоненту с высокой степенью критичности. Ресурс аутентификации вообще не используется. В этом случае вероятность успешной атаки на систему выше, поскольку для ее предотвращения нет средств управления. Кроме того, такая настройка может быть сочтена расточительной, поскольку как серверы аутентификации/удостоверения личности, так и временные серверы IAM не обязательно выполняют свои функции по назначению. * (Это могут быть общие корпоративные ресурсы, которые используются не в полной мере).*
 
-![Complete Trust Across Boundaries](../assets/Secure_Cloud_Architecture_Trust_Boundaries_3.png)
+![Границы полного доверия ](../assets/Secure_Cloud_Architecture_Trust_Boundaries_3.png)
 
-This is an unlikely architecture for all but the simplest and lowest risk applications. **Do not use this trust boundary configuration** unless there is no sensitive content to protect or efficiency is the only metric for success. Trusting user input is never recommended, even in low risk applications.
+Такая архитектура вряд ли подойдет для всех приложений, кроме самых простых и с наименьшим риском. **Не используйте эту конфигурацию границ доверия**, если только нет конфиденциального контента, который необходимо защитить, или эффективность не является единственным критерием успеха. Никогда не рекомендуется доверять вводимым пользователем данным, даже в приложениях с низким уровнем риска.
 
-| Pros      | Cons                    |
-|:---------:|:-----------------------:|
-| Efficient |        Insecure         |
-|  Simple   |   Potentially Wasteful  |
-|           | High risk of compromise |
+|    Плюсы    |            Минусы           |
+|:-----------:|:---------------------------:|
+| Эффективная |        Небезопасная         |
+|   Простая   | Потенциально расточительная |
+|             |  Высокий риск компрометации |
 
-#### 3. Some trust example
+#### 3. Пример малого доверия
 
-Most applications will use a trust boundary configuration like this. Using knowledge from a risk and attack surface analysis, security can reasonably assign trust to low risk components or processes, and verify only when necessary. This prevents wasting valuable security resources, but also limits the complexity and efficiency loss due to additional security overhead.
+Большинство приложений используют подобную конфигурацию границ доверия. Используя знания, полученные в результате анализа рисков и атак на поверхности, служба безопасности может обоснованно назначить доверие компонентам или процессам с низким уровнем риска и проверять их только при необходимости. Это предотвращает растрату ценных ресурсов безопасности, но также снижает сложность и эффективность из-за дополнительных затрат на обеспечение безопасности.
 
-Notice in this example, that the API gateway checks the auth/identity of a user, then immediately passes the request on to the compute instance. The instance doesn't need to re-verify, and performs it's operation. However, as the compute instance is working with untrusted user inputs (designated yellow for some trust), it is still necessary to assume an ephemeral identity to access the storage system.
+Обратите внимание, что в этом примере шлюз API проверяет аутентификацию пользователя, а затем немедленно передает запрос вычислительному экземпляру. Экземпляру не требуется повторная проверка, и он выполняет свою операцию. Однако, поскольку вычислительный экземпляр работает с ненадежными пользовательскими данными (обозначенными желтым цветом для некоторого доверия), для доступа к системе хранения данных по-прежнему необходимо использовать эфемерную идентификационную информацию.
 
-![Some Trust Across Boundaries](../assets/Secure_Cloud_Architecture_Trust_Boundaries_4.png)
+![Границы малого доверия](../assets/Secure_Cloud_Architecture_Trust_Boundaries_4.png)
 
-By nature, this approach limits the pros and cons of both previous examples. This model will likely be used for most applications, unless the benefits of the above examples are necessary to meet business requirements.
+По своей природе, этот подход ограничивает плюсы и минусы обоих предыдущих примеров. Эта модель, вероятно, будет использоваться для большинства приложений, за исключением случаев, когда преимущества приведенных выше примеров необходимы для удовлетворения бизнес-требований.
 
-|                   Pros                   |          Cons          |
-|:----------------------------------------:|:----------------------:|
-|           Secured based on risk          | Known gaps in security |
-| Cost/Efficiency derived from criticality |                        |
+|                              Плюсы                             |                  Минусы                  |
+|:--------------------------------------------------------------:|:----------------------------------------:|
+|                Обеспечение, основанное на риске                | Известные пробелы в системе безопасности |
+| Соотношение затрат и эффективности, обусловленное критичностью |                                          |
 
-*Note: This trust methodology diverges from Zero Trust. For a more in depth look at that topic, check out [CISA's Zero Trust Maturity Model](https://www.cisa.gov/sites/default/files/2023-04/zero_trust_maturity_model_v2_508.pdf)*.
+*Примечание: Эта методология отличается от нулевого уровня доверия. Для более подробного изучения этой темы ознакомьтесь с [Моделью зрелости CISA с нулевым уровнем доверия](https://www.cia.gov/sites/default/files/2023-04/zero_trust_maturity_model_v2_508.pdf)*.
 
-## Security Tooling
+## Инструменты обеспечения безопасности
 
-### Web Application Firewall
+### Брандмауэр веб-приложений
 
-Web Application Firewalls (WAF) are used to monitor or block common attack payloads (like [XSS](https://owasp.org/www-community/attacks/xss/) and [SQLi](https://owasp.org/www-community/attacks/SQL_Injection)), or allow only specific request types and patterns. Applications should use them as a first line of defense, attaching them to entry points like load balancers or API gateways, to handle potentially malicious content before it reaches application code. Cloud service providers curate base rule sets which will block or monitor common malicious payloads:
+Брандмауэры веб-приложений (WAF) используются для мониторинга или блокирования распространенных атак (таких как [XSS](https://owasp.org/www-community/attacks/xss/) и [SQLi](https://owasp.org/www-community/attacks/SQL_Injection)) или разрешают только определенные типы запросов и шаблоны. Приложения должны использовать их в качестве первой линии защиты, подключая к точкам входа, таким как средства балансировки нагрузки или шлюзы API, для обработки потенциально вредоносного контента до того, как он достигнет кода приложения. Поставщики облачных услуг разрабатывают базовые наборы правил, которые будут блокировать или отслеживать распространенные вредоносные программы.:
 
-- [AWS Managed Rules](https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-list.html)
-- [GCP WAF Rules](https://cloud.google.com/armor/docs/waf-rules)
-- [Azure Core Rule Sets](https://learn.microsoft.com/en-us/azure/web-application-firewall/ag/application-gateway-crs-rulegroups-rules?tabs=owasp32)
+- [Правила AWS](https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-list.html)
+- [Правила GCP WAF](https://cloud.google.com/armor/docs/waf-rules)
+- [Основные наборы правил Azure](https://learn.microsoft.com/en-us/azure/web-application-firewall/ag/application-gateway-crs-rulegroups-rules?tabs=owasp32)
 
-By design these rule sets are generic and will not cover every attack type an application will face. Consider creating custom rules which will fit the application's specific security needs, like:
+По своей сути эти наборы правил являются универсальными и не будут охватывать все типы атак, с которыми может столкнуться приложение. Рассмотрите возможность создания пользовательских правил, которые будут соответствовать конкретным потребностям приложения в области безопасности, например:
 
-- Filtering routes to acceptable endpoints (block web scraping)
-- Adding specific protections for chosen technologies and key application endpoints
-- Rate limiting sensitive APIs
+- Фильтрация маршрутов к приемлемым конечным точкам (блокировка веб-сканирования)
+- Добавление специальных средств защиты для выбранных технологий и ключевых конечных точек приложений
+- Ограничение скорости работы уязвимых API
 
-### Logging & Monitoring
+### Ведение журнала и мониторинг
 
-Logging and monitoring is required for a truly secure application. Developers should know exactly what is going on in their environment, making use of alerting mechanisms to warn engineers when systems are not working as expected. Additionally, in the event of a security incident, logging should be verbose enough to track a threat actor through an entire application, and provide enough knowledge for respondents to understand what actions were taken against what resources. Note that proper logging and monitoring can be expensive, and risk/cost trade-offs should be discussed when putting logging in place.
+Ведение журнала и мониторинг необходимы для обеспечения подлинной безопасности приложения. Разработчики должны точно знать, что происходит в их среде, и использовать механизмы оповещения, чтобы предупредить инженеров, когда системы работают не так, как ожидалось. Кроме того, в случае инцидента с безопасностью ведение журнала должно быть достаточно подробным, чтобы отслеживать источник угрозы во всем приложении, и предоставлять респондентам достаточно информации, чтобы понять, какие действия были предприняты против каких ресурсов. Обратите внимание, что надлежащее ведение журнала и мониторинг могут быть дорогостоящими, и при организации ведения журнала следует учитывать соотношение рисков и затрат.
 
-#### Logging
+#### Ведение журнала
 
-For proper logging, consider:
+Для правильного ведения журнала учитывайте:
 
-- Logging all [layer 7](https://en.wikipedia.org/wiki/OSI_model) HTTP calls with headers, caller metadata, and responses
-    - Payloads may not be logged depending on where logging occurs (before TLS termination) and the sensitivity of data
-- Logging internal actions with actor and permission information
-- Sending trace IDs through the entire request lifecycle to track errors or malicious actions
-- Masking or removing sensitive data
-    - SSNs, sensitive health information, and other PII should not be stored in logs
+- Ведение журнала всех [уровень 7](https://en.wikipedia.org/wiki/OSI_model) HTTP-вызовов с заголовками, метаданными вызывающего абонента и ответами
+    - Полезная нагрузка может не регистрироваться в зависимости от того, где происходит регистрация (до завершения TLS) и конфиденциальности данных
+- Ведение журнала внутренних действий с информацией об участнике и разрешениях
+- Отправка идентификаторов отслеживания на протяжении всего жизненного цикла запроса для отслеживания ошибок или вредоносных действий
+- Маскировка или удаление конфиденциальных данных
+    - SSN, конфиденциальная медицинская информация и другие личные данные не должны храниться в журналах
 
-*Legal and compliance representatives should weigh in on log retention times for the specific application.*
+*Представители юридических служб и службы соблюдения нормативных требований должны учитывать сроки хранения журналов для конкретного приложения.*
 
-#### Monitoring
+#### Мониторинг
 
-For proper monitoring consider adding:
+Для надлежащего мониторинга рассмотрите возможность добавления:
 
-- Anomaly alerts:
-    - HTTP 4xx and 5xx errors above a percent of normal
-    - Memory, storage or CPU usage above/below percent of normal
-    - Database writes/reads above/below percent of normal
-    - Serverless compute invocations above percent of normal
-- Alerting for failed health checks
-- Alerting for deployment errors or container on/off cycling
-- Alerts or cutoffs for cost limits
+- Предупреждения об аномалиях:
+    - Ошибки HTTP 4xx и 5xx превышают процент от нормы
+    - Загрузка памяти, накопителей или процессора выше/ниже процента от нормальной
+    - Запись/считывание из базы данных выше/ниже процента от нормы
+    - Количество обращений к вычислениям без сервера превышает процент от обычного
+- Оповещение о неудачных проверках работоспособности
+- Оповещение об ошибках развертывания или циклическом включении/выключении контейнера
+- Предупреждения или ограничения по лимитам затрат
 
-Anomalies by count and type can vary wildly from app to app. A proper understanding of what qualifies as an anomaly requires an environment specific baseline. Therefore, the percentages mentioned above should be chosen based off that baseline, in addition to considerations like risk and team response capacity.
+Количество и тип аномалий могут сильно различаться в разных приложениях. Для правильного понимания того, что считается аномалией, требуется исходный уровень, специфичный для конкретной среды. Поэтому указанные выше процентные показатели следует выбирать исходя из этого базового уровня, в дополнение к таким соображениям, как риск и способность команды реагировать.
 
-WAFs can also have monitoring or alerting attached to them for counting malicious payloads or (in some cases) anomalous activity detection.
+Количество и тип аномалий могут сильно различаться в разных приложениях. Для правильного понимания того, что считается аномалией, требуется исходный уровень, специфичный для конкретной среды. Поэтому указанные выше процентные показатели следует выбирать исходя из этого базового уровня, в дополнение к таким соображениям, как риск и способность команды реагировать.
 
-### DDoS Protection
+### Защита от DDoS-атак
 
-Cloud service providers offer a range of DDoS protection products, from simple to advanced, depending on application needs. Simple DDoS protection can often be implemented using WAFs with rate limits and route blocking rules. More advanced protection may require specific managed tools offered by the cloud service provider. Examples include:
+Поставщики облачных услуг предлагают ряд продуктов для защиты от DDoS-атак, от простых до продвинутых, в зависимости от потребностей приложений. Простая защита от DDoS-атак часто может быть реализована с использованием WAFS с ограничениями скорости и правилами блокировки маршрутов. Для более продвинутой защиты могут потребоваться специальные управляемые инструменты, предлагаемые поставщиком облачных услуг. В качестве примеров можно привести:
 
 - [AWS Shield](https://aws.amazon.com/shield/)
 - [GCP Cloud Armor Managed Protection](https://cloud.google.com/armor/docs/managed-protection-overview)
 - [Azure DDoS Protection](https://learn.microsoft.com/en-us/azure/ddos-protection/ddos-protection-overview)
 
-The decision to enable advanced DDoS protections for a specific application should be based off risk and business criticality of application, taking into account mitigating factors and cost (these services can be very inexpensive compared to large company budgets).
+Решение о включении расширенной защиты от DDoS-атак для конкретного приложения должно основываться на оценке рисков и бизнес-критичности приложения, принимая во внимание смягчающие факторы и стоимость (эти услуги могут быть очень недорогими по сравнению с крупными бюджетами компаний).
 
-## Shared Responsibility Model
+## Модель совместной ответственности
 
-The Shared Responsibility Model is a framework for cloud service providers (CSPs) and those selling cloud based services to properly identify and segment the responsibilities of the developer and the provider. This is broken down into different levels of control, corresponding to different elements/layers of the technology stack. Generally, components like physical computing devices and data center space are the responsibility of the CSP. Depending on the level of [management](#self-managed-tooling), the developer could be responsible for the entire stack from operating system on up, or only for some ancillary functionality, code or administration.
+Модель совместной ответственности - это основа для поставщиков облачных услуг (CSP) и тех, кто продает облачные сервисы, позволяющая правильно определить и распределить обязанности разработчика и поставщика. Она разбита на различные уровни контроля, соответствующие различным элементам/уровням стека технологий. Как правило, за такие компоненты, как физические вычислительные устройства и пространство в центре обработки данных, отвечает CSP. В зависимости от уровня [управления] (#self-managed-tooling) разработчик может отвечать за весь стек, начиная с операционной системы и выше, или только за некоторые вспомогательные функции, код или администрирование.
 
-This responsiblitity model is often categorized into three levels of service called:
+Эта модель ответственности часто подразделяется на три уровня обслуживания, которые называются:
 
-- Infrastructure as a Service ([IaaS](#iaas))
-- Platform as a Service ([PaaS](#paas))
-- Software as a Service ([SaaS](#saas))
+- Инфраструктура как услуга ([IaaS](#iaas))
+- Платформа как услуга ([PaaS](#paas))
+- Программное обеспечение как услуга ([SaaS](#saas))
 
-*Many other service classifications exist, but aren't listed for simplicity and brevity.*
+*Существует множество других классификаций услуг, но они не приведены в списке для простоты и краткости изложения.*
 
-As each name indicates, the level of responsibility the CSP assumes is the level of "service" they provide. Each level provides its own set of pros and cons, discussed below.
+Как следует из названия, уровень ответственности, который берет на себя CSP, определяется уровнем предоставляемого "услуги". Каждый уровень имеет свои плюсы и минусы, которые обсуждаются ниже.
 
 ### IaaS
 
-In the case of IaaS, the infrastructure is maintained by the CSP, while everything else is maintained by the developer. This includes:
+В случае IaaS инфраструктура поддерживается CSP, в то время как все остальное поддерживается разработчиком. Это включает в себя:
 
-- Authentication and authorization
-- Data storage, access and management
-- Certain networking tasks (ports, NACLs, etc)
-- Application software
+- Аутентификация и авторизация
+- Хранение данных, доступ к ним и управление ими
+- Некоторые сетевые задачи (порты, NACL и т.д.)
+- Прикладное программное обеспечение
 
-This model favors developer configurability and flexibility, while being more complex and generally higher cost than other service models. It also most closely resembles on premise models which are waning in favor with large companies. Because of this, it may be easier to migrate certain applications to cloud IaaS, than to re-architect with a more cloud native architecture.
+Эта модель обеспечивает конфигурируемость и гибкость для разработчиков, но при этом является более сложной и, как правило, более дорогостоящей, чем другие модели обслуживания. Она также больше всего напоминает локальные модели, популярность которых в крупных компаниях снижается. Из-за этого может оказаться проще перенести определенные приложения на облачный IaaS, чем перестраивать их на более облачную архитектуру.
 
-|             Pros             |            Cons           |
-|:----------------------------:|:-------------------------:|
-| Control over most components |        Highest cost       |
-|   High level of flexilibity  | More required maintenance |
-| Easy transition from on-prem |  High level of complexity |
+|                  Плюсы                  |                     Минусы                    |
+|:---------------------------------------:|:---------------------------------------------:|
+|  Контроль над большинством компонентов  |             Самая высокая стоимость           |
+|         Высокий уровень гибкости        | Больше необходимого технического обслуживания |
+| Легкий переход от локального размещения |           Высокий уровень сложности           |
 
-**Responsibility is held almost exclusively by the developer, and must be secured as such**. Everything, from network access control, operating system vulnerabilities, application vulnerabilities, data access, and authentication/authorization must be considered when developing an IaaS security strategy. Like described above, this offers a high level of control across almost everything in the technology stack, but can be very difficult to maintain without adequate resources going to tasks like version upgrades or end of life migrations. *([Self-managed security updates](#update-strategy-for-self-managed-services) are discussed in greater detail below.)*
+**Ответственность лежит почти исключительно на разработчике и должна быть обеспечена как таковая**. При разработке стратегии безопасности IaaS необходимо учитывать все, начиная от контроля доступа к сети, уязвимостей операционной системы, уязвимостей приложений, доступа к данным и аутентификации/авторизации. Как описано выше, это обеспечивает высокий уровень контроля практически во всем технологическом стеке, но может быть очень сложно поддерживать без достаточных ресурсов, выделяемых на такие задачи, как обновление версий или миграция по истечении срока службы. *([Автономные обновления для системы безопасности] (#update-strategy-for-self-managed-services) более подробно обсуждается ниже.)*
 
 ### PaaS
 
-Platform as a Service is in the middle between IaaS and SaaS. The developer controls:
+Платформа как услуга находится посередине между IaaS и SaaS. Разработчик контролирует:
 
-- Application authentication and authorization
-- Application software
-- External data storage
+- Аутентификацию и авторизацию приложений
+- Прикладное программное обеспечение
+- Внешнее хранилище данных
 
-It provides neatly packaged code hosting and containerized options, which allow smaller development teams or less experienced developers a way to get started with their applications while ignoring more complex or superfluous computing tasks. It is generally less expensive than IaaS, while still retaining some control over elements that a SaaS system does not provide. However, developers could have problems with the specific limitations of the offering used, or issues with compatability, as the code must work with the correct container, framework or language version.
+PaaS предоставляет аккуратно упакованный хостинг кода и контейнерные опции, которые позволяют небольшим командам разработчиков или менее опытным разработчикам приступить к работе со своими приложениями, игнорируя при этом более сложные или лишние вычислительные задачи. Как правило, это дешевле, чем IaaS, но при этом сохраняется некоторый контроль над элементами, которые система SaaS не предоставляет. Однако у разработчиков могут возникнуть проблемы с конкретными ограничениями используемого предложения или с совместимостью, поскольку код должен работать с правильным контейнером, платформой или языковой версией.
 
-Also, while scalability is very dependent on provider and setup, PaaS usually provides higher scalability due to containerization options and common, repeatable base OS systems. Compared to IaaS, where scalability must be built by the developer, and SaaS, where the performance is very platform specific.
+Кроме того, хотя масштабируемость в значительной степени зависит от поставщика и настроек, PaaS обычно обеспечивает более высокую масштабируемость благодаря возможностям контейнеризации и общим, повторяемым базовым системам операционной системы. По сравнению с IaaS, где масштабируемость должна быть обеспечена разработчиком, и SaaS, где производительность сильно зависит от платформы.
 
-|              Pros              |              Cons              |
-|:------------------------------:|:------------------------------:|
-| Easier to onboard and maintain | Potential compatability issues |
-|       Better scalability       |  Offering specific limitations |
+|                Плюсы                |                  Минусы                 |
+|:-----------------------------------:|:---------------------------------------:|
+| Проще в эксплуатации и обслуживании | Потенциальные проблемы с совместимостью |
+|        Лучшая масштабируемость      |     Предлагающие особые ограничения     |
 
-Manual security in PaaS solutions is similary less extensive (compared to IaaS). Application specific authentication and authorization must still be handled by the developer, along with any access to external data systems. However, the CSP is responsible for securing containerized instances, operating systems, ephemeral files systems, and certain networking controls.
+Защита, выполняемая вручную, в решениях PaaS, по сравнению с IaaS, менее сложна. Разработчик по-прежнему должен выполнять проверку подлинности и авторизацию для конкретного приложения, а также осуществлять доступ к внешним системам передачи данных. Однако CSP отвечает за защиту контейнерных экземпляров, операционных систем, временных файловых систем и некоторых сетевых элементов управления.
 
 ### SaaS
 
-The Software as a Service model is identified by a nearly complete product, where the end user only has to configure or customize small details in order to meet their needs. The user generally controls:
+Модель "Программное обеспечение как услуга" представляет собой практически законченный продукт, в котором конечному пользователю остается только настроить мелкие детали в соответствии со своими потребностями. Пользователь, как правило, контролирует:
 
-- Configuration, administration and/or code within the product's boundaries
-- Some user access, such as designating administrators
-- High level connections to other products, through permissions or integrations
+- Конфигурирование, администрирование и/или код в рамках продукта
+- Доступ некоторых пользователей, например, назначение администраторов
+- Высокоуровневые подключения к другим продуктам с помощью разрешений или интеграций
 
-The entire technology stack is controlled by the provider (cloud service or other software company), and the developer will only make relatively small tweaks to meet custom needs. This limits cost and maintenance, and problems can typically be solved with a provider's customer support, as opposed to needing technical knowledge to troubleshoot the whole tech stack.
+Весь технологический стек контролируется поставщиком (облачным сервисом или другой компанией-разработчиком программного обеспечения), и разработчик может вносить лишь относительно небольшие изменения в соответствии с индивидуальными потребностями. Это ограничивает затраты и техническое обслуживание, и проблемы, как правило, могут быть решены с помощью службы поддержки клиентов поставщика, в отличие от необходимости в технических знаниях для устранения неполадок во всем технологическом стеке.
 
-|               Pros               |                Cons                |
-|:--------------------------------:|:----------------------------------:|
-|          Low maintenance         | Restricted by provider constraints |
-|            Inexpensive           |           Minimal control          |
-| Customer support/troubleshooting |      Minimal insight/oversight     |
+|                   Плюсы                    |                Минусы               |
+|:------------------------------------------:|:-----------------------------------:|
+| Низкие затраты на техническое обслуживание | Ограничена ограничениями поставщика |
+|                  Недорогая                 |         Минимальный контроль        |
+|   Поддержка клиентов/устранение неполадок  |   Минимальное понимание/недосмотр   |
 
-Security with SaaS is simultaneously the easiest and most difficult, due to the lack of control expressed above. A developer will only have to manage a small set of security functions, like some access controls, the data trust/sharing relationship with integrations, and any security implications of customizations. All other layers of security are controlled by the provider. This means that any security fixes will be out of the developer's hands, and therefore could be handled in a untimely manner, or not to a satisfactory level of security for an end user (depending on security needs). However, such fixes won't require end user involvement and resources, making them easier from the perspective of cost and maintenance burden.
+Безопасность с помощью SaaS является одновременно и самой простой, и самой сложной из-за отсутствия контроля, о котором говорилось выше. Разработчику придется управлять лишь небольшим набором функций безопасности, таких как некоторые средства контроля доступа, отношения доверия к данным и совместного использования при интеграции и любые последствия для безопасности, связанные с настройками. Все остальные уровни безопасности контролируются поставщиком. Это означает, что разработчик не будет иметь возможности вносить какие-либо исправления в систему безопасности, и, следовательно, они могут быть выполнены несвоевременно или с недостаточным уровнем безопасности для конечного пользователя (в зависимости от потребностей безопасности). Однако такие исправления не потребуют участия конечного пользователя и ресурсов, что упрощает их с точки зрения затрат и нагрузки на обслуживание.
 
-*Note: When looking for SaaS solutions, consider asking for a company's attestation records and proof of compliance to standards like [ISO 27001](https://www.iso.org/standard/27001). Listed below are links to each of the major CSPs' attestation sites for additional understanding.*
+*Примечание: При поиске SaaS-решений подумайте о том, чтобы запросить документы об аттестации компании и подтверждение соответствия стандартам, таким как [ISO 27001](https://www.iso.org/standard/27001). Ниже приведены ссылки на сайты всех основных поставщиков услуг по сертификации для получения дополнительной информации.*
 
 - [GCP](https://cloud.google.com/security/compliance/offerings)
 - [AWS](https://aws.amazon.com/compliance/programs/)
 - [Azure](https://servicetrust.microsoft.com/ViewPage/HomePageVNext)
 
-### Self-managed tooling
+### Самоуправляемая оснастка
 
-Another way to describe this shared responsibility model more generically is by categorizing cloud tooling on a spectrum of "management". Fully managed services leave very little for the end developer to handle besides some coding or administrative functionality (SaaS), while self-managed systems require much more overhead to maintain (IaaS).
+Другой способ более обобщенно описать эту модель совместной ответственности - классифицировать облачные инструменты по спектру "управления". Полностью управляемые сервисы оставляют конечному разработчику очень мало работы, помимо некоторых функций программирования или администрирования (SaaS), в то время как автономные системы требуют гораздо больших затрат на обслуживание (IaaS).
 
-AWS provides an excellent example of this difference in management, identifying where some of their different products fall onto different points in the spectrum.
+AWS представляет собой отличный пример такой разницы в управлении, определяя, где некоторые из их различных продуктов относятся к разным сегментам спектра.
 
 ![Shared Responsibility Model](../assets/Secure_Cloud_Architecture_Shared_Responsibility_Model.png)
 
-*Note: It is hard to indicate exactly which offerings are considered what type of service (Ex: IaaS vs PaaS). Developers should look to understand the model which applies to the specific tool they are using.*
+*Примечание: Трудно точно указать, какие предложения считаются услугами определенного типа (например, IaaS или PaaS). Разработчикам следует стремиться понять модель, применимую к конкретному инструменту, который они используют.*
 
-#### Update Strategy for Self-managed Services
+#### Стратегия обновления самоуправляемых сервисов
 
 Self-managed tooling will require additional overhead by developers and support engineers. Depending on the tool, basic version updates, upgrades to images like [AMIs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html) or [Compute Images](https://cloud.google.com/compute/docs/images), or other operating system level maintence will be required. Use automation to regularly update minor versions or [images](https://docs.aws.amazon.com/systems-manager/latest/userguide/automation-tutorial-update-patch-golden-ami.html), and schedule time in development cycles for refreshing stale resources.
 
-#### Avoid Gaps in Managed Service Security
+#### Избегайте пробелов в безопасности управляемых сервисов
 
-Managed services will offer some level of security, like updating and securing the underlying hardware which runs application code. However, the development team are still responsible for many aspects of security in the system. Ensure developers understand what security will be their responsibility based on tool selection. Likely the following will be partially or wholly the responsibility of the developer:
+Управляемые сервисы будут обеспечивать определенный уровень безопасности, например, обновление и защиту базового оборудования, на котором выполняется код приложения. Однако команда разработчиков по-прежнему отвечает за многие аспекты безопасности системы. Убедитесь, что разработчики понимают, за какую безопасность они будут отвечать в зависимости от выбора инструментов. Скорее всего, разработчик частично или полностью будет нести ответственность за следующее:
 
-- Authentication and authorization
-- Logging and monitoring
-- Code security ([OWASP Top 10](https://owasp.org/www-project-top-ten/))
-- Third-party library patching
+- Аутентификация и авторизация
+- Ведение журнала и мониторинг
+- Защита кода ([OWASP Top 10](https://owasp.org/www-project-top-ten/))
+- Внесение исправлений в сторонние библиотеки
 
-Refer to the documentation provided by the cloud service provider to understand which aspects of security are the responsibility of each party, based on the selected service. For example, in the case of serverless functions:
+Ознакомьтесь с документацией, предоставленной поставщиком облачных услуг, чтобы понять, за какие аспекты безопасности отвечает каждая сторона в зависимости от выбранного сервиса. Например, в случае бессерверных функций:
 
 - [AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/lambda-security.html)
 - [GCP Cloud Functions](https://cloud.google.com/functions/docs/securing)
 - [Azure Functions](https://learn.microsoft.com/en-us/azure/architecture/serverless-quest/functions-app-security)
 
-## References
+## Ссылки на литературу
 
 - [Secure Product Design](https://cheatsheetseries.owasp.org/cheatsheets/Secure_Product_Design_Cheat_Sheet.html)
 - [CISA Security Technical Reference Architecture](https://www.cisa.gov/sites/default/files/publications/Cloud%20Security%20Technical%20Reference%20Architecture.pdf)
