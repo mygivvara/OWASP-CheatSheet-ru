@@ -1,18 +1,18 @@
-# Securing Cascading Style Sheets Cheat Sheet
+# Шпаргалка для защиты каскадных таблиц стилей (CSS)
 
 ## Introduction
 
-The goal of this `CSS` (Not [XSS](Cross_Site_Scripting_Prevention_Cheat_Sheet.md), but [Cascading Style Sheet](https://www.w3schools.com/css/css_intro.asp)) Cheat Sheet is to inform Programmers, Testers, Security Analysts, Front-End Developers and anyone who is interested in Web Application Security to use these recommendations or requirements in order to achieve better security when authoring `Cascading Style Sheets`.
+Цель этого `CSS` (не [XSS](Cross_Site_Scripting_Prevention_Cheat_Sheet.md), а [Каскадная таблица стилей](https://www.w3schools.com/css/css_intro.asp)) Шпаргалка предназначена для информирования программистов, тестировщиков, аналитиков безопасности, front-end разработчиков и всех, кто интересуется безопасностью веб-приложений, о необходимости использования этих рекомендаций или требований для повышения безопасности при разработке `каскадных таблиц стилей`.
 
-Let's demonstrate this risk with an example:
+Давайте продемонстрируем этот риск на примере:
 
-Santhosh is a programmer who works for a company called **X** and authors a Cascading Style Sheet to implement styling of the web application. The application for which he is writing CSS Code has various roles like **Student**, **Teacher**, **Super User** & **Administrator** and these roles have different permissions (PBAC - [Permission Based Access Control](Access_Control_Cheat_Sheet.md)) and Roles (RBAC - [Role Based Access Control](Access_Control_Cheat_Sheet.md)). Not only do these roles have different access controls, but these roles could also have different styling for webpages that might be specific to an individual or group of roles.
+Сантош - программист, который работает в компании под названием **X** и является автором каскадной таблицы стилей для реализации стиля веб-приложения. Приложение, для которого он пишет CSS-код, имеет различные роли, такие как **Студент**, **Учитель**, **Суперпользователь** и **Администратор**, и эти роли имеют разные разрешения (PBAC - [Управление доступом на основе разрешений](Access_Control_Cheat_Sheet.md)) и роли (RBAC - [Управление доступом на основе ролей](Access_Control_Cheat_Sheet.md)). Эти роли не только имеют разные элементы управления доступом, но и могут иметь различный стиль оформления веб-страниц, который может быть специфичен для отдельного человека или группы ролей.
 
-Santhosh thinks that it would be a great optimized idea to create a "global styling" CSS file which has all the CSS styling/selectors for all of the roles. According to their role, a specific feature or user interface element will be rendered. For instance, Administrator will have different features compared to **Student** or **Teacher** or **SuperUser**. However, some permissions or features maybe common to some roles.
+Сантош считает, что было бы отличной оптимизированной идеей создать CSS-файл "глобального стиля", который содержит все стили/селекторы CSS для всех ролей. В соответствии с их ролью будет отображаться определенная функция или элемент пользовательского интерфейса. Например, функции Администратора будут отличаться от функций **Студента**, **Преподавателя** или **Суперпользователя**. Однако некоторые права доступа или функции могут быть общими для некоторых ролей.
 
-Example: Profile Settings will be applicable to all the users here while *Adding Users* or *Deleting Users* is only applicable for **Administrator**.
+Пример: Настройки профиля будут применимы ко всем присутствующим здесь пользователям, в то время как *Добавление пользователей* или *Удаление пользователей* применимо только к **Администратору**.
 
-Example:
+Пример:
 
 - `.login`
 - `.profileStudent`
@@ -25,41 +25,41 @@ Example:
 - `.exportProfileData`
 - ...
 
-Now, let's examine what are the risks associated with this style of coding.
+Теперь давайте рассмотрим, какие риски связаны с таким стилем программирования.
 
-### Risk \#1
+### Риск \#1
 
-Motivated Attackers always take a look at `*.CSS` files to learn the features of the application even without being logged in.
+Мотивированные злоумышленники всегда просматривают файлы `*.CSS`, чтобы ознакомиться с функциями приложения, даже не входя в систему.
 
-For instance: Jim is a motivated attacker and always tries to look into CSS files from the View-Source even before other attacks. When Jim looks into the CSS file, they see that there are different features and different roles based on the CSS selectors like `.profileSettings,` `.editUser,` `.addUser,` `.deleteUser` and so on. Jim can use the CSS for intel gathering to help gain access to sensitive roles. This is a form of attacker due diligence even before trying to perform dangerous attacks to gain access to the web application.
+Например: Джим - целеустремленный злоумышленник и всегда пытается заглянуть в CSS-файлы из View-Source даже перед другими атаками. Когда Джим просматривает файл CSS, он видит, что существуют разные функции и разные роли, основанные на селекторах CSS, таких как `.profileSettings`, `.editUser`, `.addUser`, `.deleteUser` и так далее. Джим может использовать CSS для сбора информации, чтобы помочь получить доступ к конфиденциальным ролям. Это одна из форм должной осмотрительности злоумышленника еще до того, как он попытается выполнить опасные атаки для получения доступа к веб-приложению.
 
-In a nutshell, having global styling could reveal sensitive information that could be beneficial to the attacker.
+В двух словах, использование глобального стиля может привести к раскрытию конфиденциальной информации, которая может быть полезна злоумышленнику.
 
-### Risk \#2
+### Риск \#2
 
-Let's say, Santhosh has this habit of writing the descriptive selector names like `.profileSettings,` `exportUserData,` `.changePassword,` `.oldPassword,` `.newPassword,` `.confirmNewPassword` etc. Good programmers like to keep code readable and usable by other Code Reviewers of the team. The risk is that attackers could map these selectors to actual features of a web application.
+Допустим, у Сантоша есть привычка писать описательные имена селекторов, такие как `.profileSettings`, `exportUserData`, `.changePassword`, `.oldPassword`, `.newPassword`, `.confirmNewPassword` и т.д. Хорошие программисты любят, чтобы код оставался читаемым и пригодным для использования другими рецензентами команды. Риск заключается в том, что злоумышленники могут сопоставить эти средства выбора с реальными функциями веб-приложения.
 
-## Defensive Mechanisms to Mitigate Attacker's Motivation
+## Защитные механизмы для смягчения мотивации нападающего
 
-### Defense Mechanism \#1
+### Защитный механизм \#1
 
-As a CSS Coder / Programmer, always keep the CSS isolated by access control level. By this, it means **Student** will have a different CSS file called as `StudentStyling.CSS` while **Administrator** has `AdministratorStyling.CSS` and so on. Make sure these `*.CSS` files are accessed only for a user with the proper access control level. Only users with the proper access control level should be able to access their `*.CSS` file.
+Как CSS-кодер / программист, всегда разделяйте CSS по уровню контроля доступа. Это означает, что у **Студента** будет другой CSS-файл с именем `Student Styling.CSS`, в то время как у **Администратора** файл `AdministratorStyling.CSS` и так далее. Убедитесь, что доступ к этим файлам `*.CSS` доступен только для пользователя с соответствующим уровнем контроля доступа. Только пользователи с соответствующим уровнем контроля доступа должны иметь доступ к своему файлу `*.CSS`.
 
-If an authenticated user with the **Student** Role tries to access `AdministratorStyling.CSS` through forced browsing, an alert that an intrusion is occurring should be recorded.
+Если аутентифицированный пользователь с ролью **Студент** попытается получить доступ к `AdministratorStyling.CSS` с помощью принудительного просмотра, должно быть записано предупреждение о вторжении.
 
-### Defense Mechanism \#2
+### Защитный механизм \#2
 
-Another option is to modify your CSS files to remove any identifying information. As a general rule, it's recommended that your website have a consistent style between pages, and it's best to write your general CSS rules in such a way that they apply across multiple pages. This reduces the need for specific selectors in the first place. Furthermore, it's often possible to create CSS selectors that target specific HTML elements without using IDs or class names. For example, `#UserPage .Toolbar .addUserButton` could be rewritten to something more obscure such as `#page_u header button:first-of-type`.
+Другой вариант - изменить ваши CSS-файлы, чтобы удалить любую идентифицирующую информацию. Как правило, рекомендуется, чтобы стиль вашего веб-сайта был согласован между страницами, и лучше всего прописать общие правила CSS таким образом, чтобы они применялись на нескольких страницах. Это, в первую очередь, уменьшает необходимость в специальных селекторах. Кроме того, часто можно создавать CSS-селекторы, нацеленные на определенные HTML-элементы, без использования идентификаторов или имен классов. Например, `#UserPage .Toolbar .addUserButton` можно было бы переписать на что-то более непонятное, например `#page_u header button:first-of-type`.
 
-Build-time and runtime tools also exist, which can be integrated to obfuscate your class names. This can reduce the chance of an attacker guessing the features of your application. Some examples:
+Также существуют инструменты для сборки и выполнения, которые могут быть интегрированы для маскировки имен ваших классов. Это может снизить вероятность того, что злоумышленник угадает функции вашего приложения. Несколько примеров:
 
-- [JSS](https://cssinjs.org) (CSS in JS) has a `minify` option which would generate class names such as `.c001`, `.c002`.
-- [CSS Modules](https://github.com/css-modules/css-modules) has a `modules` and `localIdentName` option, which functions similarly to JSS, but allows importing any CSS file without major structural changes to your application.
-- [.Net Blazor CSS Isolation](https://learn.microsoft.com/en-us/aspnet/core/blazor/components/css-isolation) can be used to scope your CSS to the component it's used in, and results in selectors like `button.add[b-3xxtam6d07]`.
-- CSS libraries such as [Bootstrap](https://getbootstrap.com) and [Tailwind](https://tailwindcss.com) can reduce the need for specific CSS selectors as they provide a strong base theme to work from.
+- [JSS](https://cssinjs.org) (CSS в JS) имеет опцию `minify`, которая генерирует имена классов, такие как `.c001`, `.c002`.
+- [CSS модули](https://github.com/css-modules/css-modules) имеют опции `modules` и `localIdentName`, которые функционируют аналогично JSS, но позволяют импортировать любой CSS-файл без серьезных структурных изменений в вашем приложении.
+- [.Net Blazor CSS Isolation](https://learn.microsoft.com/en-us/aspnet/core/blazor/components/css-isolation) может использоваться для привязки вашего CSS к компоненту, в котором он используется, и приводит к появлению таких селекторов, как `button.add[b-3xxtam6d07]`.
+- Библиотеки CSS, такие как [Bootstrap](https://getbootstrap.com) и [Tailwind](https://tailwindsys.com), могут уменьшить необходимость в специальных CSS-селекторах, поскольку они обеспечивают надежную базовую тему для работы.
 
-### Defense Mechanism \#3
+### Защитный механизм \#3
 
-Web applications that allow users to author content via HTML input could be vulnerable to malicious use of CSS. Uploaded HTML could use styles that are allowed by the web application but could be used for purposes other than intended which could lead to security risks.
+Веб-приложения, которые позволяют пользователям создавать контент с помощью HTML-ввода, могут быть уязвимы для вредоносного использования CSS. Загруженный HTML-код может содержать стили, разрешенные веб-приложением, но может использоваться не по назначению, что может привести к угрозам безопасности.
 
-Example: You can read about how [LinkedIn](https://www.scmagazine.com/news/vulnerability-management/style-sheet-vulnerability-allowed-attacker-to-hijack-linkedin-pages) had a vulnerability which allowed malicious use of CSS to execute a [Clickjacking](https://owasp.org/www-community/attacks/Clickjacking) attack. This caused the document to enter a state where clicking anywhere on the page would result in loading a potentially malicious website. You can read more about mitigating clickjacking attacks [here](Clickjacking_Defense_Cheat_Sheet.md).
+Пример: Вы можете прочитать о том, как [LinkedIn](https://www.scmagazine.com/news/vulnerability-management/style-sheet-vulnerability-allowed-attacker-to-hijack-linkedin-pages) имел уязвимость, которая позволяла злоумышленникам использовать CSS для выполнения атаки [перехвата кликов](https://owasp.org/www-community/attacks/Clickjacking). Это привело к тому, что документ перешел в состояние, при котором нажатие в любом месте страницы привело бы к загрузке потенциально вредоносного веб-сайта. Вы можете прочитать больше о том, как предотвратить атаки с перехватом кликов [здесь](Clickjacking_Defense_Cheat_Sheet.md).
