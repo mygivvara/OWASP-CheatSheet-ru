@@ -1,12 +1,12 @@
-# SAML Security Cheat Sheet
+# Шпаргалка по безопасности SAML
 
-## Introduction
+## Вступление
 
-The **S**ecurity **A**ssertion **M**arkup **L**anguage ([SAML](https://en.wikipedia.org/wiki/Security_Assertion_Markup_Language)) is an open standard for exchanging authorization and authentication information. The *Web Browser SAML/SSO Profile with Redirect/POST bindings* is one of the most common SSO implementation. This cheatsheet will focus primarily on that profile.
+Язык разметки утверждений безопасности (**S**ecurity **A**ssertion **M**arkup **L**anguage) ([SAML](https://en.wikipedia.org/wiki/Security_Assertion_Markup_Language)) является открытым стандартом для обмена информацией об авторизации и аутентификации. *Профиль SAML/SSO веб-браузера с привязками Redirect/POST* является одной из наиболее распространенных реализаций единого входа. Эта читаблица будет посвящена в первую очередь этому профилю.
 
-## Validate Message Confidentiality and Integrity
+## Проверка конфиденциальности и целостности сообщений
 
-[TLS 1.2](Transport_Layer_Security_Cheat_Sheet.md) is the most common solution to guarantee message confidentiality and integrity at the transport layer. Refer to [SAML Security (section 4.2.1)](https://docs.oasis-open.org/security/saml/v2.0/saml-sec-consider-2.0-os.pdf) for additional information. This step will help counter the following attacks:
+[Протокол TLS 1.2](Transport_Layer_Security_Cheat_Sheet.md) является наиболее распространенным решением, гарантирующим конфиденциальность и целостность сообщений на транспортном уровне. Дополнительную информацию см. в [SAML Security (раздел 4.2.1)](https://docs.oasis-open.org/security/saml/v2.0/saml-sec-consider-2.0-os.pdf). Этот шаг поможет противостоять следующим атакам:
 
 - Eavesdropping 7.1.1.1
 - Theft of User Authentication Information 7.1.1.2
@@ -15,134 +15,134 @@ The **S**ecurity **A**ssertion **M**arkup **L**anguage ([SAML](https://en.wikipe
 - Message Modification 7.1.1.7
 - Man-in-the-middle 7.1.1.8
 
-A digitally signed message with a certified key is the most common solution to guarantee message integrity and authentication. Refer to [SAML Security (section 4.3)](https://docs.oasis-open.org/security/saml/v2.0/saml-sec-consider-2.0-os.pdf) for additional information. This step will help counter the following attacks:
+Сообщение с цифровой подписью и сертифицированным ключом является наиболее распространенным решением, гарантирующим целостность сообщения и аутентификацию. Дополнительную информацию см. в разделе [Безопасность SAML (раздел 4.3)](https://docs.oasis-open.org/security/saml/v2.0/saml-sec-consider-2.0-os.pdf). Этот шаг поможет противостоять следующим атакам:
 
 - Man-in-the-middle 6.4.2
 - Forged Assertion 6.4.3
 - Message Modification 7.1.1.7
 
-Assertions may be encrypted via XMLEnc to prevent disclosure of sensitive attributes post transportation. Refer to [SAML Security (section 4.2.2)](https://docs.oasis-open.org/security/saml/v2.0/saml-sec-consider-2.0-os.pdf) for additional information. This step will help counter the following attacks:
+Утверждения могут быть зашифрованы с помощью XMLEnc, чтобы предотвратить раскрытие конфиденциальных атрибутов после передачи. Обратитесь к [SAML Security (раздел 4.2.2)](https://docs.oasis-open.org/security/saml/v2.0/saml-sec-consider-2.0-os.pdf) для получения дополнительной информации. Этот шаг поможет противостоять следующим атакам:
 
-- Theft of User Authentication Information 7.1.1.2
+- Кража аутентификационной информации пользователя 7.1.1.2
 
-## Validate Protocol Usage
+## Проверка использования протокола
 
-This is a common area for security gaps - see [Google SSO vulnerability](https://www.kb.cert.org/vuls/id/612636/) for a real life example. Their SSO profile was vulnerable to a Man-in-the-middle attack from a malicious SP (Service Provider).
+Это распространенная причина пробелов в системе безопасности - смотрите [Уязвимость единого входа в Google](https://www.kb.cert.org/vuls/id/612636/) для примера из реальной жизни. Их профиль единого входа был уязвим для атаки "Человек посередине" со стороны вредоносного SP (поставщика услуг).
 
-The SSO Web Browser Profile is most susceptible to attacks from trusted partners. This particular security flaw was exposed because the SAML Response did not contain all of the required data elements necessary for a secure message exchange. Following the [SAML Profile](https://docs.oasis-open.org/security/saml/v2.0/saml-profiles-2.0-os.pdf) usage requirements for AuthnRequest (4.1.4.1) and Response (4.1.4.2) will help counter this attack.
+Профиль веб-браузера единого входа наиболее подвержен атакам со стороны доверенных партнеров. Этот конкретный недостаток безопасности был выявлен из-за того, что ответ SAML не содержал всех необходимых элементов данных, необходимых для безопасного обмена сообщениями. Соблюдение [SAML Profile](https://docs.oasis-open.org/security/saml/v2.0/saml-profiles-2.0-os.pdf) требований к использованию AuthnRequest (4.1.4.1) и Response (4.1.4.2) поможет противостоять этой атаке.
 
-The *AVANTSSAR* team suggested the following data elements should be required:
+Команда *AVANTSSAR* предложила использовать следующие элементы данных:
 
-- **AuthnRequest(ID, SP):** An `AuthnRequest` must contain and `ID` and `SP`. Where `ID` is a string uniquely identifying the request and an `SP` identifies the `Service Provider` that initiated the request. Furthermore, the request `ID` attribute must be returned in the response (`InResponseTo="<requestId>"`). `InResponseTo` helps guarantee authenticity of the response from the trusted IdP. This was one of the missing attributes that left Google's SSO vulnerable.
-- **Response(ID, SP, IdP, {AA} K -1/IdP):** A Response must contain all these elements. Where `ID` is a string uniquely identifying the response. `SP` identifies the recipient of the response. `IdP` identifies the identity provider authorizing the response. `{AA} K -1/IdP` is the assertion digitally signed with the private key of the `IdP`.
-- **AuthAssert(ID, C, IdP, SP):** An authentication assertion must exist within the Response. It must contain an `ID`, a client `(C)`, an identity provider `(IdP)`, and a service provider `(SP)` identifier.
+- **AuthnRequest(ID, SP):** `AuthnRequest` должен содержать и `ID`, и `SP`. Где `ID` - это строка, однозначно идентифицирующая запрос, а `SP` - `Service Provider`, который инициировал запрос. Кроме того, в ответе должен быть возвращен атрибут запроса `ID` (`InResponseTo="<Идентификатор запроса>"`). `InResponseTo` помогает гарантировать подлинность ответа от доверенного IDP. Это был один из недостающих атрибутов, который делал единый вход Google уязвимым.
+- **Response(ID, SP, IdP, {AA} K -1/IdP):** Ответ должен содержать все эти элементы. Где `ID` - это строка, однозначно идентифицирующая ответ. `SP` идентифицирует получателя ответа. `IdP` идентифицирует поставщика идентификационных данных, авторизующего ответ. `{AA} K -1/IdP` - это утверждение, подписанное цифровой подписью с помощью закрытого ключа `IdP`.
+- **Auth Assert(ID, C, IdP, SP):** В ответе должно содержаться подтверждение аутентификации. Он должен содержать `ID`, идентификатор клиента `(C)`, поставщика идентификационных данных `(IdP)` и поставщика услуг `(SP)`.
 
-### Validate Signatures
+### Проверка подлинности сигнатур
 
-Vulnerabilities in SAML implementations due to XML Signature Wrapping attacks were described in 2012, [On Breaking SAML: Be Whoever You Want to Be](https://www.usenix.org/system/files/conference/usenixsecurity12/sec12-final91-8-23-12.pdf).
+Уязвимости в реализациях SAML, связанные с атаками на перенос подписи XML, были описаны в 2012 году [О взломе SAML: Будь тем, кем хочешь быть](https://www.usenix.org/system/files/conference/usenixsecurity12/sec12-final91-8-23-12.pdf).
 
-The following recommendations were proposed in response ([Secure SAML validation to prevent XML signature wrapping attacks](https://arxiv.org/pdf/1401.7483v1.pdf)):
+В ответ были предложены следующие рекомендации ([Безопасная проверка SAML для предотвращения атак на перенос подписи XML](https://arxiv.org/pdf/1401.7483v1.pdf)):
 
-- Always perform schema validation on the XML document prior to using it for any security-­related purposes:
-    - Always use local, trusted copies of schemas for validation.
-    - Never allow automatic download of schemas from third party locations.
-    - If possible, inspect schemas and perform schema hardening, to disable possible wildcard ­type or relaxed processing statements.
-- Securely validate the digital signature:
-    - If you expect only one signing key, use `StaticKeySelector`. Obtain the key directly from the identity provider, store it in local file and ignore any `KeyInfo` elements in the document.
-    - If you expect more than one signing key, use `X509KeySelector` (the JKS variant). Obtain these keys directly form the identity providers, store them in local JKS and ignore any `KeyInfo` elements in the document.
-    - If you expect a heterogeneous signed documents (many certificates from many identity providers, multi­level validation paths), implement full trust establishment model based on PKIX and trusted root certificates.
-- Avoid signature-wrapping attacks.
-    - Never use `getElementsByTagName` to select security related elements in an XML document without prior validation.
-    - Always use absolute XPath expressions to select elements, unless a hardened schema is used for validation.
+- Всегда выполняйте проверку схемы в XML-документе, прежде чем использовать его для любых целей, связанных с безопасностью:
+    - Всегда используйте локальные, надежные копии схем для проверки.
+    - Никогда не разрешайте автоматическую загрузку схем из сторонних хранилищ.
+    - Если возможно, проверьте схемы и выполните их упрочнение, чтобы отключить возможные шаблонные типы или упрощенные инструкции по обработке.
+- Надежная проверка цифровой подписи:
+    - Если вы ожидаете получить только один ключ подписи, используйте `StaticKeySelector`. Получите ключ непосредственно у поставщика удостоверений, сохраните его в локальном файле и игнорируйте любые элементы `KeyInfo` в документе.
+    - Если вы ожидаете получить более одного ключа подписи, используйте `X509KeySelector` (вариант JKS). Получите эти ключи напрямую от поставщиков удостоверений, сохраните их в локальном JKS и игнорируйте любые элементы `KeyInfo` в документе.
+    - Если вы ожидаете получить разнородные подписанные документы (множество сертификатов от многих поставщиков удостоверений, многоуровневые пути проверки), внедрите модель установления полного доверия, основанную на PKIX и доверенных корневых сертификатах.
+- Избегайте атак с использованием переноса подписи.
+    - Никогда не используйте `getElementsByTagName` для выбора элементов, связанных с безопасностью, в XML-документе без предварительной проверки.
+    - Всегда используйте абсолютные выражения XPath для выбора элементов, если только для проверки не используется строгая схема.
 
-## Validate Protocol Processing Rules
+## Проверка правил обработки протоколов
 
-This is another common area for security gaps simply because of the vast number of steps to assert.
+Это еще одна распространенная область пробелов в системе безопасности просто из-за огромного количества шагов, требующих подтверждения.
 
-Processing a SAML response is an expensive operation but all steps must be validated:
+Обработка ответа SAML является дорогостоящей операцией, но все шаги должны быть проверены:
 
-- Validate AuthnRequest processing rules. Refer to [SAML Core](https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf) (3.4.1.4) for all AuthnRequest processing rules. This step will help counter the following attacks:
+- Проверка правил обработки запросов AuthnRequest. Все правила обработки запросов AuthnRequest приведены в [SAML Core](https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf) (3.4.1.4). Этот шаг поможет противостоять следующим атакам:
     - Man-in-the-middle (6.4.2)
-- Validate Response processing rules. Refer to [SAML Profiles](https://docs.oasis-open.org/security/saml/v2.0/saml-profiles-2.0-os.pdf) (4.1.4.3) for all Response processing rules. This step will help counter the following attacks:
+- Проверка правил обработки ответов. Все правила обработки ответов приведены в [SAML Profiles](https://docs.oasis-open.org/security/saml/v2.0/saml-profiles-2.0-os.pdf) (4.1.4.3). Этот шаг поможет противостоять следующим атакам:
     - Stolen Assertion (6.4.1)
     - Man-in-the-middle (6.4.2)
     - Forged Assertion (6.4.3)
     - Browser State Exposure (6.4.4)
 
-## Validate Binding Implementation
+## Проверка реализации привязки
 
-- For an HTTP Redirect Binding refer to [SAML Binding](https://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf) (3.4). To view an encoding example, you may want to reference RequestUtil.java found within [Google's reference implementation](https://developers.google.com/google-apps/sso/saml_reference_implementation_web).
-- For an HTTP POST Binding refer to [SAML Binding](https://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf) (3.5). The caching considerations are also very important. If a SAML protocol message gets cached, it can subsequently be used as a Stolen Assertion (6.4.1) or Replay (6.4.5) attack.
+- Для привязки HTTP-перенаправления обратитесь к [Привязке SAML](https://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf) (3.4). Чтобы просмотреть пример кодировки, вы можете перейти по ссылке RequestUtil.java, найденной в [справочной реализации Google](https://developers.google.com/google-apps/sso/saml_reference_implementation_web).
+- Для привязки HTTP POST обратитесь к [Привязке SAML](https://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf) (3.5). Вопросы кэширования также очень важны. Если сообщение протокола SAML попадает в кэш, оно впоследствии может быть использовано в качестве атаки с использованием украденного утверждения (6.4.1) или повторного воспроизведения (6.4.5).
 
-## Validate Security Countermeasures
+## Проверка правильности контрмер безопасности
 
-Revisit each security threat that exists within the [SAML Security](https://docs.oasis-open.org/security/saml/v2.0/saml-sec-consider-2.0-os.pdf) document and assert you have applied the appropriate countermeasures for threats that may exist for your particular implementation.
+Просмотрите каждую угрозу безопасности, которая существует в документе [SAML Security](https://docs.oasis-open.org/security/saml/v2.0/saml-sec-consider-2.0-os.pdf), и убедитесь, что вы применили соответствующие меры противодействия угрозам, которые могут существовать в вашей конкретной реализации.
 
-Additional countermeasures considered should include:
+К дополнительным мерам противодействия, которые следует рассмотреть, относятся:
 
-- Prefer IP Filtering when appropriate. For example, this countermeasure could have prevented Google's initial security flaw if Google provided each trusted partner with a separate endpoint and setup an IP filter for each endpoint. This step will help counter the following attacks:
+- При необходимости предпочитайте фильтрацию по IP. Например, эта мера могла бы предотвратить первоначальную уязвимость Google в системе безопасности, если бы Google предоставила каждому доверенному партнеру отдельную конечную точку и настроила IP-фильтр для каждой конечной точки. Этот шаг поможет противостоять следующим атакам:
     - Stolen Assertion (6.4.1)
     - Man-in-the-middle (6.4.2)
-- Prefer short lifetimes on the SAML Response. This step will help counter the following attacks:
+- Предпочитайте короткие сроки действия ответа SAML. Этот шаг поможет противостоять следующим атакам:
     - Stolen Assertion (6.4.1)
     - Browser State Exposure (6.4.4)
-- Prefer OneTimeUse on the SAML Response. This step will help counter the following attacks:
+- Предпочтите однократное использование SAML-ответа. Этот шаг поможет противостоять следующим атакам:
     - Browser State Exposure (6.4.4)
     - Replay (6.4.5)
 
-Need an architectural diagram? The [SAML technical overview](https://www.oasis-open.org/committees/download.php/11511/sstc-saml-tech-overview-2.0-draft-03.pdf) contains the most complete diagrams. For the Web Browser SSO Profile with Redirect/POST bindings refer to the section 4.1.3. In fact, of all the SAML documentation, the technical overview is the most valuable from a high-level perspective.
+Нужна архитектурная схема? В [SAML technical overview](https://www.oasis-open.org/committees/download.php/11511/sstc-saml-tech-overview-2.0-draft-03.pdf) содержатся наиболее полные схемы. Для получения информации о профиле единого входа в веб-браузер с привязками перенаправления/ПУБЛИКАЦИИ обратитесь к разделу 4.1.3. Фактически, из всей документации SAML технический обзор является наиболее ценным с точки зрения высокого уровня.
 
-## Unsolicited Response (ie. IdP Initiated SSO) Considerations for Service Providers
+## Незапрашиваемый ответ (т.е. Единый вход, инициированный IDP) Рекомендации для поставщиков услуг
 
-Unsolicited Response is inherently [less secure](https://www.identityserver.com/articles/the-dangers-of-saml-idp-initiated-sso) by design due to the lack of [CSRF](https://owasp.org/www-community/attacks/csrf) protection. However, it is supported by many due to the backwards compatibility feature of SAML 1.1. The general security recommendation is to not support this type of authentication, but if it must be enabled, the following steps (in additional to everything mentioned above) should help you secure this flow:
+Незапрашиваемый ответ по своей сути [менее безопасен](https://www.identityserver.com/articles/the-dangers-of-saml-idp-initiated-sso) по замыслу из-за отсутствия защиты [CSRF](https://owasp.org/www-community/attacks/csrf). Однако многие поддерживают его благодаря функции обратной совместимости SAML 1.1. Общая рекомендация по безопасности - не поддерживать этот тип аутентификации, но если она должна быть включена, следующие шаги (в дополнение ко всему, что упомянуто выше) должны помочь вам обезопасить этот поток:
 
-- Follow the validation process mentioned in [SAML Profiles (section 4.1.5)](https://docs.oasis-open.org/security/saml/v2.0/saml-profiles-2.0-os.pdf). This step will help counter the following attacks:
-    - Replay (6.1.2)
-    - Message Insertion (6.1.3)
-- If the contract of the `RelayState` parameter is a URL, make sure the URL is validated and explicitly on an allowlist. This step will help counter the following attack:
-    - [Open Redirect](https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html)
-- Implement proper replay detection either at the response or assertion level. This will help counter the following attack:
-    - Replay (6.1.2)
+- Следуйте процедуре проверки, описанной в [SAML-профилях (раздел 4.1.5)](https://docs.oasis-open.org/security/saml/v2.0/saml-profiles-2.0-os.pdf). Этот шаг поможет противостоять следующим атакам:
+    - Воспроизведение (6.1.2)
+    - Вставка сообщения (6.1.3)
+- Если в параметре `RelayState` указан URL-адрес, убедитесь, что URL-адрес проверен и явно включен в список разрешений. Этот шаг поможет отразить следующую атаку:
+    - [Открыть Redirect](https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html)
+- Реализуйте правильное обнаружение повтора либо на уровне ответа, либо на уровне утверждения. Это поможет отразить следующую атаку:
+    - Повтор (6.1.2)
 
-## Identity Provider and Service Provider Considerations
+## Сооображения касающиеся поставщика идентификационных данных и поставщика услуг
 
-The SAML protocol is rarely the vector of choice, though it's important to have cheatsheets to make sure that this is robust. The various endpoints are more targeted, so how the SAML token is generated and how it is consumed are both important in practice.
+Протокол SAML редко является предпочтительным, хотя важно иметь шпаргалки, чтобы убедиться в его надежности. Различные конечные точки более целенаправленны, поэтому на практике важно, как генерируется токен SAML и как он используется.
 
-### Identity Provider (IdP) Considerations
+### Соображения, касающиеся поставщика идентификационных данных (IdP)
 
-- Validate X.509 Certificate for algorithm compatibility, strength of encryption, export restrictions
-- Validate Strong Authentication options for generating the SAML token
-- IDP validation (which IDP mints the token)
-- Use/Trust Root CAs whenever possible
-- Synchronize to a common Internet timesource
-- Define levels of assurance for identity verification
-- Prefer asymmetric identifiers for identity assertions over personally identifiable information (e.g. SSNs, etc)
-- Sign each individual Assertion or the entire Response element
+- Проверка сертификата X.509 на совместимость с алгоритмами, надежность шифрования, экспортные ограничения
+- Проверка параметров надежной аутентификации для генерации токена SAML
+- Проверка IDP (при которой IDP чеканит токен)
+- По возможности используйте корневые центры сертификации/доверяйте им
+- Синхронизация с общим источником времени в Интернете
+- Определение уровней надежности для проверки личности
+- Предпочтение асимметричных идентификаторов при подтверждении личности перед информацией, позволяющей установить личность (например, SSN и т.д.)
+- Подписывайте каждое отдельное утверждение или весь элемент ответа
 
-### Service Provider (SP) Considerations
+### Соображения, касающиеся поставщика услуг (SP)
 
-- Validating session state for user
-- Level of granularity in setting authorization context when consuming SAML token (do you use groups, roles, attributes)
-- Ensure each Assertion or the entire Response element is signed
-- [Validate Signatures](#validate-signatures)
-- Validate if signed by authorized IDP
-- Validate IDP certificates for expiration and revocation against CRL/OCSP
-- Validate NotBefore and NotOnorAfter
-- Validate Recipient attribute
-- Define criteria for SAML logout
-- Exchange assertions only over secure transports
-- Define criteria for session management
-- Verify user identities obtained from SAML ticket assertions whenever possible.
+- Проверка состояния сеанса для пользователя
+- Степень детализации при настройке контекста авторизации при использовании токена SAML (используете ли вы группы, роли, атрибуты)
+- Убедитесь, что каждое утверждение или весь элемент ответа подписан
+- [Проверяйте сигнатуры](#проверка-подлинности-сигнатур)
+- Проверить, подписан ли IDP авторизованным пользователем
+- Проверить сертификаты IDP на истечение срока действия и аннулирование в соответствии с CRL/OCSP
+- Проверить NotBefore и NotOnOrAfter
+- Проверить атрибут получателя
+- Определить критерии для выхода из SAML
+- Обмениваться утверждениями только по защищенным каналам передачи
+- Определение критериев для управления сеансами
+- По возможности проверяйте идентификационные данные пользователей, полученные из утверждений SAML ticket.
 
-## Input Validation
+## Проверка правильности введенных данных
 
-Just because SAML is a security protocol does not mean that input validation goes away.
+Тот факт, что SAML является протоколом безопасности, не означает, что проверка входных данных отменяется.
 
-- Ensure that all SAML providers/consumers do proper [input validation](Input_Validation_Cheat_Sheet.md).
+- Убедитесь, что все поставщики/потребители SAML выполняют надлежащую [проверку входных данных](Input_Validation_Cheat_Sheet.md).
 
-## Cryptography
+## Криптография
 
-Solutions relying cryptographic algorithms need to follow the latest developments in cryptoanalysis.
+Решения, основанные на криптографических алгоритмах, должны соответствовать последним достижениям в области криптоанализа.
 
-- Ensure all SAML elements in the chain use [strong encryption](Cryptographic_Storage_Cheat_Sheet.md#algorithms)
-- Consider deprecating support for [insecure XMLEnc algorithms](https://www.w3.org/TR/xmlenc-core1/#sec-RSA-1_5)
+- Убедитесь, что все элементы SAML в цепочке используют [надежное шифрование](Cryptographic_Storage_Cheat_Sheet.md#алгоритмы)
+- Рассмотрите возможность отмены поддержки [небезопасных алгоритмов XML](https://www.w3.org/TR/xmlenc-core1/#sec-RSA-1_5)
