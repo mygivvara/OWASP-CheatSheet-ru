@@ -1,172 +1,172 @@
-# REST Security Cheat Sheet
+# Шпаргалка по безопасности REST
 
 ## Introduction
 
-[REST](http://en.wikipedia.org/wiki/Representational_state_transfer) (or **RE**presentational **S**tate **T**ransfer) is an architectural style first described in [Roy Fielding](https://en.wikipedia.org/wiki/Roy_Fielding)'s Ph.D. dissertation on [Architectural Styles and the Design of Network-based Software Architectures](https://www.ics.uci.edu/~fielding/pubs/dissertation/top.htm).
+[REST](http://en.wikipedia.org/wiki/Representational_state_transfer) (или Передача репрезентативного состояния (**RE**presentational **S**tate **T**ransfer)) - архитектурный стиль, впервые описанный в докторской диссертации [Роя Филдинга] (https://en.wikipedia.org/wiki/Roy_Fielding) на тему [Архитектурные стили и проектирование сетевых программных архитектур] (https://www.ics.uci.edu/~fielding/pubs/dissertation/top.htm).
 
-It evolved as Fielding wrote the HTTP/1.1 and URI specs and has been proven to be well-suited for developing distributed hypermedia applications. While REST is more widely applicable, it is most commonly used within the context of communicating with services via HTTP.
+Он развивался по мере того, как Филдинг писал спецификации HTTP/1.1 и URI, и зарекомендовал себя как хорошо подходящий для разработки распределенных гипермедиа-приложений. Хотя REST более широко применим, он чаще всего используется в контексте взаимодействия со службами через HTTP.
 
-The key abstraction of information in REST is a resource. A REST API resource is identified by a URI, usually a HTTP URL. REST components use connectors to perform actions on a resource by using a representation to capture the current or intended state of the resource and transferring that representation.
+Ключевой абстракцией информации в REST является ресурс. Ресурс REST API идентифицируется с помощью URI, обычно это URL-адрес HTTP. Компоненты REST используют соединители для выполнения действий с ресурсом, используя представление для получения текущего или предполагаемого состояния ресурса и передачи этого представления.
 
-The primary connector types are client and server, secondary connectors include cache, resolver and tunnel.
+Основными типами соединителей являются клиентский и серверный, к дополнительным соединителям относятся кэш, распознаватель и туннель.
 
-REST APIs are stateless. Stateful APIs do not adhere to the REST architectural style. State in the REST acronym refers to the state of the resource which the API accesses, not the state of a session within which the API is called. While there may be good reasons for building a stateful API, it is important to realize that managing sessions is complex and difficult to do securely.
+REST API не имеют состояния. API с отслеживанием состояния не соответствуют архитектурному стилю REST. Аббревиатура State в REST означает состояние ресурса, к которому обращается API, а не состояние сеанса, в рамках которого вызывается API. Хотя для создания API с отслеживанием состояния могут быть веские причины, важно понимать, что управление сеансами является сложным и его трудно обеспечить безопасно.
 
-Stateful services are out of scope of this Cheat Sheet: *Passing state from client to backend, while making the service technically stateless, is an anti-pattern that should also be avoided as it is prone to replay and impersonation attacks.*
+Службы с отслеживанием состояния выходят за рамки данной инструкции: * Передача состояния от клиента серверной части, в то время как служба технически не имеет состояния, является анти-шаблоном, которого также следует избегать, поскольку он подвержен атакам воспроизведения и олицетворения.*
 
-In order to implement flows with REST APIs, resources are typically created, read, updated and deleted. For example, an ecommerce site may offer methods to create an empty shopping cart, to add items to the cart and to check out the cart. Each of these REST calls is stateless and the endpoint should check whether the caller is authorized to perform the requested operation.
+Чтобы реализовать потоки с помощью REST API, ресурсы обычно создаются, считываются, обновляются и удаляются. Например, сайт электронной коммерции может предлагать методы создания пустой корзины покупок, добавления товаров в корзину и извлечения из корзины. Каждый из этих вызовов REST не имеет состояния, и конечная точка должна проверить, авторизован ли вызывающий абонент для выполнения запрошенной операции.
 
-Another key feature of REST applications is the use of standard HTTP verbs and error codes in the pursuit or removing unnecessary variation among different services.
+Еще одной ключевой особенностью приложений REST является использование стандартных HTTP-команд и кодов ошибок для поиска или устранения ненужных различий между различными службами.
 
-Another key feature of REST applications is the use of [HATEOAS or Hypermedia As The Engine of Application State](https://en.wikipedia.org/wiki/HATEOAS). This provides REST applications a self-documenting nature making it easier for developers to interact with a REST service without prior knowledge.
+Другой ключевой особенностью приложений REST является использование [HATEOAS или Hypermedia в качестве движка состояния приложения](https://en.wikipedia.org/wiki/HATEOAS). Это придает приложениям REST самодокументирующийся характер, что упрощает разработчикам взаимодействие со службой REST без предварительного знания.
 
 ## HTTPS
 
-Secure REST services must only provide HTTPS endpoints. This protects authentication credentials in transit, for example passwords, API keys or JSON Web Tokens. It also allows clients to authenticate the service and guarantees integrity of the transmitted data.
+Службы Secure REST должны предоставлять только конечные точки HTTPS. Это защищает учетные данные для аутентификации при передаче, например пароли, ключи API или веб-токены JSON. Это также позволяет клиентам аутентифицировать службу и гарантирует целостность передаваемых данных.
 
-See the [Transport Layer Security Cheat Sheet](Transport_Layer_Security_Cheat_Sheet.md) for additional information.
+Дополнительную информацию смотрите в [Руководстве по безопасности транспортного уровня](Transport_Layer_Security_Cheat_Sheet.md).
 
-Consider the use of mutually authenticated client-side certificates to provide additional protection for highly privileged web services.
+Рассмотрите возможность использования взаимно аутентифицируемых клиентских сертификатов для обеспечения дополнительной защиты веб-служб с высокими привилегиями.
 
-## Access Control
+## Контроль доступа
 
-Non-public REST services must perform access control at each API endpoint. Web services in monolithic applications implement this by means of user authentication, authorization logic and session management. This has several drawbacks for modern architectures which compose multiple microservices following the RESTful style.
+Непубличные службы REST должны выполнять управление доступом в каждой конечной точке API. Веб-службы в монолитных приложениях реализуют это посредством аутентификации пользователя, логики авторизации и управления сеансами. Это имеет ряд недостатков для современных архитектур, которые объединяют несколько микросервисов в соответствии со стилем RESTful.
 
-- in order to minimize latency and reduce coupling between services, the access control decision should be taken locally by REST endpoints
-- user authentication should be centralised in a Identity Provider (IdP), which issues access tokens
+- чтобы минимизировать задержку и уменьшить взаимосвязь между службами, решение об управлении доступом должно приниматься локально конечными точками REST
+- аутентификация пользователя должна быть централизована поставщиком идентификационных данных (IdP), который выдает токены доступа
 
 ## JWT
 
-There seems to be a convergence towards using [JSON Web Tokens](https://tools.ietf.org/html/rfc7519) (JWT) as the format for security tokens. JWTs are JSON data structures containing a set of claims that can be used for access control decisions. A cryptographic signature or message authentication code (MAC) can be used to protect the integrity of the JWT.
+Похоже, что наблюдается тенденция к использованию [веб-токенов JSON](https://tools.ietf.org/html/rfc7519) (JWT) в качестве формата для токенов безопасности. JWT - это структуры данных в формате JSON, содержащие набор утверждений, которые могут использоваться для принятия решений об управлении доступом. Для защиты целостности JWT можно использовать криптографическую подпись или код аутентификации сообщения (MAC).
 
-- Ensure JWTs are integrity protected by either a signature or a MAC. Do not allow the unsecured JWTs: `{"alg":"none"}`.
-    - See [here](https://tools.ietf.org/html/rfc7519#section-6.1)
-- In general, signatures should be preferred over MACs for integrity protection of JWTs.
+- Убедитесь, что целостность JWT защищена либо подписью, либо MAC-адресом. Не разрешайте использовать незащищенный Jwt: `{"alg":"none"}`.
+    - Смотрите [здесь](https://tools.ietf.org/html/rfc7519#section-6.1)
+- В целом, для защиты целостности JWT следует отдавать предпочтение подписям, а не MAC-адресам.
 
-If MACs are used for integrity protection, every service that is able to validate JWTs can also create new JWTs using the same key. This means that all services using the same key have to mutually trust each other. Another consequence of this is that a compromise of any service also compromises all other services sharing the same key. See [here](https://tools.ietf.org/html/rfc7515#section-10.5) for additional information.
+Если для защиты целостности используются MAC-адреса, каждая служба, способная проверять JWT, может также создавать новые JWT, используя тот же ключ. Это означает, что все службы, использующие один и тот же ключ, должны взаимно доверять друг другу. Другим следствием этого является то, что компрометация любой службы также приводит к компрометации всех других служб, использующих тот же ключ. Дополнительную информацию смотрите [здесь](https://tools.ietf.org/html/rfc 7515#раздел-10.5).
 
-The relying party or token consumer validates a JWT by verifying its integrity and claims contained.
+Проверяющая сторона или потребитель токена проверяет JWT, проверяя его целостность и содержащиеся в нем утверждения.
 
-- A relying party must verify the integrity of the JWT based on its own configuration or hard-coded logic. It must not rely on the information of the JWT header to select the verification algorithm. See [here](https://www.chosenplaintext.ca/2015/03/31/jwt-algorithm-confusion.html) and [here](https://www.youtube.com/watch?v=bW5pS4e_MX8>)
+- Проверяющая сторона должна проверить целостность JWT на основе своей собственной конфигурации или жестко запрограммированной логики. Она не должна полагаться на информацию из заголовка JWT для выбора алгоритма проверки. Смотрите [здесь](https://www.chosenplaintext.ca/2015/03/31/jwt-algorithm-confusion.html) и [здесь](https://www.youtube.com/watch?v=bW5pS4e_MX8>).
 
-Some claims have been standardized and should be present in JWT used for access controls. At least the following of the standard claims should be verified:
+Некоторые утверждения были стандартизированы и должны присутствовать в JWT, используемом для контроля доступа. Необходимо проверить, по крайней мере, следующие стандартные утверждения:
 
-- `iss` or issuer - is this a trusted issuer? Is it the expected owner of the signing key?
-- `aud` or audience - is the relying party in the target audience for this JWT?
-- `exp` or expiration time - is the current time before the end of the validity period of this token?
-- `nbf` or not before time - is the current time after the start of the validity period of this token?
+- `iss` или эмитент - это доверенный эмитент? Является ли он предполагаемым владельцем ключа подписи?
+- `aud" или аудитория - входит ли проверяющая сторона в целевую аудиторию этого JWT?
+- `exp` или время истечения срока действия - это текущее время до окончания срока действия этого токена?
+- `nbf` или не раньше времени - это текущее время после начала срока действия этого токена?
 
-As JWTs contain details of the authenticated entity (user etc.) a disconnect can occur between the JWT and the current state of the users session, for example, if the session is terminated earlier than the expiration time due to an explicit logout or an idle timeout. When an explicit session termination event occurs, a digest or hash of any associated JWTs should be submitted to a denylist on the API which will invalidate that JWT for any requests until the expiration of the token. See the [JSON_Web_Token_for_Java_Cheat_Sheet](JSON_Web_Token_for_Java_Cheat_Sheet.md#token-explicit-revocation-by-the-user) for further details.
+Поскольку JWT содержат сведения о прошедшем проверку подлинности объекте (пользователе и т.д.), может произойти разрыв связи между JWT и текущим состоянием сеанса пользователя, например, если сеанс завершается раньше истечения срока действия из-за явного выхода из системы или тайм-аута ожидания. Когда происходит явное событие завершения сеанса, дайджест или хэш любых связанных JWT должны быть отправлены в denylist API, который сделает этот JWT недействительным для любых запросов до истечения срока действия токена. Смотрите раздел [JSON_Web_Token_for_Java_Cheat_Sheet](JSON_Web_Token_for_Java_Cheat_Sheet.md#token-explicit-revocation-by-the-user) для получения более подробной информации.
 
-## API Keys
+## Ключи API
 
-Public REST services without access control run the risk of being farmed leading to excessive bills for bandwidth or compute cycles. API keys can be used to mitigate this risk. They are also often used by organisation to monetize APIs; instead of blocking high-frequency calls, clients are given access in accordance to a purchased access plan.
+Общедоступные службы REST без контроля доступа рискуют быть перегруженными, что приведет к чрезмерным расходам на пропускную способность или вычислительные циклы. Для снижения этого риска можно использовать ключи API. Они также часто используются организациями для монетизации API-интерфейсов; вместо блокировки высокочастотных вызовов клиентам предоставляется доступ в соответствии с приобретенным тарифным планом доступа.
 
-API keys can reduce the impact of denial-of-service attacks. However, when they are issued to third-party clients, they are relatively easy to compromise.
+Ключи API могут снизить риск атак типа "отказ в обслуживании". Однако, когда они выдаются сторонним клиентам, их относительно легко скомпрометировать.
 
-- Require API keys for every request to the protected endpoint.
-- Return `429 Too Many Requests` HTTP response code if requests are coming in too quickly.
-- Revoke the API key if the client violates the usage agreement.
-- Do not rely exclusively on API keys to protect sensitive, critical or high-value resources.
+- Требовать ключи API для каждого запроса к защищенной конечной точке.
+- Возвращать код HTTP-ответа `429 Слишком много запросов`, если запросы поступают слишком быстро.
+- Отзывать ключ API, если клиент нарушает соглашение об использовании.
+- Не полагайтесь исключительно на API-ключи для защиты конфиденциальных, критичных или особо ценных ресурсов.
 
-## Restrict HTTP methods
+## Ограничьте HTTP-методы
 
-- Apply an allowlist of permitted HTTP Methods e.g. `GET`, `POST`, `PUT`.
-- Reject all requests not matching the allowlist with HTTP response code `405 Method not allowed`.
-- Make sure the caller is authorised to use the incoming HTTP method on the resource collection, action, and record
+- Примените список разрешенных HTTP-методов, например `GET`, `POST`, `PUT`.
+- Отклоняйте все запросы, не соответствующие списку разрешенных, с кодом ответа HTTP `Метод 405 не разрешен`.
+- Убедитесь, что вызывающий абонент авторизован для использования входящего HTTP-метода при сборе ресурсов, действии и записи
 
-In Java EE in particular, this can be difficult to implement properly. See [Bypassing Web Authentication and Authorization with HTTP Verb Tampering](../assets/REST_Security_Cheat_Sheet_Bypassing_VBAAC_with_HTTP_Verb_Tampering.pdf) for an explanation of this common misconfiguration.
+В частности, в Java EE это может быть сложно реализовать должным образом. Смотрите [Обход веб-аутентификации и авторизации с помощью HTTP Verb Tampering](../assets/REST_Security_Cheat_Sheet_Bypassing_VBAAC_with_HTTP_Verb_Tampering.pdf) для объяснения этой распространенной ошибки настройки.
 
-## Input validation
+## Проверка правильности введенных данных
 
-- Do not trust input parameters/objects.
-- Validate input: length / range / format and type.
-- Achieve an implicit input validation by using strong types like numbers, booleans, dates, times or fixed data ranges in API parameters.
-- Constrain string inputs with regexps.
-- Reject unexpected/illegal content.
-- Make use of validation/sanitation libraries or frameworks in your specific language.
-- Define an appropriate request size limit and reject requests exceeding the limit with HTTP response status 413 Request Entity Too Large.
-- Consider logging input validation failures. Assume that someone who is performing hundreds of failed input validations per second is up to no good.
-- Have a look at input validation cheat sheet for comprehensive explanation.
-- Use a secure parser for parsing the incoming messages. If you are using XML, make sure to use a parser that is not vulnerable to [XXE](https://owasp.org/www-community/vulnerabilities/XML_External_Entity_%28XXE%29_Processing) and similar attacks.
+- Не доверяйте входным параметрам/объектам.
+- Проверяйте вводимые данные: длину / диапазон / формат и тип.
+- Добейтесь неявной проверки ввода, используя строгие типы, такие как числа, логические значения, даты, время или фиксированные диапазоны данных в параметрах API.
+- Ограничьте ввод строк регулярными выражениями.
+- Отклоняйте неожиданный/ незаконный контент.
+- Используйте библиотеки проверки/очистки или фреймворки на вашем конкретном языке.
+- Определите соответствующее ограничение по размеру запроса и отклоняйте запросы, превышающие это ограничение, если объект запроса со статусом ответа HTTP 413 Слишком велик.
+- Рассмотрите возможность регистрации ошибок проверки ввода. Предположим, что кто-то, кто выполняет сотни неудачных проверок ввода в секунду, не справляется.
+- Ознакомьтесь с инструкцией по проверке ввода для получения подробного объяснения.
+- Используйте безопасный синтаксический анализатор для анализа входящих сообщений. Если вы используете XML, убедитесь, что вы используете синтаксический анализатор, который не уязвим для [XXE](https://owasp.org/www-community/vulnerabilities/XML_External_Entity_%28XXE%29_Processing) и подобных атак.
 
-## Validate content types
+## Проверка типов контента
 
-A REST request or response body should match the intended content type in the header. Otherwise this could cause misinterpretation at the consumer/producer side and lead to code injection/execution.
+Текст запроса REST или ответа должен соответствовать указанному в заголовке типу контента. В противном случае это может привести к неправильному толкованию на стороне потребителя/производителя и привести к внедрению/выполнению кода.
 
-- Document all supported content types in your API.
+- Задокументируйте все поддерживаемые типы контента в вашем API.
 
-### Validate request content types
+### Проверка типов содержимого запросов
 
-- Reject requests containing unexpected or missing content type headers with HTTP response status `406 Unacceptable` or `415 Unsupported Media Type`.
-- For XML content types ensure appropriate XML parser hardening, see the [XXE cheat sheet](XML_External_Entity_Prevention_Cheat_Sheet.md).
-- Avoid accidentally exposing unintended content types by explicitly defining content types e.g. [Jersey](https://jersey.github.io/) (Java) `@consumes("application/json"); @produces("application/json")`. This avoids [XXE-attack](https://owasp.org/www-community/vulnerabilities/XML_External_Entity_%28XXE%29_Processing) vectors for example.
+- Отклонять запросы, содержащие неожиданные или отсутствующие заголовки типов контента, со статусом HTTP-ответа `406 Unacceptable` или `415 Unsupported Media Type`.
+- Для типов контента XML необходимо обеспечить надлежащую проверку синтаксического анализа XML, см. [XXE-шпаргалку](XML_External_Entity_Prevention_Cheat_Sheet.md).
+- Избегайте случайного раскрытия непреднамеренных типов контента, явно определяя типы контента, например, [Jersey](https://jersey.github.io/) (Java) `@потребляет("приложение/json"); @производит ("приложение/json")`. Это позволяет избежать, например, векторов [XXE-attack](https://owasp.org/www-community/vulnerabilities/XML_External_Entity_%28XXE%29_Processing).
 
-### Send safe response content types
+### Типы контента для отправки безопасного ответа
 
-It is common for REST services to allow multiple response types (e.g. `application/xml` or `application/json`, and the client specifies the preferred order of response types by the Accept header in the request.
+Обычно службы REST разрешают использование нескольких типов ответов (например, `application/xml` или `application/json`), и клиент указывает предпочтительный порядок типов ответов с помощью заголовка Accept в запросе.
 
-- **Do NOT** simply copy the `Accept` header to the `Content-type` header of the response.
-- Reject the request (ideally with a `406 Not Acceptable` response) if the `Accept` header does not specifically contain one of the allowable types.
+- **НЕ** следует просто копировать заголовок `Accept` в заголовок `Content-type` ответа.
+- Отклоните запрос (в идеале с ответом `406 Unacceptable`), если заголовок `Accept` не содержит ни одного из допустимых типов.
 
-Services including script code (e.g. JavaScript) in their responses must be especially careful to defend against header injection attack.
+Службы, включающие в свои ответы скриптовый код (например, JavaScript), должны быть особенно осторожны, чтобы защититься от атаки с использованием заголовков.
 
-- Ensure sending intended content type headers in your response matching your body content e.g. `application/json` and not `application/javascript`.
+- Убедитесь, что отправка заголовков с предполагаемым типом контента в вашем ответе соответствует содержимому основного текста, например, `application/json`, а не `application/javascript`.
 
-## Management endpoints
+## Конечные точки управления
 
-- Avoid exposing management endpoints via Internet.
-- If management endpoints must be accessible via the Internet, make sure that users must use a strong authentication mechanism, e.g. multi-factor.
-- Expose management endpoints via different HTTP ports or hosts preferably on a different NIC and restricted subnet.
-- Restrict access to these endpoints by firewall rules  or use of access control lists.
+- Избегайте предоставления доступа к конечным точкам управления через Интернет.
+- Если конечные точки управления должны быть доступны через Интернет, убедитесь, что пользователи должны использовать надежный механизм аутентификации, например многофакторный.
+- Предоставлять доступ к конечным точкам управления через разные HTTP-порты или хосты, предпочтительно в другой сетевой карте и подсети с ограниченным доступом.
+- Ограничить доступ к этим конечным точкам с помощью правил брандмауэра или использования списков контроля доступа.
 
-## Error handling
+## Обработка ошибок
 
-- Respond with generic error messages - avoid revealing details of the failure unnecessarily.
-- Do not pass technical details (e.g. call stacks or other internal hints) to the client.
+- Отвечайте общими сообщениями об ошибках. - избегайте излишнего раскрытия деталей сбоя.
+- Не сообщайте клиенту технические подробности (например, стеки вызовов или другие внутренние подсказки).
 
-## Audit logs
+## Журналы аудита
 
-- Write audit logs before and after security related events.
-- Consider logging token validation errors in order to detect attacks.
-- Take care of log injection attacks by sanitizing log data beforehand.
+- Записывайте журналы аудита до и после событий, связанных с безопасностью.
+- Рассмотрите возможность регистрации ошибок проверки токена для обнаружения атак.
+- Позаботьтесь об атаках с внедрением журналов, предварительно очистив данные журнала.
 
-## Security Headers
+## Заголовки безопасности
 
-There are a number of [security related headers](https://owasp.org/www-project-secure-headers/) that can be returned in the HTTP responses to instruct browsers to act in specific ways. However, some of these headers are intended to be used with HTML responses, and as such may provide little or no security benefits on an API that does not return HTML.
+Существует ряд [заголовков, связанных с безопасностью](https://owasp.org/www-project-secure-headers/), которые могут быть возвращены в HTTP-ответах, чтобы указать браузерам, как действовать определенным образом. Однако некоторые из этих заголовков предназначены для использования с HTML-ответами и, как таковые, могут практически не обеспечивать безопасность API, который не возвращает HTML.
 
-The following headers should be included in all API responses:
+Следующие заголовки должны быть включены во все ответы API:
 
-| Header | Rationale |
+| Заголовок | Обоснование |
 |--------|-----------|
-| `Cache-Control: no-store` | Header used to direct caching done by browsers. Providing `no-store` indicates that any caches of any kind (private or shared) should not store the response that contains the header. A browser must make a new request everytime the API is called to fetch the latest response. This header with a `no-store` value prevents sensitive information from being cached or stored. |
-| `Content-Security-Policy: frame-ancestors 'none'` | Header used to specify whether a response can be framed in a `<frame>`, `<iframe>`, `<embed>` or `<object>` element. For an API response, there is no requirement to be framed in any of those elements. Providing `frame-ancestors 'none'` prevents any domain from framing the response returned by the API call. This header protects against [drag-and-drop](https://www.w3.org/Security/wiki/Clickjacking_Threats#Drag_and_drop_attacks) style clickjacking attacks. |
-| `Content-Type` | Header to specify the content type of a response. This must be specified as per the type of content returned by an API call. If not specified or if specified incorrectly, a browser might attempt to guess the content type of the response. This can return in MIME sniffing attacks. One common content type value is `application/json` if the API response is JSON. |
-| `Strict-Transport-Security` | Header to instruct a browser that the domain should only be accessed using HTTPS, and that any future attempts to access it using HTTP should automatically be converted to HTTPS. This header ensures that API calls are made over HTTPS and protects against spoofed certificates. |
-| `X-Content-Type-Options: nosniff` | Header to instruct a browser to always use the MIME type that is declared in the `Content-Type` header rather than trying to determine the MIME type based on the file's content. This header with a `nosniff` value prevents browsers from performing MIME sniffing, and inappropriately interpreting responses as HTML. |
-| `X-Frame-Options: DENY` | Header used to specify whether a response can be framed in a `<frame>`, `<iframe>`, `<embed>` or `<object>` element. For an API response, there is no requirement to be framed in any of those elements. Providing `DENY` prevents any domain from framing the response returned by the API call. This header with a `DENY` value protects protect against [drag-and-drop](https://www.w3.org/Security/wiki/Clickjacking_Threats#Drag_and_drop_attacks) style clickjacking attacks. |
+| `Cache-Control: no-store` | Заголовок, используемый для прямого кэширования, выполняемого браузерами. Указание `no-store` означает, что любые кэши любого типа (частные или общие) не должны сохранять ответ, содержащий заголовок. Браузер должен делать новый запрос каждый раз, когда вызывается API, для получения последнего ответа. Этот заголовок со значением "no-store" предотвращает кэширование или сохранение конфиденциальной информации. |
+| `Content-Security-Policy: frame-ancestors 'none'` | Заголовок, используемый для указания того, может ли ответ быть оформлен в виде элемента `<frame>`, `<iframe>`, `<embed>` или `<object>`. Для ответа API не требуется, чтобы он был оформлен каким-либо из этих элементов. Указание `frame-ancestors 'none'` не позволяет ни одному домену создавать фрейм для ответа, возвращаемого вызовом API. Этот заголовок защищает от атак с перехватом кликов в стиле [drag-and-drop](https://www.w3.org/Security/wiki/Clickjacking_Threats#Drag_and_drop_attacks). |
+| `Content-Type` | Заголовок для указания типа содержимого ответа. Это должно быть указано в соответствии с типом содержимого, возвращаемого вызовом API. Если не указано или указано неправильно, браузер может попытаться угадать тип содержимого ответа. Это может быть возвращено при атаках перехвата MIME. Одним из распространенных значений типа контента является `application/json`, если ответом API является JSON. |
+| `Strict-Transport-Security` | Заголовок, указывающий браузеру, что доступ к домену должен осуществляться только по протоколу HTTPS и что любые будущие попытки доступа к нему по протоколу HTTP должны автоматически преобразовываться в HTTPS. Этот заголовок гарантирует, что вызовы API выполняются по протоколу HTTPS, и защищает от подделки сертификатов. |
+| `X-Content-Type-Options: nosniff` | Заголовок, указывающий браузеру всегда использовать тип MIME, который объявлен в заголовке `Content-Type`, вместо того, чтобы пытаться определить тип MIME на основе содержимого файла. Этот заголовок со значением `nosniff` не позволяет браузерам выполнять поиск в формате MIME и неправильно интерпретировать ответы в формате HTML. |
+| `X-Frame-Options: DENY` | Заголовок, используемый для указания того, может ли ответ быть оформлен в виде элемента `<frame>`, `<iframe>`, `<embed>` или `<object>`. Для ответа API не требуется, чтобы он был оформлен каким-либо из этих элементов. Указание `DENY` не позволяет ни одному домену формировать ответ, возвращаемый вызовом API. Этот заголовок со значением `DENSITY` защищает от атак в стиле [drag-and-drop](https://www.w3.org/Security/wiki/Clickjacking_Threats#Drag_and_drop_attacks), связанных с перехватом кликов. |
 
-The headers below are only intended to provide additional security when responses are rendered as HTML. As such, if the API will **never** return HTML in responses, then these headers may not be necessary. However, if there is any uncertainty about the function of the headers, or the types of information that the API returns (or may return in future), then it is recommended to include them as part of a defence-in-depth approach.
+Нижеприведенные заголовки предназначены только для обеспечения дополнительной безопасности при отображении ответов в формате HTML. Таким образом, если API **никогда** не будет возвращать HTML в ответах, то эти заголовки могут и не понадобиться. Однако, если есть какая-либо неопределенность в отношении функции заголовков или типов информации, которую возвращает API (или может вернуть в будущем), рекомендуется включать их в качестве части комплексного подхода к защите.
 
-| Header | Example | Rationale |
+| Заголовок | Пример | Обоснование |
 |--------|-----------|-----------|
-| Content-Security-Policy | `Content-Security-Policy: default-src 'none'` | The majority of CSP functionality only affects pages rendered as HTML. |
-| Permissions-Policy | `Permissions-Policy: accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=()` | This header used to be named Feature-Policy. When browsers heed this header, it is used to control browser features via directives. The example disables features with an empty allowlist for a number of permitted [directive names](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy#directives). When you apply this header, verify that the directives are up-to-date and fit your needs. Please have a look at this [article](https://developer.chrome.com/en/docs/privacy-sandbox/permissions-policy) for a detailed explanation on how to control browser features. |
-| Referrer-Policy | `Referrer-Policy: no-referrer` | Non-HTML responses should not trigger additional requests. |
+| Content-Security-Policy | `Content-Security-Policy: default-src 'none'` | Большинство функций CSP влияют только на страницы, отображаемые в формате HTML. |
+| Permissions-Policy | `Permissions-Policy: accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=()` | Этот заголовок раньше назывался Feature-Policy. Когда браузеры учитывают этот заголовок, он используется для управления функциями браузера с помощью директив. В примере отключаются функции с пустым списком разрешений для ряда разрешенных [имен директив](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy#directives). Когда вы будете применять этот заголовок, убедитесь, что директивы актуальны и соответствуют вашим потребностям. Пожалуйста, ознакомьтесь с этой [статьей](https://developer.chrome.com/en/docs/privacy-sandbox/permissions-policy), чтобы получить подробное объяснение того, как управлять функциями браузера. |
+| Referrer-Policy | `Referrer-Policy: no-referrer` | Ответы, отличные от HTML, не должны вызывать дополнительных запросов. |
 
 ## CORS
 
-Cross-Origin Resource Sharing (CORS) is a W3C standard to flexibly specify what cross-domain requests are permitted. By delivering appropriate CORS Headers your REST API signals to the browser which domains, AKA origins, are allowed to make JavaScript calls to the REST service.
+Общий доступ к ресурсам разных источников (CORS) - это стандарт W3C, позволяющий гибко определять, какие междоменные запросы разрешены. Предоставляя соответствующие заголовки CORS, ваш REST API сигнализирует браузеру, какие домены, также известные как origins, разрешены для выполнения вызовов JavaScript для службы REST.
 
-- Disable CORS headers if cross-domain calls are not supported/expected.
-- Be as specific as possible and as general as necessary when setting the origins of cross-domain calls.
+- Отключите заголовки CORS, если междоменные вызовы не поддерживаются/ожидаются.
+- При настройке источников междоменных вызовов будьте как можно более конкретными и как можно более общими при необходимости.
 
-## Sensitive information in HTTP requests
+## Конфиденциальная информация в HTTP-запросах
 
-RESTful web services should be careful to prevent leaking credentials. Passwords, security tokens, and API keys should not appear in the URL, as this can be captured in web server logs, which makes them intrinsically valuable.
+Веб-службы RESTful должны быть осторожны, чтобы предотвратить утечку учетных данных. Пароли, токены безопасности и API-ключи не должны отображаться в URL-адресе, поскольку это может быть зафиксировано в журналах веб-сервера, что делает их чрезвычайно ценными.
 
-- In `POST`/`PUT` requests sensitive data should be transferred in the request body or request headers.
-- In `GET` requests sensitive data should be transferred in an HTTP Header.
+- В запросах `POST`/`PUT` конфиденциальные данные должны передаваться в теле запроса или в заголовках запросов.
+- В запросах `GET` конфиденциальные данные должны передаваться в HTTP-заголовке.
 
 **OK:**
 
@@ -174,35 +174,35 @@ RESTful web services should be careful to prevent leaking credentials. Passwords
 
 `https://twitter.com/vanderaj/lists`
 
-**NOT OK:**
+**НЕ OK:**
 
-`https://example.com/controller/123/action?apiKey=a53f435643de32` because API Key is into the URL.
+`https://example.com/controller/123/action?apiKey=a53f435643de32` потому что ключ API находится в URL-адресе.
 
-## HTTP Return Code
+## Код возврата HTTP
 
-HTTP defines [status code](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes). When designing REST API, don't just use `200` for success or `404` for error. Always use the semantically appropriate status code for the response.
+HTTP определяет [код состояния](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes). При разработке REST API не используйте просто `200` для успешного выполнения или `404` для ошибки. Всегда используйте семантически подходящий код состояния для ответа.
 
-Here is a non-exhaustive selection of security related REST API **status codes**. Use it to ensure you return the correct code.
+Вот неполный список **кодов состояния** REST API, связанных с безопасностью. Используйте его, чтобы убедиться, что вы возвращаете правильный код.
 
-| Code | Message                | Description                                                                                                                                                                                                          |
+| Код | Сообщение                | Описание                                                                                                                                                                                                          |
 |-------------|------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 200         | OK                     |  Response to a successful REST API action. The HTTP method can be GET, POST, PUT, PATCH or DELETE.                                                                                                                  |
-| 201         | Created                |  The request has been fulfilled and resource created. A URI for the created resource is returned in the Location header.                                                                                            |
-| 202         | Accepted               | The request has been accepted for processing, but processing is not yet complete.                                                                                                                                     |
-| 301         | Moved Permanently       | Permanent redirection.                                                                                                                                                                                                |
-| 304         | Not Modified           | Caching related response that returned when the client has the same copy of the resource as the server.                                                                                                                  |
-| 307         | Temporary Redirect     | Temporary redirection of resource.                                                                                                                                                                                   |
-| 400         | Bad Request            | The request is malformed, such as message body format error.                                                                                                                                                          |
-| 401         | Unauthorized           | Wrong or no authentication ID/password provided.                                                                                                                                                                      |
-| 403         | Forbidden              |  It's used when the authentication succeeded but authenticated user doesn't have permission to the request resource.                                                                                                |
-| 404         | Not Found              | When a non-existent resource is requested.                                                                                                                                                                            |
-| 405         | Method Not Acceptable  |  The error for an unexpected HTTP method. For example, the REST API is expecting HTTP GET, but HTTP PUT is used.                                                                                                    |
-| 406         | Unacceptable           | The client presented a content type in the Accept header which is not supported by the server API.                                                                                                                    |
-| 413         | Payload too large      | Use it to signal that the request size exceeded the given limit e.g. regarding file uploads.                                                                                                                          |
-| 415         | Unsupported Media Type | The requested content type is not supported by the REST service.                                                                                                                                                      |
-| 429         | Too Many Requests      |  The error is used when there may be DOS attack detected or the request is rejected due to rate limiting.                                                                                                           |
-| 500         | Internal Server Error  | An unexpected condition prevented the server from fulfilling the request. Be aware that the response should not reveal internal  information that helps an attacker, e.g. detailed error messages or  stack traces. |
-| 501         | Not Implemented        | The REST service does not implement the requested operation yet.                                                                                                                                                      |
-| 503         | Service Unavailable    |  The REST service is temporarily unable to process the request. Used to inform the client it should retry at a later time.                                                                                         |
+| 200         | OK                     |  Ответ на успешное действие REST API. HTTP-метод может быть GET, POST, PUT, PATCH или DELETE.                                                                                                                  |
+| 201         | Created                |  Запрос выполнен, и ресурс создан. В заголовке Location возвращается URI для созданного ресурса.                                                                                            |
+| 202         | Accepted               | Запрос принят к обработке, но обработка еще не завершена.                                                                                                                                     |
+| 301         | Moved Permanently       | Постоянное перенаправление.                                                                                                                                                                                                |
+| 304         | Not Modified           | Связанный с кэшированием ответ, который возвращается, когда у клиента есть та же копия ресурса, что и у сервера.                                                                                                                  |
+| 307         | Temporary Redirect     | Временное перенаправление ресурса.                                                                                                                                                                                   |
+| 400         | Bad Request            | Запрос неправильно сформирован, например, ошибка в формате текста сообщения.                                                                                                                                                          |
+| 401         | Unauthorized           | Неверный идентификатор или пароль для аутентификации не указаны.                                                                                                                                                                      |
+| 403         | Forbidden              |  Это используется, когда аутентификация прошла успешно, но у прошедшего проверку пользователя нет прав на запрос ресурса.                                                                                                |
+| 404         | Not Found              | Когда запрашивается несуществующий ресурс.                                                                                                                                                                            |
+| 405         | Method Not Acceptable  |  Ошибка из-за неожиданного HTTP-метода. Например, REST API ожидает HTTP GET, но используется HTTP PUT.                                                                                                    |
+| 406         | Unacceptable           | Клиент представил тип контента в заголовке Accept, который не поддерживается серверным API.                                                                                                                    |
+| 413         | Payload too large      | Используйте его, чтобы сигнализировать о том, что размер запроса превысил заданный предел, например, в отношении загрузки файлов.                                                                                                                          |
+| 415         | Unsupported Media Type | Запрашиваемый тип контента не поддерживается службой REST.                                                                                                                                                      |
+| 429         | Too Many Requests      |  Ошибка используется, когда может быть обнаружена DOS-атака или запрос отклонен из-за ограничения скорости.                                                                                                           |
+| 500         | Internal Server Error  | Непредвиденные обстоятельства помешали серверу выполнить запрос. Помните, что в ответе не должна содержаться внутренняя информация, которая может помочь злоумышленнику, например подробные сообщения об ошибках или трассировка стека. |
+| 501         | Not Implemented        | Служба REST еще не выполнила запрошенную операцию.                                                                                                                                                      |
+| 503         | Service Unavailable    |  Служба REST временно не может обработать запрос. Используется для информирования клиента о необходимости повторной попытки позднее.                                                                                         |
 
-Additional information about HTTP return code usage in REST API can be found [here](https://www.restapitutorial.com/httpstatuscodes.html) and [here](https://restfulapi.net/http-status-codes).
+Дополнительную информацию об использовании кода возврата HTTP в REST API можно найти [здесь](https://www.restapitutorial.com/httpstatuscodes.html) и [здесь](https://restfulapi.net/http-status-codes).
