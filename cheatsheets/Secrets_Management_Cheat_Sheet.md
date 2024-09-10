@@ -1,601 +1,555 @@
-# Secrets Management Cheat Sheet
+# Шпаргалка по управлению секретами
 
-## 1 Introduction
+## 1 Вступление
 
-Secrets are being used everywhere nowadays, especially with the popularity of the DevOps movement. Application Programming Interface (API) keys, database credentials, Identity and Access Management (IAM) permissions, Secure Shell (SSH) keys, certificates, etc. Many organizations have them hardcoded within the source code in plaintext, littered throughout configuration files and configuration management tools.
+В настоящее время секреты используются повсеместно, особенно в связи с ростом популярности DevOps. Ключи интерфейса прикладного программирования (API), учетные данные базы данных, разрешения для идентификации и управления доступом (IAM), ключи Secure Shell (SSH), сертификаты и т.д. Во многих организациях они жестко прописаны в исходном коде в виде открытого текста и разбросаны по файлам конфигурации и инструментам управления конфигурацией.
 
-There is a growing need for organizations to centralize the storage, provisioning, auditing, rotation and management of secrets to control access to secrets and prevent them from leaking and compromising the organization. Often, services share the same secrets, which makes identifying the source of compromise or leak challenging.
+В организациях растет потребность в централизации хранения, подготовки, аудита, ротации и управления секретами, чтобы контролировать доступ к секретам и предотвращать их утечку и компрометацию организации. Часто службы используют одни и те же секреты, что затрудняет выявление источника компрометации или утечки.
 
-This cheat sheet offers best practices and guidelines to help properly implement secrets management.
+В этой шпаргалке представлены лучшие практики и рекомендации, которые помогут правильно реализовать управление секретами.
 
-## 2 General Secrets Management
+## 2 Управление общими секретами
 
-The following sections address the main concepts relating to secrets management.
+В следующих разделах рассматриваются основные концепции, относящиеся к управлению секретами.
 
-### 2.1 High Availability
+### 2.1 Высокая доступность
 
-It is vital to select a technology that is robust enough to service traffic reliably:
+Очень важно выбрать технологию, которая была бы достаточно надежной для надежного обслуживания трафика:
 
-- Users (e.g. SSH keys, root account passwords). In an incident response scenario, users expect to be provisioned with credentials rapidly, so they can recover services that have gone offline. Having to wait for credentials could impact the responsiveness of the operations team.
-- Applications (e.g. database credentials and API keys). If the service is not performant, it could degrade the availability of dependent applications or increase application startup times.
+- Пользователей (например, SSH-ключи, пароли учетных записей root). В сценарии реагирования на инциденты пользователи ожидают, что им будут быстро предоставлены учетные данные, чтобы они могли восстановить отключенные службы. Ожидание получения учетных данных может повлиять на оперативность реагирования оперативной группы.
+- Приложений (например, учетные данные базы данных и ключи API). Если служба не работает должным образом, это может привести к снижению доступности зависимых приложений или увеличению времени запуска приложений.
 
-Such a service could receive a considerable volume of requests within a large organization.
+Такая служба могла бы получать значительный объем запросов в рамках крупной организации.
 
-### 2.2 Centralize and Standardize
+### 2.2 Централизовать и стандартизировать
 
-Secrets used by your DevOps teams for your applications might be consumed differently than secrets stored by your marketeers or your SRE team. You often find poorly maintained secrets where the needs of secret consumers or producers mismatch. Therefore, you must standardize and centralize the secrets management solution with care. Standardizing and centralizing can mean that you use multiple secret management solutions. For instance: your cloud-native development teams choose to use the solution provided by the cloud provider, while your private cloud uses a third-party solution, and everybody has an account for a selected password manager.
-By making sure that the teams standardize the interaction with these different solutions, they remain maintainable and usable in the event of an incident.
-Even when a company centralizes its secrets management to just one solution, you will often have to secure the primary secret of that secrets management solution in a secondary secrets management solution. For instance, you can use a cloud provider's facilities to store secrets, but that cloud provider's root/management credentials need to be stored somewhere else.
+Секреты, используемые вашими командами разработчиков для ваших приложений, могут использоваться иначе, чем секреты, хранящиеся вашими маркетологами или командой SRE. Вы часто сталкиваетесь с тем, что секреты плохо хранятся, когда потребности тайных потребителей или производителей не совпадают. Поэтому необходимо тщательно стандартизировать и централизовать решение для управления секретами. Стандартизация и централизация могут означать, что вы используете несколько решений для управления секретами. Например, ваши облачные команды разработчиков предпочитают использовать решение, предоставляемое поставщиком облачных услуг, в то время как ваше частное облако использует стороннее решение, и у каждого есть учетная запись для выбранного менеджера паролей.
+Благодаря тому, что команды стандартизируют взаимодействие с этими различными решениями, они остаются удобными в обслуживании и могут быть использованы в случае возникновения инцидента.
+Даже если компания централизует управление своими секретами только в одном решении, вам часто приходится сохранять основной секрет этого решения для управления секретами во вторичном решении для управления секретами. Например, вы можете использовать возможности облачного провайдера для хранения секретов, но учетные данные root/management этого облачного провайдера должны храниться где-то в другом месте.
 
-Standardization should include Secrets life cycle management, Authentication, Authorization, and Accounting of the secrets management solution, and life cycle management. Note that it should be immediately apparent to an organization what a secret is used for and where to find it. The more Secrets management solutions you use, the more documentation you need.
+Стандартизация должна включать управление жизненным циклом секретов, аутентификацию, авторизацию и учет решения для управления секретами, а также управление жизненным циклом. Обратите внимание, что организации должно быть сразу понятно, для чего используется секрет и где его можно найти. Чем больше решений для управления секретами вы используете, тем больше документации вам требуется.
 
-### 2.3 Access Control
+### 2.3 Контроль доступа
 
-When users can read the secret in a secret management system and/or update it, it means that the secret can now leak through that user and the system he used to touch the secret.
-Therefore, engineers should not have access to all secrets in the secrets management system, and the Least Privilege principle should be applied. The secret management system needs to provide the ability to configure fine granular access controls on each object and component to accomplish the Least Privilege principle.
+Когда пользователи могут прочитать секрет в системе управления секретами и/или обновить его, это означает, что теперь секрет может просочиться через этого пользователя и систему, которую он использовал для доступа к секрету.
+Следовательно, инженеры не должны иметь доступа ко всем секретам в системе управления секретами, и следует применять принцип наименьших привилегий. Система управления секретами должна обеспечивать возможность тонкой настройки контроля доступа к каждому объекту и компоненту для реализации принципа наименьших привилегий.
 
-### 2.4 Automate Secrets Management
+### 2.4 Автоматизируйте управление секретами
 
-Manual maintenance does not only increase the risk of leakage; it introduces the risk of human errors while maintaining the secret. Furthermore, it can become wasteful.
-Therefore, it is better to limit or remove the human interaction with the actual secrets. You can restrict human interaction in multiple ways:
+Ручное обслуживание не только увеличивает риск утечки информации, но и создает риск человеческих ошибок при сохранении секретности. Кроме того, это может привести к расточительству.
+Поэтому лучше ограничить или вовсе исключить взаимодействие человека с настоящими секретами. Ограничить взаимодействие человека с секретными данными можно несколькими способами:
 
-- **Secrets pipeline:** Having a secrets pipeline which does large parts of the secret management (E.g. creation, rotation, etc.)
-- **Using dynamic secrets:** When an application starts it could request it's database credentials, which when dynamically generated will be provided with new credentials for that session. Dynamic secrets should be used where possible to reduce the surface area of credential re-use. Should the application's database credentials be stolen, upon reboot they would be expired.
-- **Automated rotation of static secrets:** Key rotation is a challenging process when implemented manually, and can lead to mistakes. It is therefore better to automate the rotation of keys or at least ensure that the process is sufficiently supported by IT.
+- **Конвейер секретов:** Наличие конвейера секретов, который выполняет большую часть работы по управлению секретами (например, создание, ротация и т.д.).
+- **Использование динамических секретов:** При запуске приложение может запросить свои учетные данные из базы данных, которые при динамической генерации будут предоставлены с новыми учетными данными для этого сеанса. Динамические секреты следует использовать там, где это возможно, чтобы уменьшить вероятность повторного использования учетных данных. Если учетные данные базы данных приложения будут украдены, после перезагрузки срок их действия истечет.
+- **Автоматическая ротация статических ключей:** Ротация ключей - сложный процесс, если ее выполнять вручную, и может привести к ошибкам. Поэтому лучше автоматизировать ротацию ключей или, по крайней мере, обеспечить достаточную поддержку этого процесса с помощью ИТ.
 
-Rotating certain keys, such as encryption keys, might trigger full or partial data re-encryption. Different strategies for rotating keys exist:
+Смена определенных ключей, например ключей шифрования, может привести к полному или частичному повторному шифрованию данных. Существуют различные стратегии смены ключей:
 
-- Gradual rotation
-- Introducing new keys for Write operations
-- Leaving old keys for Read operations
-- Rapid rotation
-- Scheduled rotation
-- and more...
+- Постепенная ротация
+- Ввод новых ключей для операций записи
+- Сохранение старых ключей для операций чтения
+- Быстрая ротация
+- Ротация по расписанию
+- и многое другое...
 
-### 2.5 Handling Secrets in Memory
+### 2.5 Хранение секретов в памяти
 
-An additional level of security can be achieved by minimizing the time window
-where a secret is in memory and limiting the access to its memory space.
+Дополнительный уровень безопасности может быть достигнут за счет минимизации временного интервала, в течение которого секрет находится в памяти, и ограничения доступа к его объему памяти.
 
-Depending on your application's particular circumstances, this can be difficult
-to implement in a manner that ensures memory security. Because of this potential
-implementation complexity, you are first encouraged to develop a threat model in order to clearly
-surface your implicit assumptions about both your application's deployment environment as well
-as understanding the capabilities of your adversaries.
+В зависимости от конкретных условий вашего приложения это может быть сложно реализовать таким образом, чтобы обеспечить безопасность памяти. Из-за этой потенциальной сложности реализации вам сначала рекомендуется разработать модель угроз, чтобы четко сформулировать ваши неявные предположения как о среде развертывания вашего приложения, так и о возможностях ваших противников.
 
-Often attempting to protect secrets in memory will be considered overkill
-because as you evaluate a threat model, the potential threat
-actors that you consider either do not have the capabilities to carry out such attacks
-or the cost of defense far exceeds the likely impact of a compromise arising from
-exposing secrets in memory. Also, it should be kept in mind while developing an
-appropriate threat model, that if an attacker already has access to the memory of
-the process handling the secret, by that time a security breach may have already
-occurred. Furthermore, it should be recognized that with the advent of attacks like
-[Rowhammer](https://arxiv.org/pdf/2211.07613.pdf), or
-[Meltdown and Spectre](https://meltdownattack.com/), it is important
-to understand that the operating system alone is not sufficient to protect your process
-memory from these types of attacks. This becomes especially important when your
-application is deployed to the cloud. The only foolproof approach to protecting memory
-against these and similar attacks to fully physically isolate your process memory from all other
-untrusted processes.
+Часто попытки защитить секреты, хранящиеся в памяти, считаются излишними, поскольку при оценке модели угроз выясняется, что потенциальные участники угроз, которых вы рассматриваете, либо не обладают возможностями для проведения таких атак, либо стоимость защиты намного превышает вероятные последствия компрометации, возникающей в результате раскрытия секретов, хранящихся в памяти. Кроме того, при разработке соответствующей модели угроз следует иметь в виду, что если злоумышленник уже имеет доступ к памяти процесса, обрабатывающего секретную информацию, то к тому времени нарушение безопасности может уже произойти. Кроме того, следует признать, что с появлением атак, подобных [Rowhammer] (https://arxiv.org/pdf/2211.07613.pdf) или [Meltdown и Spectre](https://meltdownattack.com/), важно понимать, что одной операционной системы недостаточно для защиты памяти вашего процесса от атак такого типа. Это становится особенно важным, когда ваше приложение развертывается в облаке. Единственный надежный подход к защите памяти от этих и подобных атак позволяет полностью физически изолировать память вашего процесса от всех других ненадежных процессов.
 
-Despite the implementation difficulties, in highly sensitive
-environments, protecting secrets in memory can
-be a valuable additional layer of security. For example, in scenarios where an
-advanced attacker can cause a system to crash and gain access to a memory dump,
-they may be able to extract secrets from it. Therefore, carefully safeguarding
-secrets in memory is recommended for untrusted environments or situations where
-tight security is of utmost importance.
+Несмотря на трудности реализации, в высокочувствительных средах защита секретных данных в памяти может стать ценным дополнительным уровнем безопасности. Например, в сценариях, когда опытный злоумышленник может вызвать сбой системы и получить доступ к дампу памяти, он может извлечь из него секретные данные. Поэтому рекомендуется тщательно хранить секреты в памяти в ненадежных средах или ситуациях, когда строгая безопасность имеет первостепенное значение.
 
-Furthermore, in lower level languages like C/C++, it is relatively easy to protect
-secrets in memory. Thus, it may be worthwhile to implement this practice even if
-the risk of an attacker gaining access to the memory is low. On the other hand, for
-programming languages that rely on garbage collection, securing secrets in memory
-generally is much more difficult.
+Кроме того, в языках более низкого уровня, таких как C/C++, относительно легко защитить секреты в памяти. Таким образом, возможно, стоит внедрить эту практику, даже если риск того, что злоумышленник получит доступ к памяти, невелик. С другой стороны, для языков программирования, которые полагаются на сборку мусора, защита секретов в памяти, как правило, намного сложнее.
 
-- **Structures and Classes:** In .NET and Java, do not use immutable structures
-    such as Strings to store secrets, since it is impossible to force them to
-    be garbage collected. Instead use primitive types such as byte arrays or
-    char arrays, where the memory can be directly overwritten. You can also
-    use Java's
-    [GuardedString](https://docs.oracle.com/html/E28160_01/org/identityconnectors/common/security/GuardedString.html)
-    or .NET's
-    [SecureString](https://learn.microsoft.com/en-us/dotnet/api/system.security.securestring#string-versus-securestring)
-    which are designed to solve precisely this problem.
+- **Структуры и классы:** В .NET и Java не используйте неизменяемые структуры, такие как строки, для хранения секретов, поскольку невозможно принудительно выполнить сборку мусора для них. Вместо этого используйте примитивные типы, такие как массивы байтов или массивы символов, где память может быть непосредственно перезаписана. Вы также можете использовать Java [GuardedString](https://docs.oracle.com/html/E28160_01/org/identityconnectors/common/security/GuardedString.html) или .NET [SecureString](https://learn.microsoft.com/en-us/dotnet/api/system.security.securestring#string-versus-securestring), которые предназначены именно для решения этой проблемы.
 
-- **Zeroing Memory:** After a secret has been used, the memory it occupied
-  should be zeroed out to prevent it from lingering in memory where it could
-  potentially be accessed.
-    - If using Java's GuardedString, call the `dispose()` method.
-    - If using .NET's SecureString, call the `Dispose()` method.
+- **Обнуление памяти:** После того, как секрет был использован, занимаемая им память должна быть обнулена, чтобы предотвратить ее сохранение в памяти, где к ней потенциально можно было бы получить доступ.
+    - Если используется Java GuardedString, вызовите метод `dispose()`.
+    - Если используется .NET SecureString, вызовите метод `Dispose()`.
 
-- **Memory Encryption:** In some cases, it may be possible to use hardware or
-  operating system features to encrypt the entire memory space of the process
-  handling the secret. This can provide an additional layer of security. For
-  example, GuardedString in Java encrypts the values in memory, and SecureString
-  in .NET does so on Windows.
+- **Шифрование памяти:** В некоторых случаях может оказаться возможным использовать аппаратные средства или функции операционной системы для шифрования всего объема памяти процесса, обрабатывающего секретную информацию. Это может обеспечить дополнительный уровень безопасности. Например, GuardedString в Java шифрует значения в памяти, а SecureString в .NET делает это в Windows.
 
-Remember, the goal is to minimize the time window where the secret is in
-plaintext in memory as much as possible.
+Помните, что цель состоит в том, чтобы максимально сократить промежуток времени, в течение которого секрет хранится в памяти в виде открытого текста.
 
-For more detailed information, see
-[Testing Memory for Sensitive Data](https://mas.owasp.org/MASTG/tests/android/MASVS-STORAGE/MASTG-TEST-0011)
-from the OWASP MAS project.
+Более подробную информацию смотрите в разделе [Тестирование памяти на наличие конфиденциальных данных](https://mas.owasp.org/MASTG/tests/android/MASVS-STORAGE/MASTG-TEST-0011) из проекта OWASP MAS.
 
-### 2.6 Auditing
+### 2.6 Аудит
 
-Auditing is an essential part of secrets management due to the nature of the application. You must implement auditing securely to be resilient against attempts to tamper with or delete the audit logs. At a minimum, you should audit the following:
+Аудит является важной частью управления секретами в силу специфики приложения. Вы должны обеспечить надежную реализацию аудита, чтобы быть устойчивыми к попыткам вмешательства в журналы аудита или их удаления. Как минимум, вы должны выполнить аудит следующего:
 
-- Who requested a secret and for what system and role.
-- Whether the secret request was approved or rejected.
-- When the secret was used and by whom/what.
-- When the secret has expired.
-- Whether there were any attempts to re-use expired secrets.
-- If there have been any authentication or authorization errors.
-- When the secret was updated and by whom/what.
-- Any administrative actions and possible user activity on the underlying supporting infrastructure stack.
+- Кто запрашивал секрет, для какой системы и роли.
+- Был ли запрос одобрен или отклонен.
+- Когда использовался секрет и кем/чем.
+- Когда истек срок действия секретной информации.
+- Предпринимались ли какие-либо попытки повторного использования секретной информации с истекшим сроком действия.
+- Если были какие-либо ошибки аутентификации или авторизации.
+- Когда и кем/чем был обновлен секрет.
+- Любые административные действия и возможная активность пользователя в базовом стеке поддерживающей инфраструктуры.
 
-It is essential that all auditing has correct timestamps. Therefore, the secret management solution should have proper time sync protocols set up at its supporting infrastructure. You should monitor the stack on which the solution runs for possible clock-skew and manual time adjustments.
+Важно, чтобы во время всего аудита были установлены правильные временные метки. Поэтому в системе secret management должны быть установлены соответствующие протоколы синхронизации времени в поддерживающей инфраструктуре. Вам следует отслеживать стек, на котором работает решение, на предмет возможного смещения часов и ручной корректировки времени.
 
-### 2.7 Secret Lifecycle
+### 2.7 Секретный жизненный цикл
 
-Secrets follow a lifecycle. The stages of the lifecycle are as follows:
+Секреты имеют определенный жизненный цикл. Жизненный цикл состоит из следующих этапов:
 
-- Creation
-- Rotation
-- Revocation
-- Expiration
+- Создание
+- Ротация
+- Аннулирование
+- Истечение срока действия
 
-#### 2.7.1 Creation
+#### 2.7.1 Создание
 
-New secrets must be securely generated and cryptographically robust enough for their purpose. Secrets must have the minimum privileges assigned to them to enable their required use/role.
+Новые секретные данные должны быть надежно сгенерированы и криптографически достаточно надежны для своей цели. Секретные данные должны иметь минимальные привилегии, назначенные им для обеспечения их требуемого использования/роли.
 
-You should transmit credentials securely, such that ideally, you don't send the password along with the username when requesting user accounts. Instead, you should send the password via a secure channel (e.g. mutually authenticated connection) or a side-channel such as push notification, SMS, email. Refer to the [Multi-Factor Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Multifactor_Authentication_Cheat_Sheet) to learn about the pros and cons of each channel.
+Вы должны безопасно передавать учетные данные, чтобы в идеале не отправлять пароль вместе с именем пользователя при запросе учетных записей пользователей. Вместо этого вам следует отправить пароль по защищенному каналу (например, через соединение с взаимной аутентификацией) или по стороннему каналу, такому как push-уведомление, SMS, электронная почта. Ознакомьтесь с [Инструкцией по многофакторной аутентификации] (https://cheat инструкция series.owasp.org/cheatsheets/Multifactor_Authentication_Cheat_Sheet), чтобы узнать о плюсах и минусах каждого канала.
 
-Applications may not benefit from having multiple communication channels, so you must provision credentials securely.
+Наличие нескольких каналов связи может оказаться невыгодным для приложений, поэтому необходимо надежно предоставить учетные данные.
 
-See [the Open CRE project on secrets lookup](https://www.opencre.org/cre/223-780) for more technical recommendations on secret creation.
+Смотрите [проект Open CRE по поиску секретов](https://www.opencre.org/cre/223-780) для получения дополнительных технических рекомендаций по созданию секретов.
 
-#### 2.7.2 Rotation
+#### 2.7.2 Ротация
 
-You should regularly rotate secrets so that any stolen credentials will only work for a short time. Regular rotation will also reduce the tendency for users to fall back to bad habits such as re-using credentials.
+Вам следует регулярно менять секретные данные, чтобы любые украденные учетные данные работали только в течение короткого времени. Регулярная ротация также снизит склонность пользователей возвращаться к вредным привычкам, таким как повторное использование учетных данных.
 
-Depending on a secret's function and what it protects, the lifetime could be from minutes (think end-to-end encrypted chats with perfect forward secrecy) to years (consider hardware secrets).
+В зависимости от функции secret и того, что он защищает, срок его службы может составлять от нескольких минут (например, сквозные зашифрованные чаты с идеальной прямой секретностью) до нескольких лет (например, аппаратные секреты).
 
-User credentials are excluded from regular rotating. These should only be rotated if there is suspicion or evidence that they have been compromised, according to [NIST recommendations](https://pages.nist.gov/800-63-FAQ/#q-b05).
+Учетные данные пользователя не подлежат регулярной ротации. Их следует ротировать только в том случае, если есть подозрения или доказательства того, что они были скомпрометированы, в соответствии с [рекомендациями NIST](https://pages.nist.gov/800-63-FAQ/#q-b05).
 
-#### 2.7.3 Revocation
+#### 2.7.3 Отзыв
 
-When secrets are no longer required or potentially compromised, you must securely revoke them to restrict access. With (TLS) certificates, this also involves certificate revocation.
+Когда секретные данные больше не требуются или потенциально скомпрометированы, вы должны надежно отозвать их, чтобы ограничить доступ. В случае сертификатов (TLS) это также влечет за собой отзыв сертификата.
 
-#### 2.7.4 Expiration
+#### 2.7.4 Истечение
 
-You should create secrets to expire after a defined time where possible. This expiration can either be active expiration by the secret consuming system, or an expiration date set at the secrets management system forcing supporting processes to be triggered, resulting in a secret rotation.
-You should apply policies through the secrets management solution to ensure credentials are only made available for a limited time appropriate for the type of credentials. Applications should verify that the secret is still active before trusting it.
+По возможности, вы должны создавать секреты, срок действия которых истекает через определенное время. Этот срок может быть либо активным для системы, использующей секрет, либо истечением срока действия, установленного в системе управления секретами, что приводит к запуску вспомогательных процессов, что приводит к ротации секретов.
+Вы должны применить политики с помощью решения для управления секретами, чтобы гарантировать, что учетные данные будут доступны только в течение ограниченного времени, соответствующего типу учетных данных. Приложения должны убедиться, что секрет все еще активен, прежде чем доверять ему.
 
-### 2.8 Transport Layer Security (TLS) Everywhere
+### 2.8 Передавать все через TLS 
 
-Never transmit secrets via plaintext. In this day and age, there is no excuse given the ubiquitous adoption of TLS.
+Никогда не передавайте секретные данные открытым текстом. В наши дни повсеместному внедрению TLS нет оправдания.
 
-Furthermore, you can effectively use secrets management solutions to provision TLS certificates.
+Кроме того, вы можете эффективно использовать решения для управления секретными данными для предоставления сертификатов TLS.
 
-### 2.9 Downtime, Break-glass, Backup and Restore
+### 2.9 Время простоя, разбитие стекла, резервное копирование и восстановление
 
-Consider the possibility that a secrets management service becomes unavailable for various reasons, such as scheduled downtime for maintenance. It could be impossible to retrieve the credentials required to restore the service if you did not previously acquire them. Thus, choose maintenance windows carefully based on earlier metrics and audit logs.
+Учитывайте возможность того, что служба управления секретами становится недоступной по различным причинам, например, из-за запланированного простоя для обслуживания. Возможно, будет невозможно получить учетные данные, необходимые для восстановления службы, если вы не получили их ранее. Поэтому тщательно выбирайте периоды обслуживания, основываясь на более ранних показателях и журналах аудита.
 
-Next, the backup and restore procedures of the system should be regularly tested and audited for their security. A few requirements regarding backup & restore. Ensure that:
+Далее, процедуры резервного копирования и восстановления системы следует регулярно тестировать и проверять на предмет их безопасности. Несколько требований, касающихся резервного копирования и восстановления. Убедитесь, что:
 
-- An automated backup procedure is in place and executed periodically; base the frequency of the backups and snapshots on the number of secrets and their lifecycle.
-- Frequently test restore procedures to guarantee that the backups are intact.
-- Encrypt backups and put them on secure storage with reduced access rights. Monitor the backup location for (unauthorized) access and administrative actions.
+- Внедрена и периодически выполняется автоматизированная процедура резервного копирования; частота создания резервных копий и моментальных снимков зависит от количества секретных данных и их жизненного цикла.
+- Часто тестируйте процедуры восстановления, чтобы гарантировать сохранность резервных копий.
+- Шифруйте резервные копии и помещайте их в защищенное хранилище с ограниченными правами доступа. Следите за местоположением резервной копии на предмет (несанкционированного) доступа и административных действий.
 
-Lastly, you should implement emergency ("break-glass") processes to restore the service if the system becomes unavailable for reasons other than regular maintenance. Therefore, emergency break-glass credentials should be regularly backed up securely in a secondary secrets management system and tested routinely to verify they work.
+Наконец, вам следует внедрить аварийные процедуры (""break-glass") для восстановления работы сервиса, если система становится недоступной по причинам, отличным от регулярного технического обслуживания. Поэтому необходимо регулярно создавать резервные копии учетных данных для аварийного разбей стекло во вторичной системе управления секретами и регулярно проверять их работоспособность.
 
-### 2.10 Policies
+### 2.10 Политики
 
-Consistently enforce policies defining the minimum complexity requirements of passwords and approved encryption algorithms at an organization-wide level. Using a centralized secrets management solution can help companies implement these policies.
+Последовательно применяйте политики, определяющие требования к минимальной сложности паролей и утвержденным алгоритмам шифрования, на уровне всей организации. Использование централизованного решения для управления секретами может помочь компаниям внедрить эти политики.
 
-Next, having an organization-wide secrets management policy can help enforce applying the best practices defined in this cheat sheet.
+Далее, наличие политики управления секретами в масштабах всей организации может помочь обеспечить применение рекомендаций, описанных в этом руководстве.
 
-### 2.11 Metadata: prepare to move the secret
+### 2.11 Метаданные: подготовьтесь к перемещению секретной информации
 
-A secret management solution should provide the capability to store at least the following metadata about a secret:
+Решение для управления секретом должно обеспечивать возможность хранения, по крайней мере, следующих метаданных о секрете:
 
-- When it was created/consumed/archived/rotated/deleted
-- Who created/consumed/archived/rotated/deleted it (e.g. both the actual producer, and the engineer using the production method)
-- What created/consumed/archived/rotated/deleted it
-- Who to contact when having trouble with the secret or having questions about it
-- For what the secret is used (E.g. designated intended consumers and purpose of the secret)
-- What type of secret it is (E.g. AES Key, HMAC key, RSA private key)
-- When you need to rotate it, if done manually
+- Когда он был создан/использован/заархивирован/ротирован/удален
+- Кто его создал/использовал/заархивировал/ротировал/удалил (например, как сам производитель, так и инженер, использующий производственный метод)
+- Что его создало/использовало/заархивировало/ротировало/удалило
+- К кому обращаться в случае возникновения проблем с секретом или вопросов по его поводу
+- Для чего используется секрет (например, указаны предполагаемые потребители и цель секрета)
+- Какой это тип секрета (например, ключ AES, ключ HMAC, закрытый ключ RSA)
+- Когда вам нужно его изменить, если это делается вручную
 
-Note: if you don't store metadata about the secret nor prepare to move, you will increase the probability of vendor lock-in.
+Примечание: если вы не сохраните метаданные о секрете и не подготовитесь к перемещению, вы увеличите вероятность блокировки поставщика.
 
-## 3 Continuous Integration (CI) and Continuous Deployment (CD)
+## 3 Непрерывная интеграция (CI) и непрерывное развертывание (CD)
 
-Building, testing and deploying changes generally requires access to many systems. Continuous Integration (CI) and Continuous Deployment (CD) tools typically store secrets to provide configuration to the application or during deployment. Alternatively, they interact heavily with the secrets management system. Various best practices can help smooth out secret management in CI/CD; we will deal with some of them in this section.
+Для создания, тестирования и внедрения изменений обычно требуется доступ ко многим системам. Средства непрерывной интеграции (CI) и непрерывного развертывания (CD) обычно хранят секретные данные для обеспечения настройки приложения или во время развертывания. Кроме того, они тесно взаимодействуют с системой управления секретами. Различные рекомендации могут помочь упростить управление секретами в CI/CD; мы рассмотрим некоторые из них в этом разделе.
 
-### 3.1 Hardening your CI/CD pipeline
+### 3.1 Упрочнение вашего пайплайна CI/CD
 
-CI/CD tooling consumes (high-privilege) credentials regularly. Ensure that the pipeline cannot be easily hacked or misused by employees. Here are a few guidelines which can help you:
+CI/CD tooling регулярно использует учетные данные (с высокими привилегиями). Убедитесь, что пайплан не может быть легко взломан или неправильно использован сотрудниками. Вот несколько рекомендаций, которые могут вам помочь:
 
-- Treat your CI/CD tooling as a production environment: harden it, patch it and harden the underlying infrastructure and services.
-- Have Security Event Monitoring in place.
-- Implement least-privilege access: developers do not need to be able to administer projects. Instead, they only need to be able to execute required functions, such as setting up pipelines, running them, and working with code. Administrative tasks can quickly be done using configuration-as-code in a separate repository used by the CI/CD system to update its configuration. There is no need for privileged roles that might have access to secrets.
-- Make sure that pipeline output does not leak secrets, and you can't listen in on production pipelines with debugging tools.
-- Make sure you cannot exec into any runners and workers for a CI/CD system.
-- Have proper authentication, authorization and accounting in place.
-- Ensure only an approved process can create pipelines, including MR/PR steps to ensure that a created pipeline is security-reviewed.
+- Относитесь к своему инструментарию CI/CD как к рабочей среде: улучшайте его, вносите исправления и улучшайте базовую инфраструктуру и сервисы.
+- Обеспечьте мониторинг событий безопасности.
+- Внедрить доступ с наименьшими привилегиями: разработчикам не нужно уметь администрировать проекты. Вместо этого им нужно только уметь выполнять необходимые функции, такие как настройка пайплайна, их запуск и работа с кодом. Административные задачи могут быть быстро выполнены с использованием конфигурации в виде кода в отдельном хранилище, используемом системой CI/CD для обновления своей конфигурации. Нет необходимости в привилегированных ролях, которые могли бы иметь доступ к секретам.
+- Убедитесь, что выходные данные пайплайна не содержат секретных данных, и вы не сможете прослушивать производственные пайплайны с помощью инструментов отладки.
+- Убедитесь, что вы не можете подключаться к каким-либо исполнителям и воркерам для системы CI/CD.
+- Обеспечьте надлежащую аутентификацию, авторизацию и учет.
+- Убедитесь, что только утвержденный процесс может создавать пайплайны, включая шаги MR/PR, чтобы убедиться, что созданный пайплайн проверен на безопасность.
 
-### 3.2 Where should a secret be?
+### 3.2 Где должен быть секрет?
 
-There are various places where you can store a secret to execute CI/CD actions:
+Существуют различные места, где вы можете хранить секрет для выполнения действий CI/CD:
 
-- As part of your CI/CD tooling: you can store a secret in [GitLab](https://docs.gitlab.com/charts/installation/secrets.html)/[GitHub](https://docs.github.com/en/actions/security-guides/encrypted-secrets)/[jenkins](https://www.jenkins.io/doc/developer/security/secrets/). This is not the same as committing it to code.
-- As part of your secrets-management system: you can store a secret in a secrets management system, such as facilities provided by a cloud provider ([AWS Secret Manager](https://aws.amazon.com/secrets-manager/), [Azure Key Vault](https://azure.microsoft.com/nl-nl/services/key-vault/), [Google Secret Manager](https://cloud.google.com/secret-manager)), or other third-party facilities ([Hashicorp Vault](https://www.vaultproject.io/), [Conjur](https://www.conjur.org/), [Keeper](https://www.keepersecurity.com/), [Confidant](https://lyft.github.io/confidant/)). In this case, the CI/CD pipeline tooling requires credentials to connect to these secret management systems to have secrets in place. See [Cloud Providers](#4-cloud-providers) for more details on using a cloud provider's secret management system.
+- Как часть вашего инструментария CI/CD: вы можете сохранить секрет в [GitLab](https://docs.gitlab.com/charts/installation/secrets.html)/[GitHub](https://docs.github.com/en/actions/security-guides/encrypted-secrets)/[jenkins](https://www.jenkins.io/doc/developer/security/secrets/). Это не то же самое, что зафиксировать его в коде.
+- Как часть вашей системы управления секретами: вы можете сохранить секрет в системе управления секретами, например, с помощью средств, предоставляемых поставщиком облачных услуг ([AWS Secret Manager](https://aws.amazon.com/secrets-manager/), [Azure Key Vault](https://azure.microsoft.com/nl-nl/services/key-vault/), [Google Secret Manager](https://cloud.google.com/secret-manager)) или другие сторонние сервисы ([Хранилище Hashicorp](https://www.vaultproject.io/), [Conjur](https://www.conjur.org/), [Хранитель](https://www.keepersecurity.com/), [Доверенное лицо](https://lyft.github.io/confidant/)). В этом случае инструментарий пайплайна CI/CD требует учетных данных для подключения к этим системам управления секретами, чтобы иметь доступ к секретам. Смотрите [Облачные провайдеры] (#4-облачные провайдеры) для получения более подробной информации об использовании системы управления безопасностью облачного провайдера.
 
-Another alternative here is using the CI/CD pipeline to leverage the Encryption as a Service from the secrets management systems to do the encryption of a secret. The CI/CD tooling can then commit the encrypted secret to git, which can be fetched by the consuming service on deployment and decrypted again. See section 3.6 for more details.
+Другой альтернативой здесь является использование пайплайна CI/CD для использования шифрования как сервиса из систем управления секретами для выполнения шифрования секрета. Инструментарий CI/CD может затем передать зашифрованный секрет в git, который может быть извлечен потребляющей службой при развертывании и снова расшифрован. Более подробную информацию смотрите в разделе 3.6.
 
-Note: not all secrets must be at the CI/CD pipeline to get to the actual deployment. Instead, make sure that the deployed services take care of part of their secrets management at their own lifecycle (E.g. deployment, runtime and destruction).
+Примечание: не все секреты должны находиться в пайплайне CI/CD, чтобы перейти к фактическому развертыванию. Вместо этого убедитесь, что развернутые службы выполняют часть управления своими секретами на своем собственном жизненном цикле (например, развертывание, время выполнения и уничтожение).
 
-#### 3.2.1 As part of your CI/CD tooling
+#### 3.2.1 Как часть вашего инструментария CI/CD
 
-When secrets are part of your CI/CD tooling, it means that these secrets are exposed to your CI/CD jobs. CI/CD tooling can comprise, e.g. GitHub secrets, GitLab repository secrets, ENV Vars/Var Groups in Microsoft Azure DevOps, Kubernetes Secrets, etc.
-These secrets are often configurable/viewable by people who have the authorization to do so (e.g. a maintainer in GitHub, a project owner in GitLab, an admin in Jenkins, etc.), which together lines up for the following best practices:
+Когда секреты являются частью вашего инструментария CI/CD, это означает, что эти секреты доступны для выполнения ваших заданий CI/CD. Инструменты CI/CD могут включать, например, секреты GitHub, секреты репозитория GitLab, ENV Vars/группы Var в Microsoft Azure DevOps, секреты Kubernetes и т.д.
+Эти секреты часто настраиваются / просматриваются людьми, имеющими на это разрешение (например, разработчиком в GitHub, владельцем проекта в GitLab, администратором в Jenkins и т.д.), Что в совокупности соответствует следующим рекомендациям:
 
-- No "big secret": ensure that secrets in your CI/CD tooling that are not long-term, don't have a wide blast radius, and don't have a high value. Also, limit shared secrets (e.g. never have one password for all administrative users).
-- As is / To be: have a clear overview of which users can view or alter the secrets. Often, maintainers of a GitLab/GitHub project can see or otherwise extract its secrets.
-- Reduce the number of people that can perform administrative tasks on the project to limit exposure.
-- Log & Alert: Assemble all the logs from the CI/CD tooling and have rules in place to detect secret extraction, or misuse, whether through accessing them through a web interface or dumping them while double base64 encoding or encrypting them with OpenSSL.
-- Rotation: Regularly rotate secrets.
-- Forking should not leak: Validate that a fork of the repository or copy of the job definition does not copy the secret.
-- Document: Make sure you document which secrets you store as part of your CI/CD tooling and why so that you can migrate these easily when required.
+- Никаких "больших секретов": убедитесь, что в вашем наборе инструментов CI/CD есть секреты, которые не являются долговременными, не имеют большого радиуса действия и не имеют высокой ценности. Кроме того, ограничьте количество общих секретов (например, никогда не вводите один пароль для всех пользователей с правами администратора).
+- Как есть / как будет: у вас есть четкое представление о том, какие пользователи могут просматривать или изменять секреты. Часто разработчики проекта GitLab/GitHub могут просматривать или иным образом извлекать его секреты.
+- Сократите количество людей, которые могут выполнять административные задачи в рамках проекта, чтобы ограничить воздействие.
+- Ведение журнала и оповещение: Соберите все журналы из инструментария CI/CD и разработайте правила для обнаружения секретного извлечения или неправильного использования, будь то доступ к ним через веб-интерфейс или их сброс при двойном кодировании base64 или шифровании с помощью OpenSSL.
+- Ротация: Регулярно меняйте секреты.
+- При разветвлении не должно быть утечки: убедитесь, что разветвление хранилища или копия определения задания не копируют секрет.
+- Документирование: убедитесь, что вы задокументировали, какие секреты вы храните как часть своего инструментария CI /CD и почему, чтобы при необходимости их можно было легко перенести.
 
-#### 3.2.2 Storing it in a secrets management system
+#### 3.2.2 Хранение информации в системе управления секретами
 
-Naturally, you can store secrets in a designated secrets management solution. For example, you can use a solution offered by your (cloud) infrastructure provider, such as [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/), [Google Secrets Manager](https://cloud.google.com/secret-manager), or [Azure KeyVault](https://azure.microsoft.com/nl-nl/services/key-vault/). You can find more information about these in [section 4](#4-cloud-providers) of this cheat sheet. Another option is a dedicated secrets management system, such as [Hashicorp Vault](https://www.vaultproject.io/), [Keeper](https://www.keepersecurity.com/), [Confidant](https://lyft.github.io/confidant/), [Conjur](https://www.conjur.org/).
-Here are a few do's and don'ts for the CI/CD interaction with these systems. Make sure that the following is taken care of:
+Естественно, вы можете хранить секреты в специальном решении для управления секретами. Например, вы можете воспользоваться решением, предлагаемым вашим поставщиком (облачной) инфраструктуры, таким как [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/), [Google Secrets Manager](https://cloud.google.com/secret-manager) или [Azure KeyVault](https://azure.microsoft.com/nl-nl/services/key-vault/). Вы можете найти более подробную информацию об этом в [разделе 4] (#4 - облачные провайдеры) этой шпаргалки. Другим вариантом является специальная система управления секретами, такая как [Hashicorp Vault](https://www.vaultproject.io/), [Keeper] (https://www.keepersecurity.com/), [Доверенное лицо] (https://lyft.github.io/confidant/), [Conjur](https://www.conjur.org/).
+Вот несколько рекомендаций по взаимодействию CI/CD с этими системами. Убедитесь, что соблюдены следующие требования:
 
-- Rotation/Temporality: credentials used by the CI/CD tooling to authenticate against the secret management system are rotated frequently and expire after a job completes.
-- Scope of authorization: scope credentials used by the CI/CD tooling (e.g. roles, users, etc.), only authorize those secrets and services of the secret management system required for the CI/CD tooling to execute its job.
-- Attribution of the caller: credentials used by the CI/CD tooling still hold attribution of the one calling the secrets management solution. Ensure you can attribute any calls made by the CI/CD tooling to a person or service that requested the actions of the CI/CD tooling. If this is not possible through the default configuration of the secrets manager, make sure that you have a correlation setup in terms of request parameters.
-- All of the above: Still follow those do's and don'ts listed in section 3.2.1: log & alert, take care of forking, etc.
-- Backup: back up secrets to product-critical operations in separate storage (e.g. cold storage), especially encryption keys.
+- Ротация/временный характер: учетные данные, используемые инструментарием CI/CD для аутентификации в системе управления секретами, часто меняются, и срок их действия истекает после завершения задания.
+- Область полномочий: учетные данные, используемые инструментарием CI/CD (например, роли, пользователи и т.д.), позволяют авторизовать только те секреты и службы системы управления секретами, которые необходимы инструментарию CI/CD для выполнения своей работы.
+- Идентификация вызывающего абонента: учетные данные, используемые CI/CD tooling, по-прежнему позволяют идентифицировать пользователя, вызывающего решение для управления секретами. Убедитесь, что вы можете отнести любые вызовы, сделанные CI/CD tooling, к лицу или службе, которые запросили действия CI/CD tooling. Если это невозможно с помощью конфигурации secrets manager по умолчанию, убедитесь, что у вас настроена корреляция с точки зрения параметров запроса.
+- Все вышеперечисленное: по-прежнему выполняйте действия, перечисленные в разделе 3.2.1: регистрируйте и оповещайте, следите за разветвлениями и т.д.
+- Резервное копирование: сохраняйте секретные данные для критически важных операций с продуктом в отдельном хранилище (например, в холодном хранилище), особенно ключи шифрования.
 
-#### 3.2.3 Not touched by CI/CD at all
+#### 3.2.3 CI/CD не затрагивается вообще
 
-Secrets do not necessarily need to be brought to a consumer of the secret by a CI/CD pipeline. It is even better when the consumer of the secret retrieves the secret. In that case, the CI/CD pipeline still needs to instruct the orchestrating system (e.g. [Kubernetes](https://kubernetes.io/)) that it needs to schedule a specific service with a given service account with which the consumer can then retrieve the required secret. The CI/CD tooling then still has credentials for the orchestrating platform but no longer has access to the secrets themselves. The do's and don'ts regarding these credentials types are similar to those described in section 3.2.2.
+Секреты не обязательно должны передаваться потребителю по каналу CI/CD. Еще лучше, когда потребитель получает секрет сам. В этом случае пайплайну CI/CD по-прежнему необходимо указать системе управления (например, [Kubernetes](https://kubernetes.io/)), что ей необходимо запланировать определенную службу с заданной учетной записью службы, с помощью которой пользователь может затем получить требуемый секрет. В этом случае инструментарий CI/CD по-прежнему имеет учетные данные для платформы управления, но больше не имеет доступа к самим секретам. Что можно и чего нельзя делать в отношении этих типов учетных данных, аналогично описанным в разделе 3.2.2.
 
-### 3.3 Authentication and Authorization of CI/CD tooling
+### 3.3 Аутентификация и авторизация инструментов CI/CD
 
-CI/CD tooling should have designated service accounts, which can only operate in the scope of the required secrets or orchestration of the consumers of a secret. Additionally, a CI/CD pipeline run should be easily attributable to the one who has defined the job or triggered it to detect who has tried to exfiltrate secrets or manipulate them. When you use certificate-based auth, the caller of the pipeline identity should be part of the certificate. If you use a token to authenticate towards the mentioned systems, make sure you set the principal requesting these actions (e.g. the user or the job creator).
+Инструментарий CI/CD должен иметь определенные учетные записи служб, которые могут работать только в рамках требуемых секретов или согласования с потребителями секретов. Кроме того, запуск пайплайна CI/CD должен быть легко связан с тем, кто определил задание или запустил его, чтобы обнаружить, кто пытался получить доступ к секретным данным или манипулировать ими. При использовании аутентификации на основе сертификата вызывающий идентификатор пайплайна должен быть частью сертификата. Если вы используете токен для аутентификации в указанных системах, убедитесь, что вы указали участника, запрашивающего эти действия (например пользователь или создатель задания).
 
-Verify on a periodical basis whether this is (still) the case for your system so that you can do logging, attribution, and security alerting on suspicious actions effectively.
+Периодически проверяйте, так ли это (по-прежнему) справедливо для вашей системы, чтобы вы могли эффективно вести журнал, устанавливать авторство и оповещать систему безопасности о подозрительных действиях.
 
-### 3.4 Logging and Accounting
+### 3.4 Ведение журнала и учет
 
-Attackers can use CI/CD tooling to extract secrets. They could, for example, use administrative interfaces or job creation which exfiltrates the secret using encryption or double base64 encoding. Therefore, you should log every action in a CI/CD tool. You should define security alerting rules at every non-standard manipulation of the pipeline tool and its administrative interface to monitor secret usage.
-Logs should be queryable for at least 90 days and stored for a more extended period in cold storage. It might take security teams time to understand how attackers can exfiltrate or manipulate a secret using CI/CD tooling.
+Злоумышленники могут использовать инструменты CI/CD для извлечения секретов. Они могут, например, использовать административные интерфейсы или создание заданий, которые позволяют получить секрет с помощью шифрования или двойного кодирования base64. Поэтому вам следует регистрировать каждое действие в инструменте CI/CD. Вы должны определить правила оповещения о безопасности при каждой нестандартной манипуляции с инструментом пайплайна и его административным интерфейсом, чтобы отслеживать секретное использование.
+Журналы должны быть доступны для запросов в течение как минимум 90 дней и храниться в течение более длительного периода в холодном хранилище. Специалистам по безопасности может потребоваться время, чтобы понять, как злоумышленники могут получить доступ к секретной информации или манипулировать ею с помощью инструментов CI/CD.
 
-### 3.5 Rotation vs Dynamic Creation
+### 3.5 Ротация против динамического создания
 
-You can leverage CI/CD tooling to rotate secrets or instruct other components to do the rotation of the secret. For instance, the CI/CD tool can request a secrets management system or another application to rotate the secret. Alternatively, the CI/CD tool or another component could set up a dynamic secret: a secret required for a consumer to use for as long as it lives. The secret is invalidated when the consumer no longer lives. This procedure reduces possible leakage of a secret and allows for easy detection of misuse. If an attacker uses secret from anywhere other than the consumer's IP, you can easily detect it.
+Вы можете использовать инструмент CI/CD для ротации секретов или дать команду другим компонентам выполнить ротацию секретов. Например, инструмент CI/CD может запросить систему управления секретами или другое приложение для ротации секретов. В качестве альтернативы, инструмент CI/CD или другой компонент может создать динамический секрет, который будет использоваться пользователем до конца его существования. Секрет становится недействительным, когда пользователь перестаёт существовать. Эта процедура уменьшает возможную утечку секретной информации и позволяет легко обнаружить злоупотребление. Если злоумышленник использует secret откуда-либо, кроме IP-адреса пользователя, вы можете легко обнаружить это.
 
-### 3.6 Pipeline Created Secrets
+### 3.6 Секреты, созданные пайплайном
 
-You can use pipeline tooling to generate secrets and either offer them directly to the service deployed by the tooling or provide the secret to a secrets management solution. Alternatively, the secret can be stored encrypted in git so that the secret and its metadata is as close to the developer's daily place of work as possible. A git-stored secret does require that developers cannot decrypt the secrets themselves and that every consumer of a secret has its encrypted variant of the secret. For instance: the secret should then be different per DTAP environment and be encrypted with another key. For each environment, only the designated consumer in that environment should be able to decrypt the specific secret. A secret does not leak cross-environment and can still be easily stored next to the code.
-Consumers of a secret could now decrypt the secret using a sidecar, as described in section 5.2. Instead of retrieving the secrets, the consumer would leverage the sidecar to decrypt the secret.
+Вы можете использовать инструментарий пайплайна для создания секретов и либо предоставлять их непосредственно службе, развернутой с помощью этого инструментария, либо передавать секрет в решение для управления секретами. В качестве альтернативы секрет может храниться в зашифрованном виде в git, чтобы секрет и его метаданные были как можно ближе к месту повседневной работы разработчика. Секрет, сохраненный в git, требует, чтобы разработчики не могли расшифровать его самостоятельно и чтобы у каждого пользователя секрета был свой зашифрованный вариант секрета. Например: секрет должен отличаться для каждой среды DTAP и шифроваться другим ключом. Для каждой среды только назначенный пользователь в этой среде должен иметь возможность расшифровать конкретный секрет. Секрет не передается из одной среды в другую и по-прежнему может быть легко сохранен рядом с кодом.
+Пользователи секрета теперь могут расшифровать секрет с помощью коляски, как описано в разделе 5.2. Вместо извлечения секретов пользователь может использовать коляску для расшифровки секрета.
 
-When a pipeline creates a secret by itself, ensure that the scripts or binaries involved adhere to best practices for secret generation. Best practices include secure-randomness, proper length of secret creation, etc. and that the secret is created based on well-defined metadata stored somewhere in git or somewhere else.
+Когда пайплайн сам создает секрет, убедитесь, что используемые сценарии или двоичные файлы соответствуют рекомендациям по созданию секретов. Лучшие практики включают безопасную случайность, надлежащую продолжительность создания секрета и т.д., а также то, что секрет создается на основе четко определенных метаданных, хранящихся где-то в git или где-то еще.
 
-## 4 Cloud Providers
+## 4 Облачные провайдеры
 
-For cloud providers, there are at least four essential topics to touch upon:
+Для облачных провайдеров существует, по крайней мере, четыре важных темы, которые следует затронуть:
 
-- Designated secret storage/management solutions. Which service(s) do you use?
-- Envelope & client-side encryption
-- Identity and access management: decreasing the blast radius
-- API quotas or service limits
+- Выделенные решения для секретного хранения данных и управления ими. Какие сервисы вы используете?
+- Конвертация и шифрование на стороне клиента
+- Управление идентификацией и доступом: уменьшение радиуса действия
+- Квоты API или ограничения на услуги
 
-### 4.1 Services to Use
+### 4.1 Сервисы, которые стоит использовать
 
-It is best to use a designated secret management solution in any environment. Most cloud providers have at least one service that offers secret management. Of course, it's also possible to run a different secret management solution (e.g. HashiCorp Vault or Conjur) on compute resources within the cloud. We'll consider cloud provider service offerings in this section.
+В любой среде лучше всего использовать специальное решение для управления секретами. Большинство облачных провайдеров имеют по крайней мере одну услугу, которая предлагает управление секретами. Конечно, также возможно использовать другое решение для управления секретами (например, HashiCorp Vault или Conjure) для вычислительных ресурсов в облаке. В этом разделе мы рассмотрим предложения облачных провайдеров.
 
-Sometimes it's possible to automatically rotate your secret, either via a service provided by your cloud provider or a (custom-built) function. Generally, you should prefer the cloud provider's solution since the barrier of entry and risk of misconfiguration are lower. If you use a custom solution, ensure the function's role to do its rotation can only be assumed by said function.
+Иногда можно автоматически изменить свой секрет, либо с помощью сервиса, предоставляемого вашим облачным провайдером, либо с помощью специальной функции. В целом, вам следует предпочесть решение облачного провайдера, поскольку барьер входа и риск неправильной настройки ниже. Если вы используете пользовательское решение, убедитесь, что функция, выполняющая свою ротацию, может быть взята на себя только указанной функцией.
 
 #### 4.1.1 AWS
 
-For AWS, the recommended solution is [AWS secret manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html).
+Для AWS рекомендуемым решением является [AWS secret manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html).
 
-Permissions are granted at the secret level. Check out the [Secrets Manager best practices](https://docs.aws.amazon.com/secretsmanager/latest/userguide/best-practices.html).
+Разрешения предоставляются на секретном уровне. Ознакомьтесь с [Лучшие практики менеджера секретов](https://docs.aws.amazon.com/secretsmanager/latest/userguide/best-practices.html).
 
-It is also possible to use the [Systems Manager Parameter store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html), which is cheaper, but that has a few downsides:
+Также можно использовать параметр [Системный менеджер store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html) , кото-рый мужчина, не замечает совсем ничего:
 
-- you'll need to make sure you've specified encryption yourself (secrets manager does that by default)
-- it offers fewer auto-rotation capabilities (you will likely need to build a custom function)
-- it doesn't support cross-account access
-- it doesn't support cross-region replication
-- there are fewer [security hub controls](https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-standards-fsbp-controls.html) available
+- вам нужно будет убедиться, что вы сами указали шифрование (по умолчанию это делает secrets manager)
+- он предоставляет меньше возможностей автоматической ротации (скорее всего, вам потребуется создать пользовательскую функцию)
+- он не поддерживает доступ к разным учетным записям
+- он не поддерживает репликацию между регионами
+- доступно меньше [security hub controls](https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-standards-fsbp-controls.html)
 
 ##### 4.1.1.1 AWS Nitro Enclaves
 
-With [AWS Nitro Enclaves](https://aws.amazon.com/ec2/nitro/nitro-enclaves/), you can create trusted execution environments. Thus, no human-based access is possible once the application is running. Additionally, enclaves do not have any permanent storage attached to them. Therefore, secrets and other sensitive data stored on the nitro enclaves have an additional layer of security.
+С помощью [AWS Nitro Enclaves](https://aws.amazon.com/ec2/nitro/nitro-enclaves/) вы можете создавать надежные среды выполнения. Таким образом, после запуска приложения доступ со стороны пользователя невозможен. Кроме того, к анклавам не подключено постоянное хранилище. Таким образом, секреты и другие конфиденциальные данные, хранящиеся в анклавах nitro, имеют дополнительный уровень безопасности.
 
 ##### 4.1.1.2 AWS CloudHSM
 
-For secrets being used in highly confidential applications, it may be needed to have more control over the encryption and storage of these keys. AWS offers [CloudHSM](https://aws.amazon.com/cloudhsm/), which lets you bring your own key (BYOK) for AWS services. Thus, you will have more control over keys' creation, lifecycle, and durability. CloudHSM allows automatic scaling and backup of your data. The cloud service provider, Amazon, will not have any access to the key material stored in Azure Dedicated HSM.
+Если секреты используются в приложениях с высокой степенью конфиденциальности, может потребоваться больший контроль над шифрованием и хранением этих ключей. AWS предлагает [CloudHSM](https://aws.amazon.com/cloudhsm/), который позволяет вам использовать свой собственный ключ (BYOK) для сервисов AWS. Таким образом, у вас будет больше контроля над созданием ключей, их жизненным циклом и надежностью. CloudHSM позволяет автоматически масштабировать и создавать резервные копии ваших данных. Поставщик облачных услуг Amazon не будет иметь доступа к материалам ключей, хранящимся в выделенном HSM Azure.
 
 #### 4.1.2 GCP
 
-For GCP, the recommended service is [Secret Manager](https://cloud.google.com/secret-manager/docs).
+Для GCP рекомендуемой службой является [Secret Manager](https://cloud.google.com/secret-manager/docs).
 
-Permissions are granted at the secret level.
+Разрешения предоставляются на секретном уровне.
 
-Check out the [Secret Manager best practices](https://cloud.google.com/secret-manager/docs/best-practices).
+Ознакомьтесь с рекомендациями [Secret Manager](https://cloud.google.com/secret-manager/docs/best-practices).
 
 ##### 4.1.2.1 Google Cloud Confidential Computing
 
-[GCP Confidential Computing](https://cloud.google.com/confidential-computing) allows encryption of data during runtime. Thus, application code and data are kept secret, encrypted, and cannot be accessed by humans or tools.
+[GCP Confidential Computing](https://cloud.google.com/confidential-computing) позволяет шифровать данные во время выполнения. Таким образом, код приложения и данные хранятся в секрете, зашифрованы и недоступны для людей или инструментов.
 
 #### 4.1.3 Azure
 
-For Azure, the recommended service is [Key Vault](https://docs.microsoft.com/en-us/azure/key-vault/).
+Для Azure рекомендуемой службой является [Хранилище ключей](https://docs.microsoft.com/en-us/azure/key-vault/).
 
-Contrary to other clouds, permissions are granted at the _**Key Vault**_ level. This means secrets for separate workloads and separate sensitivity levels should be in separated Key Vaults accordingly.
+В отличие от других облаков, разрешения предоставляются на уровне _**Key Vault**_. Это означает, что секреты для отдельных рабочих нагрузок и отдельных уровней секретности должны храниться в отдельных хранилищах ключей соответственно.
 
-Check out the [Key Vault best practices](https://docs.microsoft.com/en-us/azure/key-vault/general/best-practices).
+Ознакомьтесь с [Рекомендациями по хранению ключей в хранилище](https://docs.microsoft.com/en-us/azure/key-vault/general/best-practices).
 
 ##### 4.1.3.1 Azure Confidential Computing
 
-With [Azure Confidential Computing](https://azure.microsoft.com/en-us/solutions/confidential-compute/#overview), you can create trusted execution environments. Thus, every application will be executed in an encrypted enclave that protects the data and code consumed by the application is protected end-to-end. Furthermore, any application running inside enclaves is not accessible by any tool or human.
+С помощью [Azure Confidential Computing](https://azure.microsoft.com/en-us/solutions/confidential-computer/#overview) вы можете создавать надежные среды выполнения. Таким образом, каждое приложение будет выполняться в зашифрованном режиме, который защищает данные, а код, используемый приложением, защищен от начала до конца. Кроме того, любое приложение, работающее внутри анклавов, недоступно никакому инструменту или человеку.
 
 ##### 4.1.3.2 Azure Dedicated HSM
 
-For secrets being used in Azure environments and requiring special security considerations, Azure offers [Azure Dedicated HSM](https://azure.microsoft.com/en-us/services/azure-dedicated-hsm/). This allows you more control over the secrets stored on it, including enhanced administrative and cryptographic control. The cloud service provider, Microsoft, will not have any access to the key material stored in Azure Dedicated HSM.
+Для секретных данных, используемых в средах Azure и требующих особых мер безопасности, Azure предлагает [Выделенный HSM-сервер Azure](https://azure.microsoft.com/en-us/services/azure-dedicated-hsm/). Это позволяет вам лучше контролировать хранящиеся в нем секретные данные, включая расширенный административный и криптографический контроль. Поставщик облачных услуг, корпорация Майкрософт, не будет иметь никакого доступа к ключевым материалам, хранящимся в выделенном HSM-сервере Azure.
 
-#### 4.1.4 Other clouds, Multi-cloud, and Cloud agnostic
+#### 4.1.4 Другие облака, мультиоблачные и независимые от облаков решения
 
-If you're using multiple cloud providers, you should consider using a cloud agnostic secret management solution. This will allow you to use the same secret management solution across all your cloud providers (and possibly also on-premises). Another advantage is that this avoids vendor lock-in with a specific cloud provider, as the solution can be used on any cloud provider.
+Если вы используете несколько облачных провайдеров, вам следует рассмотреть возможность использования независимого от облака решения для управления секретами. Это позволит вам использовать одно и то же решение для управления секретами для всех ваших облачных провайдеров (и, возможно, также локально). Еще одним преимуществом является то, что это позволяет избежать привязки поставщика к конкретному облачному провайдеру, поскольку решение может быть использовано любым облачным провайдером.
 
-There are open source and commercial solutions available. Some examples are:
+Доступны решения с открытым исходным кодом и коммерческие решения. Вот несколько примеров:
 
 - [CyberArk Conjur](https://www.conjur.org/)
 - [HashiCorp Vault](https://www.vaultproject.io/)
 
-### 4.2 Envelope & client-side encryption
+### 4.2 Оболочка и шифрование на стороне клиента
 
-This section will describe how a secret is encrypted and how you can manage the keys for that encryption in the cloud.
+В этом разделе будет описано, как шифруется секретная информация и как вы можете управлять ключами для этого шифрования в облаке.
 
-#### 4.2.1 Client-side encryption versus server-side encryption
+#### 4.2.1 Шифрование на стороне клиента в сравнении с шифрованием на стороне сервера
 
-Server-side encryption of secrets ensures that the cloud provider takes care of the encryption of the secret in storage. The secret is then safeguarded against compromise while at rest. Encryption at rest often does not require additional work other than selecting the key to encrypt it with (See section 4.2.2). However: when you submit the secret to another service, it will no longer be encrypted. It is decrypted before sharing with the intended service or human user.
+Шифрование секретных данных на стороне сервера гарантирует, что облачный провайдер позаботится о шифровании секретных данных в хранилище. В этом случае секретные данные будут защищены от взлома во время их хранения. Шифрование в режиме ожидания часто не требует дополнительной работы, кроме выбора ключа для шифрования (см. раздел 4.2.2). Однако, когда вы передадите секрет другой службе, он больше не будет зашифрован. Он расшифровывается перед передачей предполагаемому сервису или обычному пользователю.
 
-Client-side encryption of secrets ensures that the secret remains encrypted until you actively decrypt it. This means it is only decrypted when it arrives at the consumer. You need to have a proper crypto system to cater for this. Think about mechanisms such as PGP using a safe configuration and other more scalable and relatively easy to use systems. Client-side encryption can provide an end-to-end encryption of the secret: from producer till consumer.
+Шифрование секретов на стороне клиента гарантирует, что секрет остается зашифрованным до тех пор, пока вы его активно не расшифруете. Это означает, что он расшифровывается только тогда, когда поступает к пользователю. Для этого вам нужна надлежащая криптографическая система. Подумайте о таких механизмах, как PGP, использующий безопасную конфигурацию, и других более масштабируемых и относительно простых в использовании системах. Шифрование на стороне клиента может обеспечить сквозное шифрование секретной информации: от производителя до потребителя.
 
-#### 4.2.2 Bring Your Own Key versus Cloud Provider Key
+#### 4.2.2 Используйте свой собственный ключ в отличие от ключа облачного провайдера
 
-When you encrypt a secret at rest, the question is: which key do you want to use? The less trust you have in the cloud provider, the more you will want to manage yourself.
+Когда вы шифруете секретную информацию в режиме ожидания, возникает вопрос: какой ключ вы хотите использовать? Чем меньше вы доверяете поставщику облачных услуг, тем больше вам хочется действовать самостоятельно.
 
-Often, you can either encrypt a secret with a key managed at the secrets management service or use a key management solution from the cloud provider to encrypt the secret. The key offered through the key management solution of the cloud provider can be either managed by the cloud provider or by yourself. Industry standards call the latter "bring your own key" (BYOK). You can either directly import or generate this key at the key management solution or using cloud HSM supported by the cloud provider.
-You can then either use your key or the customer main key from the provider to encrypt the data key of the secrets management solution. The data key, in turn, encrypts the secret. By managing the CMK, you have control over the data key at the secrets management solution.
+Часто вы можете зашифровать секрет с помощью ключа, которым управляет служба управления секретами, или использовать решение для управления ключами от облачного провайдера для шифрования секрета. Ключом, предлагаемым через решение для управления ключами облачного провайдера, может управлять либо поставщик облачных услуг, либо вы сами. В отраслевых стандартах это называется "принесите свой собственный ключ" (BYOK). Вы можете напрямую импортировать или сгенерировать этот ключ в решении для управления ключами или с помощью CloudHSM, поддерживаемого поставщиком облачных услуг.
+Затем вы можете использовать свой ключ или основной ключ клиента от поставщика для шифрования ключа данных в решении для управления секретами. Ключ данных, в свою очередь, шифрует секрет. Управляя CMK, вы получаете контроль над ключом данных в решении для управления секретами.
 
-While importing your own key material can generally be done with all providers ([AWS](https://docs.aws.amazon.com/kms/latest/developerguide/importing-keys.html), [Azure](https://docs.microsoft.com/en-us/azure/key-vault/keys/byok-specification), [GCP](https://cloud.google.com/kms/docs/key-import)), unless you know what you are doing and your threat model and policy require this, this is not a recommended solution due to its complexity and difficulty of use.
+Хотя импорт вашего собственного ключевого материала, как правило, можно выполнить у всех поставщиков ([AWS](https://docs.aws.amazon.com/kms/latest/developerguide/importing-keys.html), [Azure](https://docs.microsoft.com/en-us/azure/key-vault/keys/byok-specification), [GCP](https://cloud.google.com/kms/docs/key-import)), если вы не знаете, что делаете, и этого не требуют ваша модель угроз и политика, это не рекомендуемое решение из-за его сложность и затруднения в использовании.
 
-### 4.3 Identity and Access Management (IAM)
+### 4.3 Управление идентификацией и доступом (IAM)
 
-IAM applies to both on-premise and cloud setups: to effectively manage secrets, you need to set up suitable access policies and roles. Setting this up goes beyond policies regarding secrets; it should include hardening the full IAM setup, as it could otherwise allow for privilege escalation attacks. Ensure you never allow open "pass role" privileges or unrestricted IAM creation privileges, as these can use or create credentials that have access to the secrets. Next, make sure you tightly control what can impersonate a service account: are your machines' roles accessible by an attacker exploiting your server? Can service roles from the data-pipeline tooling access the secrets easily? Ensure you include IAM for every cloud component in your threat model (e.g. ask yourself: how can you do elevation of privileges with this component?). See [this blog entry](https://xebia.com/ten-pitfalls-you-should-look-out-for-in-aws-iam/) for multiple do's and don'ts with examples.
+IAM применим как к локальным, так и к облачным настройкам: для эффективного управления секретами вам необходимо настроить соответствующие политики доступа и роли. Настройка этого параметра выходит за рамки политик, касающихся секретов; она должна включать в себя полную настройку LAMP, поскольку в противном случае это привело бы к атакам с повышением привилегий. Убедитесь, что вы никогда не разрешаете открытые привилегии "передать роль" или неограниченные права на создание I AM, поскольку они могут использовать или создавать учетные данные, которые имеют доступ к секретам. Затем убедитесь, что вы строго контролируете то, что может выдавать себя за учетную запись службы: доступны ли роли ваших компьютеров злоумышленнику, использующему ваш сервер? Могут ли служебные роли из инструментария пайплайна данных легко получить доступ к секретам? Убедитесь, что вы включили AIM для каждого облачного компонента в свою модель угроз (например, спросите себя: как вы можете повысить привилегии с помощью этого компонента?). Смотрите [эту запись в блоге] (https://xebia.com/ten-pitfalls-you-should-look-out-for-in-aws-iam/), чтобы узнать, что можно и чего нельзя делать с примерами.
 
-Leverage the temporality of the IAM principals effectively: e.g. ensure that only specific roles and service accounts that require it can access the secrets. Monitor these accounts so that you can tell who or what used them to access the secrets.
+Эффективно используйте временные возможности участников IAM: например, убедитесь, что только определенные роли и учетные записи служб, которым это требуется, могут получить доступ к секретам. Следите за этими учетными записями, чтобы определить, кто или что использовало их для доступа к секретам.
 
-Next, make sure that you scope access to your secrets: one should not be simply allowed to access all secrets. In GCP and AWS, you can create fine-grained access policies to ensure that a principal cannot access all secrets at once. In Azure, having access to the key vault means having access to all secrets in that key vault. It is, thus, essential to have separate key vaults when working on Azure to segregate access.
+Затем убедитесь, что у вас есть доступ к вашим секретам: нельзя просто разрешить доступ ко всем секретам. В GCP и AWS вы можете создать детализированные политики доступа, чтобы гарантировать, что участник не сможет получить доступ ко всем секретам сразу. В Azure доступ к хранилищу ключей означает доступ ко всем секретам в этом хранилище ключей. Таким образом, при работе в Azure важно иметь отдельные хранилища ключей для разделения доступа.
 
-### 4.4 API limits
+### 4.4 Ограничения API
 
-Cloud services can generally provide a limited amount of API calls over a given period. You could potentially (D)DoS yourself when you run into these limits. Most of these limits apply per account, project, or subscription, so spread workloads to limit your blast radius accordingly. Additionally, some services may support data key caching, preventing load on the key management service API (see for example [AWS data key caching](https://docs.aws.amazon.com/encryption-sdk/latest/developer-guide/data-key-caching.html)). Some services can leverage built-in data key caching. [S3 is one such example](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucket-key.html).
+Облачные сервисы, как правило, могут предоставлять ограниченное количество вызовов API в течение определенного периода времени. Если вы столкнетесь с этими ограничениями, вы можете столкнуться с трудностями. Большинство из этих ограничений применимы к учетной записи, проекту или подписке, поэтому распределите нагрузку, чтобы соответствующим образом ограничить радиус доступа. Кроме того, некоторые службы могут поддерживать кэширование ключей данных, что предотвращает нагрузку на API службы управления ключами (см., например, [кэширование ключей данных AWS](https://docs.aws.amazon.com/encryption-sdk/latest/developer-guide/data-key-caching.html)). Некоторые службы могут использовать встроенное кэширование ключей данных. [S3 - один из таких примеров](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucket-key.html).
 
-## 5 Containers & Orchestrators
+## 5 Контейнеры и оркестраторы
 
-You can enrich containers with secrets in multiple ways: build time (not recommended) and during orchestration/deployment.
+Вы можете обогатить контейнеры секретами несколькими способами: во время сборки (не рекомендуется) и во время оркестровки/развертывания.
 
-### 5.1 Injection of Secrets (file, in-memory)
+### 5.1 Внедрение секретов (файловых, в памяти)
 
-There are three ways to get secrets to an app inside a docker container.
+Существует три способа получить доступ к секретам приложения внутри контейнера docker.
 
-- Mounted volumes (file): With this method, we keep our secrets within a particular config/secret file and mount that file to our instance as a mounted volume. Ensure that these mounts are mounted in by the orchestrator and never built-in, as this will leak the secret with the container definition. Instead, make sure that the orchestrator mounts in the volume when required.
-- Fetch from the secret store (in-memory): A sidecar app/container fetches the secrets it needs directly from a secret manager service without dealing with docker config. This solution allows you to use dynamically constructed secrets without worrying about the secrets being viewable from the file system or from checking the docker container's environment variables.
-- Environment variables: We can provide secrets directly as part of the docker container configuration. Note: secrets themselves should never be hardcoded using docker ENV or docker ARG commands, as these can easily leak with the container definitions. See the Docker challenges at [WrongSecrets](https://github.com/OWASP/wrongsecrets) as well. Instead, let an orchestrator overwrite the environment variable with the actual secret and ensure that this is not hardcoded. Additionally, environment variables are generally accessible to all processes and may be included in logs or system dumps. Using environment variables is therefore not recommended unless the other methods are not possible.
+- Смонтированные тома (файл): С помощью этого метода мы храним наши секреты в определенном конфигурационном/секретном файле и монтируем этот файл в наш экземпляр как смонтированный том. Убедитесь, что эти модули монтируются с помощью оркестратора и никогда не являются встроенными, так как это приведет к утечке информации об определении контейнера. Вместо этого убедитесь, что оркестратор при необходимости монтируется в томе.
+- Извлечение из секретного хранилища (в памяти): стороннее приложение / контейнер извлекает необходимые ему секреты непосредственно из службы secret manager, не обращаясь к конфигурации docker. Это решение позволяет вам использовать динамически создаваемые секреты, не беспокоясь о том, что они будут доступны для просмотра из файловой системы или проверки переменных среды контейнера docker.
+- Переменные среды: мы можем предоставлять секреты непосредственно как часть конфигурации контейнера docker. Примечание: сами секреты никогда не следует жестко кодировать с помощью команд docker ENV или docker ARG, поскольку они могут легко просочиться вместе с определениями контейнера. Также ознакомьтесь с проблемами Docker в разделе [WrongSecrets](https://github.com/OWASP/wrongsecrets). Вместо этого позвольте орестратору перезаписать переменную среды фактическим значением secret и убедитесь, что это не жестко запрограммировано. Кроме того, переменные среды, как правило, доступны для всех процессов и могут быть включены в журналы или системные дампы. Поэтому использование переменных окружения не рекомендуется, если только другие методы невозможны.
 
-### 5.2 Short Lived Side-car Containers
+### 5.2 Короткоживущие сторонние контейнеры
 
-To inject secrets, you could create short-lived sidecar containers that fetch secrets from some remote endpoint and then store them on a shared volume mounted to the original container. The original container can now use the secrets from mounted volume. The benefit of using this approach is that we don't need to integrate any third-party tool or code to get secrets. Once the sidecar has fetched the secrets, it terminates. Examples of this inclue [Vault Agent Sidecar Injector](https://developer.hashicorp.com/vault/docs/platform/k8s/injector) and [Conjur Secrets Provider](https://github.com/cyberark/secrets-provider-for-k8s). By mounting secrets to a volume shared with the pod, containers within the pod can consume secrets without being aware of the secrets manager.
+Чтобы внедрить секреты, вы могли бы создать короткоживущие сторонние контейнеры, которые извлекают секреты из какой-либо удаленной конечной точки и затем сохраняют их на общем томе, подключенном к исходному контейнеру. Исходный контейнер теперь может использовать секреты из подключенного тома. Преимущество использования этого подхода заключается в том, что нам не нужно интегрировать какой-либо сторонний инструмент или код для получения секретов. Как только сторонний контейнер извлек секреты, он завершает работу. Примерами этого могут служить [Vault Agent Sidecar Injector](https://developer.hashicorp.com/vault/docs/platform/k8s/injector) и [Conjur Secrets Provider](https://github.com/cyberark/secrets-provider-for-k8s). При монтаже secrets на том, который используется совместно с модулем, контейнеры внутри модуля могут использовать secrets без ведома менеджера секретов.
 
-### 5.3 Internal vs External Access
+### 5.3 Внутренний и внешний доступ
 
-You should only expose secrets to communication mechanisms between the container and the deployment representation (e.g. a Kubernetes Pod). Never expose secrets through external access mechanisms shared among deployments or orchestrators (e.g. a shared volume).
+Вы должны предоставлять секретные данные только механизмам связи между контейнером и представлением развертывания (например, модулю Kubernetes). Никогда не предоставляйте секретные данные с помощью внешних механизмов доступа, которые используются совместно между развертываниями или организаторами (например, общий том).
 
-When the orchestrator stores secrets (e.g. Kubernetes Secrets), make sure that the storage backend of the orchestrator is encrypted and you manage the keys well. See the [Kubernetes Security Cheat Sheet](Kubernetes_Security_Cheat_Sheet.md) for more information.
+Когда orchestrator хранит секреты (например, секреты Kubernetes), убедитесь, что серверная часть orchestrator зашифрована и вы правильно управляете ключами. Дополнительную информацию смотрите в [Руководстве по безопасности Kubernetes](Kubernetes_Security_Cheat_Sheet.md).
 
-## 6 Implementation Guidance
+## 6 Руководство по внедрению
 
-In this section, we will discuss implementation. Note that it is always best to refer to the official documentation of the secrets management system of choice for the actual implementation as it will be more up to date than any secondary document such as this cheat sheet.
+В этом разделе мы обсудим внедрение. Обратите внимание, что при фактическом внедрении всегда лучше обращаться к официальной документации выбранной системы управления секретами, поскольку она будет более актуальной, чем любой дополнительный документ, такой как эта шпаргалка.
 
-### 6.1 Key Material Management Policies
+### 6.1 Основные принципы управления материальными ресурсами
 
-Key material management is discussed in the [Key Management Cheat Sheet](Key_Management_Cheat_Sheet.md)
+Управление ключами обсуждается в [Шпаргалке по управлению ключами](Key_Management_Cheat_Sheet.md)
 
-### 6.2 Dynamic vs Static Use Cases
+### 6.2 Динамические и статические варианты использования
 
-We see the following use cases for dynamic secrets, amongst others:
+Среди прочих, мы видим следующие варианты использования динамических секретов:
 
-- short-lived secrets (e.g. credentials or API keys) for a secondary service that expresses the intent for connecting the primary service (e.g. consumer) to the service.
-- short-lived integrity and encryption controls for guarding and securing in-memory and runtime communication processes. Think of encryption keys that only need to live for a single session or a single deployment lifetime.
-- short-lived credentials for building a stack during the deployment of a service for interacting with the deployers and supporting infrastructure.
+- короткоживущие секреты (например, учетные данные или ключи API) для вторичной службы, которые выражают намерение подключить основную службу (например, потребителя) к сервису.
+- короткоживущие средства управления целостностью и шифрованием для защиты процессов обмена данными в памяти и во время выполнения. Подумайте о ключах шифрования, срок действия которых должен составлять всего один сеанс или один период развертывания.
+- это учетные данные с коротким сроком действия для создания стека во время развертывания службы для взаимодействия с разработчиками и поддерживающей инфраструктурой.
 
-Note that these dynamic secrets often need to be created with the service we need to connect to. To create these types of dynamic secrets, we usually require long term static secrets to create the dynamic secrets themselves. Other static use cases:
+Обратите внимание, что эти динамические секреты часто необходимо создавать с помощью службы, к которой нам нужно подключиться. Для создания динамических секретов такого типа нам обычно требуются долгосрочные статические секреты для создания самих динамических секретов. Другие варианты использования статических секретов:
 
-- key material that needs to live longer than a single deployment due to the nature of their usage in the interaction with other instances of the same service (e.g. storage encryption keys, TLS PKI keys)
-- key material or credentials to connect to services that do not support creating temporal roles or credentials.
+- ключевые материалы, срок службы которых превышает срок одного развертывания из-за характера их использования при взаимодействии с другими экземплярами той же службы (например, ключи шифрования хранилища, ключи TLS PKI).
+- ключевые материалы или учетные данные для подключения к службам, которые не поддерживают создание временных ролей или учетных данных.
 
-### 6.3 Ensure limitations are in place
+### 6.3 Убедитесь в наличии ограничений
 
-Secrets should never be retrievable by everyone and everything. Always make sure that you put guardrails in place:
+Секретные данные никогда не должны быть доступны для всех и вся. Всегда следите за тем, чтобы вы устанавливали защитные барьеры:
 
-- Do you have the opportunity to create access policies? Ensure that there are policies in place to limit the number of entities that can read or write the secret. At the same time, write the policies so that you can easily extend them, and they are not too complicated to understand.
-- Is there no way to reduce access to certain secrets within a secrets management solution? Consider separating the production and development secrets by having separate secret management solutions. Then, reduce access to the production secrets management solution.
+- Есть ли у вас возможность создавать политики доступа? Убедитесь, что существуют политики, ограничивающие количество объектов, которые могут считывать или записывать секретные данные. В то же время напишите правила таким образом, чтобы вы могли легко их расширять и чтобы они были не слишком сложными для понимания.
+- Нет ли способа сократить доступ к определенным секретам в рамках решения для управления секретами? Рассмотрите возможность разделения секретов производства и разработки, используя отдельные решения для управления секретами. Затем сократите доступ к решению для управления секретами производства.
 
-### 6.4 Security Event Monitoring is Key
+### 6.4 Мониторинг событий безопасности является ключевым фактором
 
-Continually monitor who/what, from which IP, and what methodology accesses the secret. There are various patterns where you need to look out for, such as, but not limited to:
+Постоянно отслеживайте, кто/ что, с какого IP и каким способом получает доступ к секретной информации. Существуют различные шаблоны, на которые вам следует обратить внимание, например, но не ограничиваясь ими:
 
-- Monitor who accesses the secret at the secret management system: is this normal behavior? If the CI/CD credentials are used to access the secret management solution from a different IP than where the CI/CD system is running, provide a security alert and assume the secret compromised.
-- Monitor the service requiring the secret (if possible), e.g., whether the user of the secret is coming from an expected IP, with an expected user agent. If not, alert and assume the secret is compromised.
+- Отслеживайте, кто получает доступ к секретной информации в системе управления секретной информацией: это нормальное поведение? Если учетные данные CI/CD используются для доступа к решению secret management с другого IP-адреса, отличного от того, на котором запущена система CI/CD, отправьте предупреждение безопасности и предположите, что секрет взломан.
+- Отслеживайте службу, для которой требуется секрет (если это возможно), например, приходит ли пользователь с ожидаемого IP-адреса с ожидаемым агентом пользователя. Если нет, предупредите и предположите, что секрет взломан.
 
 ### 6.5 Usability
 
-Ensure that your secrets management solution is easy to use, as you do not want people to work around it or use it ineffectively due to complexity. This usability requires:
+Убедитесь, что ваше решение для управления секретами простое в использовании, поскольку вы не хотите, чтобы люди обходили его или использовали неэффективно из-за сложности. Для удобства использования требуется:
 
-- Easy onboarding of new secrets and removal of invalidated secrets.
-- Easy integration with the existing software: it should be easy to integrate applications as consumers of the secret management system. For instance, an SDK or simple sidecar container should be available to communicate with the secret management system so that existing software is decoupled and does not need extensive modification. You can find examples of this in the AWS, Google, and Azure SDKs. These SDKs allow an application to interact with the respective secrets management solutions. You can find similar examples in the HashiCorp Vault software integrations and the [Vault Agent Sidecar Injector](https://developer.hashicorp.com/vault/docs/platform/k8s/injector), as well as Conjur integrations and [Conjur Secrets Provider](https://github.com/cyberark/secrets-provider-for-k8s).
-- A clear understanding of the organization of secrets management and its processes is essential.
+- Простое внедрение новых секретов и удаление недействительных секретов.
+- Простая интеграция с существующим программным обеспечением: должно быть легко интегрировать приложения в качестве пользователей системы secret management. Например, для взаимодействия с системой secret management должен быть доступен SDK или простой контейнер с коляской, чтобы существующее программное обеспечение было независимым и не требовало значительных изменений. Вы можете найти примеры этого в пакетах SDK для AWS, Google и Azure. Эти пакеты SDK позволяют приложению взаимодействовать с соответствующими решениями для управления секретами. Вы можете найти похожие примеры в программах интеграции программного обеспечения Vault от HashiCorp и [Vault Agent Sidecar Injector](https://developer.hashicorp.com/vault/docs/platform/k8s/injector), а также в программах интеграции Conjur и [Conjur Secrets Provider](https://github.com/cyberark/secrets-provider-for-k8s).
+- Очень важно иметь четкое представление об организации управления секретами и связанных с этим процессах.
 
-## 7 Encryption
+## 7 Шифрование
 
-Secrets Management goes hand in hand with encryption. After all, secrets must be stored encrypted somewhere to protect their confidentiality and integrity.
+Управление секретами идет рука об руку с шифрованием. В конце концов, секреты должны храниться где-то в зашифрованном виде, чтобы защитить их конфиденциальность и целостность.
 
-### 7.1 Encryption Types to Use
+### 7.1 Используемые типы шифрования
 
-You can use various encryption types to secure a secret as long as they provide sufficient security, including adequate resistance against quantum computing-based attacks. Given that this is a moving field, it is best to take a look at sources like [keylength.com](https://www.keylength.com/en/4/), which enumerate up to date recommendations on the usage of encryption types and key lengths for existing standards, as well as the NSA's [Commercial National Security Algorithm Suite 2.0](https://media.defense.gov/2022/Sep/07/2003071834/-1/-1/0/CSA_CNSA_2.0_ALGORITHMS_.PDF) which enumerates quantum resistant algorithms.
+Вы можете использовать различные типы шифрования для защиты секрета, если они обеспечивают достаточную безопасность, включая достаточную устойчивость к атакам, основанным на квантовых вычислениях. Учитывая, что это динамичная область, лучше всего обратиться к таким источникам, как [keylength.com](https://www.keylength.com/en/4 /), в котором перечислены актуальные рекомендации по использованию типов шифрования и длин ключей для существующих стандартов, а также [Коммерческий пакет алгоритмов национальной безопасности 2.0] от NSA (https://media.defense.gov/2022/Sep/07/2003071834/-1/-1/0/CSA_CNSA_2.0_ALGORITHMS_.PDF), в котором перечислены алгоритмы, устойчивые к квантовой обработке.
 
-Please note that in all cases, we need to preferably select an algorithm that provides encryption and confidentiality at the same time, such as AES-256 using GCM [(Gallois Counter Mode)](https://en.wikipedia.org/wiki/Galois/Counter_Mode), or a mixture of ChaCha20 and Poly1305 according to the best practices in the field.
+Пожалуйста, обратите внимание, что во всех случаях нам желательно выбрать алгоритм, который обеспечивает шифрование и конфиденциальность одновременно, например, AES-256 с использованием GCM [(Режим счетчика Галлуа)].(https://en.wikipedia.org/wiki/Galois/Counter_Mode ), или смесь ChaCha20 и Poly1305 в соответствии с лучшими практиками в данной области.
 
-### 7.2 Convergent Encryption
+### 7.2 Конвергентное шифрование
 
-[Convergent Encryption](https://en.wikipedia.org/wiki/Convergent_encryption) ensures that a given plaintext and its key results in the same ciphertext. This can help detect possible re-use of secrets, resulting in the same ciphertext.
-The challenge with enabling convergent encryption is that it allows attackers to use the system to generate a set of cryptographic strings that might end up in the same secret, allowing the attacker to derive the plain text secret. Given the algorithm and key, you can mitigate this risk if the convergent crypto system you use has sufficient resource challenges during encryption. Another factor that can help reduce the risk is ensuring that a secret is of adequate length, further hampering the possible guess-iteration time required.
+[Конвергентное шифрование] (https://en.wikipedia.org/wiki/Convergent_encryption) гарантирует, что данный открытый текст и его ключ приведут к одному и тому же зашифрованному тексту. Это может помочь обнаружить возможное повторное использование секретных данных, в результате чего будет получен тот же зашифрованный текст.
+Проблема, связанная с включением конвергентного шифрования, заключается в том, что оно позволяет злоумышленникам использовать систему для генерации набора криптографических строк, которые могут в конечном итоге оказаться одним и тем же секретом, что позволяет злоумышленнику получить секрет в виде обычного текста. Учитывая алгоритм и ключ, вы можете снизить этот риск, если используемая вами конвергентная криптосистема требует достаточных ресурсов при шифровании. Еще одним фактором, который может помочь снизить риск, является обеспечение достаточной длины секрета, что еще больше сокращает возможное время, необходимое для повторения попыток.
 
-### 7.3 Where to store the Encryption Keys?
+### 7.3 Где хранить ключи шифрования?
 
-You should not store keys next to the secrets they encrypt, except if those keys are encrypted themselves (see envelope encryption). Start by consulting the [Key Management Cheat Sheet](Key_Management_Cheat_Sheet.md) on where and how to store the encryption and possible HMAC keys.
+Не следует хранить ключи рядом с секретами, которые они зашифровывают, за исключением случаев, когда эти ключи зашифрованы сами по себе (см. раздел "Шифрование конвертов"). Для начала ознакомьтесь с [Шпаргалкой по управлению ключами] (Key_Management_Cheat_Sheet.md) о том, где и как хранить ключи шифрования и возможные ключи HMAC.
 
-### 7.4 Encryption as a Service (EaaS)
+### 7.4 Шифрование как услуга (Eaas)
 
-EaaS is a model in which users subscribe to a cloud-based encryption service without having to install encryption on their own systems. Using EaaS, you can get the following benefits:
+EAAs - это модель, при которой пользователи подписываются на облачную службу шифрования без необходимости устанавливать шифрование в своих собственных системах. Используя EAAs, вы можете получить следующие преимущества:
 
-- Encryption at rest
-- Encryption in transit (TLS)
-- Key handling and cryptographic implementations are taken care of by Encryption Service, not by developers
-- The provider could add more services to interact with the sensitive data
+- Шифрование в режиме ожидания
+- Шифрование в процессе передачи (TLS)
+- Обработкой ключей и криптографическими реализациями занимается Служба шифрования, а не разработчики
+- Поставщик может добавить дополнительные службы для взаимодействия с конфиденциальными данными
 
-## 8 Detection
+## 8 Обнаружение
 
-There are many approaches to secrets detection and some very useful open source projects to help with this. The [Yelp Detect Secrets](https://github.com/Yelp/detect-secrets) project is mature and has signature matching for around 20 secrets. For more information on other tools to help you in the detection space, check out the [Secrets Detection](https://github.com/topics/secrets-detection) topic on GitHub.
+Существует множество подходов к обнаружению секретов и несколько очень полезных проектов с открытым исходным кодом, которые помогут в этом. Проект [Yelp Detect Secrets](https://github.com/Yelp/detect-secrets) является зрелым и имеет соответствующие подписи примерно для 20 секретов. Для получения дополнительной информации о других инструментах, которые помогут вам в поиске, ознакомьтесь с разделом [Обнаружение секретов](https://github.com/topics/secrets-detection) на GitHub.
 
-### 8.1 General detection approaches
+### 8.1 Общие подходы к обнаружению
 
-Shift-left and DevSecOps principles apply to secrets detection as well. These general approaches below aim to consider secrets earlier and evolve the practice over time.
+Принципы Shift-left и DevSecOps также применимы к обнаружению секретов. Приведенные ниже общие подходы направлены на то, чтобы учитывать секреты на ранней стадии и развивать практику с течением времени.
 
-- Create standard test secrets and use them universally across the organization. This allows for reducing false positives by only needing to track a single test secret for each secret type.
-- Consider enabling secrets detection at the developer level to avoid checking secrets into code before commit/PR either in the IDE, as part of test-driven development, or via pre-commit hook.
-- Make secrets detection part of the threat model. Consider secrets as part of the attack surface during threat modeling exercises.
-- Evaluate detection utilities and related signatures often to ensure they meet expectations.
-- Consider having more than one detection utility and correlating/de-duping results to identify potential areas of detection weakness.
-- Explore a balance between entropy and ease of detection. Secrets with consistent formats are easier to detect with lower false-positive rates, but you also don't want to miss a human-created password simply because it doesn't match your detection rules.
+- Создайте стандартные тестовые секреты и используйте их повсеместно в организации. Это позволяет снизить количество ложных срабатываний, поскольку для каждого типа секретов требуется отслеживать только один тестовый секрет.
+- Рассмотрите возможность включения обнаружения секретов на уровне разработчика, чтобы избежать проверки секретов в коде перед фиксацией/PR либо в среде IDE, либо в рамках разработки на основе тестирования, либо с помощью перехвата перед фиксацией.
+- Сделайте обнаружение секретов частью модели угроз. Рассматривайте секреты как часть поверхности атаки во время упражнений по моделированию угроз.
+- Часто оценивайте утилиты обнаружения и связанные с ними сигнатуры, чтобы убедиться, что они соответствуют ожиданиям.
+- Рассмотрите возможность использования более чем одной утилиты обнаружения и сопоставления результатов для выявления потенциальных слабых мест в системе обнаружения.
+- Соблюдайте баланс между энтропией и простотой обнаружения. Секреты с согласованными форматами легче обнаруживать благодаря более низкому проценту ложных срабатываний, но вы также не хотите пропустить созданный человеком пароль просто потому, что он не соответствует вашим правилам обнаружения.
 
-### 8.2 Types of secrets to be detected
+### 8.2 Типы секретов, которые необходимо обнаружить
 
-Many types of secrets exist, and you should consider signatures for each to ensure accurate detection for all. Among the more common types are:
+Существует много типов секретов, и вам следует учитывать подписи для каждого из них, чтобы обеспечить точное обнаружение всех. Среди наиболее распространенных типов:
 
-- High availability secrets (Tokens that are difficult to rotate)
-- Application configuration files
-- Connection strings
-- API keys
-- Credentials
-- Passwords
-- 2FA keys
-- Private keys (e.g., SSH keys)
-- Session tokens
-- Platform-specific secret types (e.g., Amazon Web Services, Google Cloud)
+- Секреты высокой доступности (токены, которые трудно изменить)
+- Файлы конфигурации приложения
+- Строки подключения
+- Ключи API
+- Учетные данные
+- Пароли
+- Ключи 2FA
+- Закрытые ключи (например, SSH-ключи)
+- Токены сеанса
+- Типы секретов, зависящие от платформы (например, Amazon Web Services, Google Cloud)
 
-For more fun learning about secrets and practice rooting them out check out the [Wrong Secrets](https://owasp.org/www-project-wrongsecrets/) project.
+Чтобы узнать больше о секретах и попрактиковаться в их устранении, ознакомьтесь с проектом [Неправильные секреты](https://owasp.org/www-project-wrongsecrets/).
 
-### 8.3 Detection lifecycle
+### 8.3 Жизненный цикл обнаружения
 
-Secrets are like any other authorization token. They should:
+Секреты подобны любому другому токену авторизации. Они должны:
 
-- Exist only for as long as necessary (rotate often)
-- Have a method for automatic rotation
-- Only be visible to those who need them (least privilege)
-- Be revokable (including the logging of attempt to use a revoked secret)
-- Never be logged (must implement either an encryption or masking approach in place to avoid logging plaintext secrets)
+- Существуют только столько, сколько необходимо (часто меняются)
+- Есть способ автоматической ротации
+- Видны только тем, кто в них нуждается (наименьшие привилегии)
+- Могут быть отозваны (включая регистрацию попыток использования отозванного секретного файла)
+- Никогда не будут зарегистрированы (необходимо использовать либо шифрование, либо маскировку, чтобы избежать регистрации секретных файлов в виде открытого текста)
 
-Create detection rules for each of the stages of the secret lifecycle.
+Создайте правила обнаружения для каждого из этапов жизненного цикла секретной информации.
 
-### 8.4 Documentation for how to detect secrets
+### 8.4 Документация о том, как обнаруживать секреты
 
-Create documentation and update it regularly to inform the developer community on procedures and systems available at your organization and what types of secrets management you expect, how to test for secrets, and what to do in event of detected secrets.
+Создайте документацию и регулярно обновляйте ее, чтобы информировать сообщество разработчиков о процедурах и системах, доступных в вашей организации, а также о том, какие типы управления секретами вы ожидаете, как проверять на наличие секретов и что делать в случае обнаружения секретов.
 
-Documentation should:
+Документация должна:
 
-- Exist and be updated often, especially in response to an incident
-- Include the following information:
-    - Who has access to the secret
-    - How it gets rotated
-    - Any upstream or downstream dependencies that could potentially be broken during secret rotation
-    - Who is the point of contact during an incident
-    - Security impact of exposure
+- Существовать и часто обновляться, особенно в связи с инцидентами
+- Включать следующую информацию:
+    - Кто имеет доступ к секретной информации
+    - Как происходит ее ротация
+    - Какие-либо восходящие или нисходящие зависимости, которые потенциально могут быть нарушены во время ротации секретной информации
+    - Кто является контактным лицом во время инцидента
+    - Влияние раскрытия информации на безопасность
 
-- Identify when secrets may be handled differently depending on the threat risk, data classification, etc.
+- Определите, когда с секретами можно обращаться по-разному в зависимости от угрозы, классификации данных и т.д.
 
-## 9 Incident Response
+## 9 Реагирование на инциденты
 
-Quick response in the event of a secret exposure is perhaps one of the most critical considerations for secrets management.
+Быстрое реагирование в случае раскрытия секретной информации, пожалуй, является одним из наиболее важных факторов при управлении секретами.
 
-### 9.1 Documentation
+### 9.1 Документация
 
-Incident response in the event of secret exposure should ensure that everyone in the chain of custody is aware and understands how to respond. This includes application creators (every member of a development team), information security, and technology leadership.
+Реагирование на инциденты в случае разглашения секретной информации должно гарантировать, что все в цепочке поставок осведомлены и понимают, как реагировать. Это касается создателей приложений (каждого члена команды разработчиков), информационной безопасности и технологического руководства.
 
-Documentation must include:
+Документация должна включать в себя:
 
-- How to test for secrets and secrets handling, especially during business continuity reviews.
-- Whom to alert when a secret is detected.
-- Steps to take for containment
-- Information to log during the event
+- Как проверять наличие секретов и как обращаться с секретами, особенно при проверке непрерывности бизнеса.
+- Кого предупреждать при обнаружении секретов.
+- Шаги, которые необходимо предпринять для предотвращения утечки
+- Информацию, которую необходимо регистрировать во время мероприятия
 
-### 9.2 Remediation
+### 9.2 Исправление
 
-The primary goal of incident response is rapid response and containment.
+Основной целью реагирования на инцидент является быстрое реагирование и локализация.
 
-Containment should follow these procedures:
+Защита должна осуществляться в соответствии со следующими процедурами:
 
-1. Revocation: Keys that were exposed should undergo immediate revocation. The secret must be able to be de-authorized quickly, and systems must be in place to identify the revocation status.
-2. Rotation: A new secret must be able to be quickly created and implemented, preferably via an automated process to ensure repeatability, low rate of implementation error, and least-privilege (not directly human-readable).
-3. Deletion: Secrets revoked/rotated must be removed from the exposed system immediately, including secrets discovered in code or logs. Secrets in code could have commit history for the exposure squashed to before the introduction of the secret, however, this may introduce other problems as it rewrites git history and will break any other links to a given commit. If you decide to do this be aware of the consequences and plan accordingly. Secrets in logs must have a process for removing the secret while maintaining log integrity.
-4. Logging: Incident response teams must have access to information about the lifecycle of a secret to aid in containment and remediation, including:
-    - Who had access?
-    - When did they use it?
-    - When was it previously rotated?
+1. Аннулирование: Ключи, которые были раскрыты, должны быть немедленно аннулированы. Секретная информация должна быть быстро удалена, и должны быть установлены системы для определения статуса аннулирования.
+2. Ротация: Новый секрет должен быть доступен для быстрого создания и внедрения, предпочтительно с помощью автоматизированного процесса, чтобы обеспечить повторяемость, низкий уровень ошибок при внедрении и минимальные привилегии (недоступные для непосредственного восприятия человеком).
+3. Удаление: Отозванные/измененные данные должны быть немедленно удалены из открытой системы, включая данные, обнаруженные в коде или логах. У секретов в коде может быть история коммитов, доступ к которым был заблокирован до введения секрета, однако это может привести к другим проблемам, поскольку переписывает историю git и приведет к разрыву любых других ссылок на данный коммит. Если вы решите это сделать, знайте о последствиях и планируйте соответствующим образом. Секретные данные в журналах должны иметь процесс удаления секретных данных при сохранении целостности журнала.
+4. Ведение журнала: Группы реагирования на инциденты должны иметь доступ к информации о жизненном цикле секретной информации, чтобы помочь в ее сохранении и устранении, в том числе:
+    - У кого был доступ?
+    - Когда они ее использовали?
+    - Когда она была изменена ранее?
 
-### 9.3 Logging
+### 9.3 Ведение журнала
 
-Additional considerations for logging of secrets usage should include:
+Дополнительные соображения по ведению журнала использования секретных данных должны включать в себя:
 
-- Logging for incident response should be to a single location accessible by incident response (IR) teams
-- Ensure fidelity of logging information during purple team exercises such as:
-    - What should have been logged?
-    - What was actually logged?
-    - Do we have adequate alerts in place to ensure this?
+- Ведение журнала для реагирования на инциденты должно осуществляться в одном месте, доступном командам реагирования на инциденты (IR)
+- Обеспечение точности записи информации в журнал во время учений команды purple, таких как:
+    - Что должно было быть зарегистрировано?
+    - Что на самом деле было зарегистрировано?
+    - Есть ли у нас адекватные средства оповещения, чтобы обеспечить это?
 
-Consider using a standardized logging format and vocabulary such as the [Logging Vocabulary Cheat Sheet](Logging_Vocabulary_Cheat_Sheet.md) to ensure that all necessary information is logged.
+Рассмотрите возможность использования стандартизированного формата ведения журнала и словаря, такого как [Шпаргалка по ведению журнала](Logging_Vocabulary_Cheat_Sheet.md), чтобы обеспечить регистрацию всей необходимой информации.
 
-## 10 Related Cheat Sheets & further reading
+## 10 Похожие шпаргалки и дополнительная литература
 
-- [Key Management Cheat Sheet](Key_Management_Cheat_Sheet.md)
-- [Logging Cheat Sheet](Logging_Cheat_Sheet.md)
-- [Password Storage Cheat Sheet](Password_Storage_Cheat_Sheet.md)
-- [Cryptographic Storage Cheat Sheet](Cryptographic_Storage_Cheat_Sheet.md)
-- [OWASP WrongSecrets project](https://github.com/OWASP/wrongsecrets/)
-- [Blog: 10 Pointers on Secrets Management](https://xebia.com/blog/secure-deployment-10-pointers-on-secrets-management/)
-- [Blog: From build to run: pointers on secure deployment](https://xebia.com/from-build-to-run-pointers-on-secure-deployment/)
-- [Github listing on secrets detection tools](https://github.com/topics/secrets-detection)
-- [NIST SP 800-57 Recommendation for Key Management](https://csrc.nist.gov/publications/detail/sp/800-57-part-1/rev-5/final)
-- [OpenCRE References to secrets](https://opencre.org/cre/223-780)
+- [Шпаргалка для управления ключами](Key_Management_Cheat_Sheet.md)
+- [Шпаргалка для ведения журнала](Logging_Cheat_Sheet.md)
+- [Шпаргалка для хранения паролей](Password_Storage_Cheat_Sheet.md)
+- [Шпаргалка для криптографического хранилища](Cryptographic_Storage_Cheat_Sheet.md)
+- [Проект OWASP WrongSecrets project](https://github.com/OWASP/wrongsecrets/)
+- [Блог: 10 советов по управлению секретами](https://xebia.com/blog/secure-deployment-10-pointers-on-secrets-management/)
+- [Блог: От сборки до запуска: советы по безопасному развертыванию](https://xebia.com/from-build-to-run-pointers-on-secure-deployment/)
+- [Список инструментов обнаружения секретов на Github](https://github.com/topics/secrets-detection)
+- [Рекомендации NIST SP 800-57 по управлению ключами](https://csrc.nist.gov/publications/detail/sp/800-57-part-1/rev-5/final)
+- [Ссылки на секреты в OpenCRE](https://opencre.org/cre/223-780)

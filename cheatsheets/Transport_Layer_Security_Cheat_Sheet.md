@@ -24,7 +24,7 @@
 
  В особых и необычных ситуациях, когда требуется веб-сервер для обслуживания устаревших клиентов, которые зависят от устаревших и незащищенных браузеров (например, Internet Explorer 10), активация TLS 1.0 может быть единственным вариантом. Однако к такому подходу следует подходить с осторожностью, и, как правило, он не рекомендуется из-за последствий для безопасности. Кроме того, [расширение "TLS_FALLBACK_SCSV"](https://tools.ietf.org/html/rfc7507) должно быть включено, чтобы предотвратить атаки с понижением версии для новых клиентов.
 
-Обратите внимание, что PCI DSS [forbids the use of legacy protocols such as TLS 1.0](https://www.pcisecuritystandards.org/documents/Migrating-from-SSL-Early-TLS-Info-Supp-v1_1.pdf).
+Обратите внимание, что PCI DSS [запрещает использование устаревших протоколов, таких как TLS 1.0](https://www.pcisecuritystandards.org/documents/Migrating-from-SSL-Early-TLS-Info-Supp-v1_1.pdf).
 
 ### Поддерживайте только надежные шифры
 
