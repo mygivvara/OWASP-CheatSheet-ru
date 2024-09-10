@@ -1,16 +1,16 @@
-# Ruby on Rails Cheat Sheet
+# Шпаргалка для Ruby on Rails
 
-## Introduction
+## Введение
 
-This *Cheatsheet* intends to provide quick basic Ruby on Rails security tips for developers. It complements, augments or emphasizes points brought up in the [Rails security guide](https://guides.rubyonrails.org/security.html) from rails core.
+Эта *Читшита* предназначена для краткого ознакомления разработчиков с основными советами по безопасности Ruby on Rails. Она дополняет или подчеркивает пункты, приведенные в [Руководстве по безопасности Rails](https://guides.rubyonrails.org/security.html) от rails core.
 
-The Rails framework abstracts developers from quite a bit of tedious work and provides the means to accomplish complex tasks quickly and with ease. New developers, those unfamiliar with the inner-workings of Rails, likely need a basic set of guidelines to secure fundamental aspects of their application. The intended purpose of this doc is to be that guide.
+Платформа Rails освобождает разработчиков от довольно утомительной работы и предоставляет средства для быстрого и простого выполнения сложных задач. Начинающим разработчикам, тем, кто не знаком с внутренним устройством Rails, вероятно, потребуется базовый набор рекомендаций для обеспечения фундаментальных аспектов их приложения. Предполагаемая цель этого документа - стать таким руководством.
 
-## Items
+## Предметы
 
-### Command Injection
+### Ввод команды
 
-Ruby offers a function called "eval" which will dynamically build new Ruby code based on Strings. It also has a number of ways to call system commands.
+Ruby предлагает функцию под названием "eval", которая будет динамически создавать новый код Ruby на основе строк. В ней также есть несколько способов вызова системных команд.
 
 ``` ruby
 eval("ruby code here")
@@ -30,250 +30,250 @@ IO.readlines("| os command here")
 IO.write("| os command here", "foo")
 ```
 
-While the power of these commands is quite useful, extreme care should be taken when using them in a Rails based application. Usually, its just a bad idea. If need be, an allow-list of possible values should be used and any input should be validated as thoroughly as possible.
+Несмотря на то, что возможности этих команд весьма полезны, при их использовании в приложении на базе Rails следует соблюдать крайнюю осторожность. Обычно это просто плохая идея. При необходимости следует использовать список разрешенных значений, а все вводимые данные следует проверять как можно тщательнее.
 
-The guides from [Rails](https://guides.rubyonrails.org/security.html#command-line-injection) and [OWASP](https://owasp.org/www-community/attacks/Command_Injection) contain further information on command injection.
+Руководства из [Rails](https://guides.rubyonrails.org/security.html#command-line-injection) и [OWASP](https://owasp.org/www-community/attacks/Command_Injection) содержат дополнительную информацию о внедрении команд.
 
-### SQL Injection
+### SQL-инъекции
 
-Ruby on Rails is often used with an ORM called ActiveRecord, though it is flexible and can be used with other data sources. Typically very simple Rails applications use methods on the Rails models to query data. Many use cases protect for SQL Injection out of the box. However, it is possible to write code that allows for SQL Injection.
+Ruby on Rails часто используется с ORM под названием ActiveRecord, хотя он является гибким и может использоваться с другими источниками данных. Как правило, очень простые приложения Rails используют методы моделей Rails для запроса данных. Во многих случаях защита для SQL-инъекций выполняется "из коробки". Однако можно написать код, который допускает внедрение SQL-кода.
 
 ``` ruby
 name = params[:name]
 @projects = Project.where("name like '" + name + "'");
 ```
 
-The statement is injectable because the name parameter is not escaped.
+Оператор является вводимым, поскольку параметр name не экранируется.
 
-Here is the idiom for building this kind of statement:
+Вот идиома для создания такого рода операторов:
 
 ``` ruby
 @projects = Project.where("name like ?", "%#{ActiveRecord::Base.sanitize_sql_like(params[:name])}%")
 ```
 
-Use caution not to build SQL statements based on user controlled input. A list of more realistic and detailed examples is here: [rails-sqli.org](https://rails-sqli.org). OWASP has extensive information about [SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection).
+Будьте осторожны, не создавайте инструкции SQL на основе пользовательского ввода. Список более реалистичных и подробных примеров приведен здесь: [rails-sqli.org](https://rails-sqli.org). В OWASP есть обширная информация о [SQL-инъекции](https://owasp.org/www-community/attacks/SQL_Injection).
 
-### Cross-site Scripting (XSS)
+### Межсайтовый скриптинг (XSS)
 
-By default, protection against XSS comes as the default behavior. When string data is shown in views, it is escaped prior to being sent back to the browser. This goes a long way, but there are common cases where developers bypass this protection - for example to enable rich text editing. In the event that you want to pass variables to the front end with tags intact, it is tempting to do the following in your .erb file (ruby markup).
+По умолчанию используется защита от XSS. Когда строковые данные отображаются в представлениях, они экранируются перед отправкой обратно в браузер. Это требует много времени, но часто разработчики обходят эту защиту - например, чтобы включить редактирование расширенного текста. В том случае, если вы хотите передать переменные во внешний интерфейс с сохраненными тегами, есть соблазн сделать следующее в вашем erb-файле (разметка ruby).
 
 ``` ruby
-# Wrong! Do not do this!
+# Неправильно! Не делайте так!
 <%= raw @product.name %>
 
-# Wrong! Do not do this!
+# Неправильно! Не делайте так!
 <%== @product.name %>
 
-# Wrong! Do not do this!
+# Неправильно! Не делайте так!
 <%= @product.name.html_safe %>
 
-# Wrong! Do not do this!
+# Неправильно! Не делайте так!
 <%= content_tag @product.name %>
 ```
 
-Unfortunately, any field that uses `raw`, `html_safe`, `content_tag` or similar like this will be a potential XSS target. Note that there are also widespread misunderstandings about `html_safe()`.
+К сожалению, любое поле, в котором используются `raw`, `html_safe`, `content_tag` или что-то подобное, будет потенциальной целью XSS. Обратите внимание, что также широко распространены неправильные представления о `html_safe()`.
 
-[This writeup](https://stackoverflow.com/questions/4251284/raw-vs-html-safe-vs-h-to-unescape-html) describes the underlying SafeBuffer mechanism in detail. Other tags that change the way strings are prepared for output can introduce similar issues, including content_tag.
+[В этой статье](https://stackoverflow.com/questions/4251284/raw-vs-html-safe-vsh-to-unescape-html) подробно описывается механизм, лежащий в основе SafeBuffer. Другие теги, которые изменяют способ подготовки строк к выводу, включая content_tag, могут создавать аналогичные проблемы.
 
 ``` ruby
-content_tag("/><script>alert('hack!');</script>") # XSS example
+content_tag("/><script>alert('hack!');</script>") # Пример XSS
 # produces: </><script>alert('hack!');</script>><//><script>alert('hack!');</script>>
 ```
 
-The method `html_safe` of String is somewhat confusingly named. It means that we know for sure the content of the string is safe to include in HTML without escaping. **This method itself is un-safe!**
+Название метода `html_safe` в String несколько сбивает с толку. Это означает, что мы точно знаем, что содержимое string безопасно для включения в HTML без экранирования. **Этот метод сам по себе небезопасен!**
 
-If you must accept HTML content from users, consider a markup language for rich text in an application (Examples include: Markdown and textile) and disallow HTML tags. This helps ensures that the input accepted doesn't include HTML content that could be malicious.
+Если вам необходимо принимать HTML-контент от пользователей, рассмотрите язык разметки для форматированного текста в приложении (например, Markdown и textile) и запретите HTML-теги. Это помогает гарантировать, что принимаемые входные данные не содержат HTML-контента, который может быть вредоносным.
 
-If you cannot restrict your users from entering HTML, consider implementing content security policy to disallow the execution of any JavaScript. And finally, consider using the `#sanitize` method that lets you list allowed tags. Be careful, this method has been shown to be flawed numerous times and will never be a complete solution.
+Если вы не можете запретить своим пользователям вводить HTML, подумайте о внедрении политики безопасности содержимого, запрещающей выполнение любого JavaScript. И, наконец, рассмотрите возможность использования метода `#sanitize`, который позволяет выводить список разрешенных тегов. Будьте осторожны, этот метод неоднократно доказывал свою несостоятельность и никогда не будет полным решением.
 
-An often overlooked XSS attack vector for older versions of rails is the `href` value of a link:
+Часто упускаемый из виду вектор атаки XSS для старых версий rails - это значение `href` ссылки:
 
 ``` ruby
 <%= link_to "Personal Website", @user.website %>
 ```
 
-If `@user.website` contains a link that starts with `javascript:`, the content will execute when a user clicks the generated link:
+Если `@user.website` содержит ссылку, которая начинается с `javascript:`, содержимое будет запущено, когда пользователь нажмет на сгенерированную ссылку:
 
 ``` html
 <a href="javascript:alert('Haxored')">Personal Website</a>
 ```
 
-Newer Rails versions escape such links in a better way.
+Более новые версии Rails лучше обходят такие ссылки стороной.
 
 ``` ruby
 link_to "Personal Website", 'javascript:alert(1);'.html_safe()
-# Will generate:
+# Будет генерировать:
 # "<a href="javascript:alert(1);">Personal Website</a>"
 ```
 
-Using [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) is one more security measure to forbid execution for links starting with `javascript:` .
+Использование [Политики безопасности содержимого](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) - это еще одна мера безопасности, позволяющая запретить выполнение ссылок, начинающихся с `javascript:`.
 
-[Brakeman scanner](https://github.com/presidentbeef/brakeman) helps in finding XSS problems in Rails apps.
+[Сканер Brakeman](https://github.com/presidentbeef/brakeman) помогает находить проблемы с XSS в приложениях Rails.
 
-OWASP provides more general information about XSS in a top level page: [Cross-site Scripting (XSS)](https://owasp.org/www-community/attacks/xss/).
+OWASP предоставляет более общую информацию о XSS на странице верхнего уровня: [Межсайтовый скриптинг (XSS)](https://owasp.org/www-community/attacks/xss/).
 
-### Sessions
+### Сессии
 
-By default, Ruby on Rails uses a Cookie based session store. What that means is that unless you change something, the session will not expire on the server. That means that some default applications may be vulnerable to replay attacks. It also means that sensitive information should never be put in the session.
+По умолчанию Ruby on Rails использует хранилище сеансов на основе файлов cookie. Это означает, что если вы что-то не измените, срок действия сеанса на сервере не истечет. Это означает, что некоторые приложения по умолчанию могут быть уязвимы для повторных атак. Это также означает, что конфиденциальная информация никогда не должна содержаться в сеансе.
 
-The best practice is to use a database based session, which thankfully is very easy with Rails:
+Лучше всего использовать сеанс на основе базы данных, который, к счастью, очень прост в Rails:
 
 ``` ruby
 Project::Application.config.session_store :active_record_store
 ```
 
-There is an [Session Management Cheat Sheet](Session_Management_Cheat_Sheet.md).
+Существует [Шпаргалка по управлению сеансами](Session_Management_Cheat_Sheet.md).
 
-### Authentication
+### Идентификация
 
-As with all sensitive data, start securing your authentication with enabling TLS in your configuration:
+Как и в случае со всеми конфиденциальными данными, начните защищать свою аутентификацию, включив TLS в своей конфигурации:
 
 ``` ruby
 # config/environments/production.rb
-# Force all access to the app over SSL, use Strict-Transport-Security,
-# and use secure cookies
+# Принудительный доступ к приложению по протоколу SSL, используйте строгую транспортную безопасность,
+# и используйте защищенные файлы cookie
 config.force_ssl = true
 ```
 
-Uncomment the line 3 as above in your configuration.
+Раскомментируйте строку 3, как указано выше, в вашей конфигурации.
 
-Generally speaking, Rails does not provide authentication by itself. However, most developers using Rails leverage libraries such as Devise or AuthLogic to provide authentication.
+Вообще говоря, Rails сам по себе не обеспечивает аутентификацию. Однако большинство разработчиков, использующих Rails, используют библиотеки, такие как Devise или AuthLogic, для обеспечения аутентификации.
 
-To enable authentication it is possible to use Devise gem.
+Чтобы включить аутентификацию, можно использовать Devise gem.
 
-Install it using:
+Установите его с помощью:
 
 ```bash
 gem 'devise'
 ```
 
-Then install it to the user model:
+Затем установите его в пользовательскую модель:
 
 ```bash
 rails generate devise:install
 ```
 
-Next, specify which resources (routes) require authenticated access in routes:
+Затем укажите, к каким ресурсам (маршрутам) требуется аутентифицированный доступ в routes:
 
 ``` ruby
 Rails.application.routes.draw do
   authenticate :user do
-    resources :something do  # these resource require authentication
+    resources :something do  # эти ресурсы требуют проверки подлинности
       ...
     end
   end
 
   devise_for :users # sign-up/-in/out routes
 
-  root to: 'static#home' # no authentication required
+  root to: 'static#home' # аутентификация не требуется
 end
 ```
 
-To enforce password complexity, it is possible to use [zxcvbn gem](https://github.com/bitzesty/devise_zxcvbn). Configure your user model with it:
+Чтобы упростить ввод пароля, можно использовать [zxcvbn gem](https://github.com/bitzesty/device_zxcvbn). Настройте с его помощью свою пользовательскую модель:
 
 ``` ruby
 class User < ApplicationRecord
   devise :database_authenticatable,
-    # other devise features, then
+    # другие функции устройства, то
     :zxcvbnable
 end
 ```
 
-And configure the required password complexity:
+И настройте требуемую сложность пароля:
 
 ``` ruby
-# in config/initializers/devise.rb
+# в config/initializers/devise.rb
 Devise.setup do |config|
-  # zxcvbn score for devise
-  config.min_password_score = 4 # complexity score here.
+  # оценка zxcvbn для устройства
+  config.min_password_score = 4 # оценка сложности здесь.
   ...
 ```
 
-You can try out [this PoC](https://github.com/qutorial/revise) to learn more about it.
+Вы можете попробовать [этот PoC](https://github.com/qutorial/revise), чтобы узнать о нем больше.
 
-Next, [omniauth gem](https://github.com/omniauth/omniauth) allows for multiple strategies for authentication. Using it one can configure secure authentication with Facebook, LDAP and many other providers. Read on [here](https://github.com/omniauth/omniauth#integrating-omniauth-into-your-application).
+Далее, [omniauth gem](https://github.com/omniauth/omniauth) позволяет использовать несколько стратегий аутентификации. С его помощью можно настроить безопасную аутентификацию с Facebook, LDAP и многими другими провайдерами. Читайте далее [здесь](https://github.com/omniauth/omniauth#integrating-omniauth-into-your-application).
 
-#### Token Authentication
+#### Аутентификация по токену
 
-Devise usually uses Cookies for authentication.
+Устройство обычно использует файлы cookie для аутентификации.
 
-In the case token authentication is wished instead, it could be implemented with a gem [devise_token_auth](https://github.com/lynndylanhurley/devise_token_auth).
+В случае, если вместо этого требуется аутентификация с помощью токена, ее можно реализовать с помощью gem [devise_token_auth](https://github.com/lynndylanhurley/devise_token_auth).
 
-It supports multiple front end technologies, for example angular2-token.
+Он поддерживает несколько интерфейсных технологий, например angular2-token.
 
-This gem is configured similar to the devise gem itself. It also requires omniauth as a dependency.
+Этот gem настроен аналогично самому devise gem. Это также требует omniauth в качестве зависимости.
 
 ```bash
-# token-based authentication
+# аутентификация на основе токенов
 gem 'devise_token_auth'
 gem 'omniauth'
 ```
 
-Then a route is defined:
+Затем определяется маршрут:
 
 ```ruby
 mount_devise_token_auth_for 'User', at: 'auth'
 ```
 
-And the User model is modified accordingly.
+И пользовательская модель изменяется соответствующим образом.
 
-These actions can be done with one command:
+Эти действия можно выполнить с помощью одной команды:
 
 ```bash
 rails g devise_token_auth:install [USER_CLASS] [MOUNT_PATH]
 ```
 
-You may need to edit the generated migration to avoid unnecessary fields and/or field duplication depending on your use case.
+Возможно, вам потребуется отредактировать сгенерированную миграцию, чтобы избежать ненужных полей и/или дублирования полей в зависимости от вашего варианта использования.
 
-Note: when you use only token authentication, there is no more need in [CSRF](https://owasp.org/www-community/attacks/csrf) protection in controllers. If you use both ways: cookies and tokens, the paths where cookies are used for authentication still must be protected from forgery!
+Примечание: если вы используете только аутентификацию по токену, необходимость в защите [CSRF](https://owasp.org/www-community/attacks/csrf) в контроллерах отпадает. Если вы используете оба способа: файлы cookie и токены, пути, по которым файлы cookie используются для аутентификации, все равно должны быть защищены от подделки!
 
-There is an [Authentication Cheat Sheet](Authentication_Cheat_Sheet.md).
+Существует [Шпаргалка по аутентификации](Authentication_Cheat_Sheet.md).
 
-### Insecure Direct Object Reference or Forceful Browsing
+### Небезопасная прямая ссылка на объект или принудительный просмотр
 
-By default, Ruby on Rails apps use a RESTful URI structure. That means that paths are often intuitive and guessable. To protect against a user trying to access or modify data that belongs to another user, it is important to specifically control actions. Out of the gate on a vanilla Rails application, there is no such built-in protection. It is possible to do this by hand at the controller level.
+По умолчанию приложения Ruby on Rails используют структуру URI RESTful. Это означает, что пути часто интуитивно понятны и доступны для угадывания. Для защиты от попыток пользователя получить доступ к данным, принадлежащим другому пользователю, или изменить их, важно специально контролировать действия. В приложении vanilla Rails такой встроенной защиты нет. Это можно сделать вручную на уровне контроллера.
 
-It is also possible, and probably recommended, to consider resource-based access control libraries such as [cancancan](https://github.com/CanCanCommunity/cancancan) (cancan replacement) or [pundit](https://github.com/elabs/pundit) to do this. This ensures that all operations on a database object are authorized by the business logic of the application.
+Для этого также возможно и, вероятно, рекомендуется использовать библиотеки управления доступом на основе ресурсов, такие как [cancancan](https://github.com/CanCanCommunity/cancancan) (замена cancan) или [pundit](https://github.com/elabs/pundit). Это гарантирует, что все операции с объектом базы данных авторизованы бизнес-логикой приложения.
 
-More general information about this class of vulnerability is in the [OWASP Top 10 Page](https://wiki.owasp.org/index.php/Top_10_2010-A4-Insecure_Direct_Object_References).
+Более общая информация об этом классе уязвимостей приведена на странице [Топ-10 OWASP](https://wiki.owasp.org/index.php/Top_10_2010-A4-Insecure_Direct_Object_References).
 
-### CSRF (Cross Site Request Forgery)
+### CSRF (Cross Site Request Forgery) (Подделка межсайтового запроса)
 
-Ruby on Rails has specific, built-in support for CSRF tokens. To enable it, or ensure that it is enabled, find the base `ApplicationController` and look for a directive such as the following:
+В Ruby on Rails есть специальная встроенная поддержка токенов CSRF. Чтобы включить ее или убедиться, что она включена, найдите базовый 'ApplicationController' и найдите директиву, подобную следующей:
 
 ``` ruby
 class ApplicationController < ActionController::Base
   protect_from_forgery
 ```
 
-Note that the syntax for this type of control includes a way to add exceptions. Exceptions may be useful for APIs or other reasons - but should be reviewed and consciously included. In the example below, the Rails ProjectController will not provide [CSRF](https://owasp.org/www-community/attacks/csrf) protection for the show method.
+Обратите внимание, что синтаксис для этого типа элемента управления включает в себя возможность добавления исключений. Исключения могут быть полезны для API или по другим причинам, но их следует пересмотреть и сознательно включить. В приведенном ниже примере контроллер проекта Rails не будет обеспечивать защиту [CSRF](https://owasp.org/www-community/attacks/csrf) для метода show.
 
 ``` ruby
 class ProjectController < ApplicationController
   protect_from_forgery except: :show
 ```
 
-Also note that by default Rails does not provide CSRF protection for any HTTP `GET` request.
+Также обратите внимание, что по умолчанию Rails не предоставляет защиту CSRF для любого HTTP-запроса `GET`.
 
-**Note:** if you use token authentication only, there is no need to protect from CSRF in controllers like this. If cookie-based authentication is used on some paths, then the protections is still required on them.
+**Примечание:** если вы используете только аутентификацию по токенам, нет необходимости в защите от CSRF в контроллерах, подобных этому. Если для некоторых путей используется аутентификация на основе файлов cookie, то для них все равно требуется защита.
 
-There is a top level OWASP page for [Cross-Site Request Forgery (CSRF)](https://owasp.org/www-community/attacks/csrf).
+Существует страница верхнего уровня OWASP для [Подделки межсайтовых запросов (CSRF)](https://owasp.org/www-community/attacks/csrf).
 
-### Redirects and Forwards
+### Перенаправления и переадресовывания
 
-Web applications often require the ability to dynamically redirect users based on client-supplied data. To clarify, dynamic redirection usually entails the client including a URL in a parameter within a request to the application. Once received by the application, the user is redirected to the URL specified in the request.
+Веб-приложениям часто требуется возможность динамического перенаправления пользователей на основе предоставленных клиентом данных. Для уточнения, динамическое перенаправление обычно подразумевает включение клиентом URL-адреса в параметр запроса к приложению. После получения запроса приложением пользователь перенаправляется на URL-адрес, указанный в запросе.
 
-For example:
+Например:
 
 `http://www.example.com/redirect?url=http://www.example_commerce_site.com/checkout`
 
-The above request would redirect the user to `http://www.example.com/checkout`. The security concern associated with this functionality is leveraging an organization's trusted brand to phish users and trick them into visiting a malicious site, in our example, `badhacker.com`.
+Приведенный выше запрос перенаправит пользователя на страницу `http://www.example.com/checkout`. Проблема безопасности, связанная с этой функциональностью, заключается в использовании надежного бренда организации для обмана пользователей и заманивания их на вредоносный сайт, в нашем примере `badhacker.com`.
 
-Example:
+Пример:
 
 `http://www.example.com/redirect?url=http://badhacker.com`
 
-The most basic, but restrictive protection is to use the `:only_path` option. Setting this to true will essentially strip out any host information. However, the `:only_path` option must be part of the first argument. If the first argument is not a hash table, then there is no way to pass in this option. In the absence of a custom helper or allowlist, this is one approach that can work:
+Самая простая, но ограничительная защита заключается в использовании параметра `:only_path`. Установка значения true для этого параметра, по сути, приведет к удалению любой информации о хосте. Однако параметр `:only_path` должен быть частью первого аргумента. Если первый аргумент не является хэш-таблицей, то этот параметр невозможно передать. В отсутствие пользовательского помощника или списка разрешений это один из подходов, который может сработать:
 
 ``` ruby
 begin
@@ -285,37 +285,37 @@ rescue URI::InvalidURIError
 end
 ```
 
-If matching user input against a list of approved sites or TLDs against regular expression is a must, it makes sense to leverage a library such as `URI.parse()` to obtain the host and then take the host value and match it against regular expression patterns. Those regular expressions must, at a minimum, have anchors or there is a greater chance of an attacker bypassing the validation routine.
+Если необходимо сопоставить вводимые пользователем данные со списком одобренных сайтов или доменов верхнего уровня с регулярными выражениями, имеет смысл использовать библиотеку, такую как `URI.parse()`, для получения хоста, а затем взять значение хоста и сопоставить его с шаблонами регулярных выражений. Эти регулярные выражения должны, как минимум, иметь привязки, иначе существует большая вероятность того, что злоумышленник обойдет процедуру проверки.
 
-Example:
+Пример:
 
 ``` ruby
 require 'uri'
 host = URI.parse("#{params[:url]}").host
-# this can be vulnerable to javascript://trusted.com/%0Aalert(0)
-# so check .scheme and .port too
+# это может быть уязвимо для javascript://trusted.com/%0Aalert(0)
+# так что проверьте .scheme и .port тоже
 validation_routine(host) if host
 def validation_routine(host)
-  # Validation routine where we use  \A and \z as anchors *not* ^ and $
-  # you could also check the host value against an allowlist
+  # Процедура проверки, в которой мы используем \A и \z в качестве привязок *not* ^ и $
+  # вы также можете проверить значение хоста по списку разрешений
 end
 ```
 
-Also blind redirecting to user input parameter can lead to XSS.
+Также слепое перенаправление на пользовательский параметр ввода может привести к XSS.
 
-Example code:
+Пример кода:
 
 ``` ruby
 redirect_to params[:to]
 ```
 
-Will give this URL:
+Выдаст этот URL-адрес:
 
 `http://example.com/redirect?to[status]=200&to[protocol]=javascript:alert(0)//`
 
-The obvious fix for this type of vulnerability is to restrict to specific Top-Level Domains (TLDs), statically define specific sites, or map a key to it's value.
+Очевидным способом устранения уязвимости такого типа является ограничение доступа к определенным доменам верхнего уровня (TLD), статическое определение конкретных сайтов или привязка ключа к его значению.
 
-Example code:
+Пример кода:
 
 ``` ruby
 ACCEPTABLE_URLS = {
@@ -324,11 +324,11 @@ ACCEPTABLE_URLS = {
 }
 ```
 
-Will give this URL:
+Выдаст этот URL-адрес:
 
 `http://www.example.com/redirect?url=our_app_1`
 
-Redirection handling code:
+Код обработки перенаправления:
 
 ``` ruby
 def redirect
@@ -337,27 +337,27 @@ def redirect
 end
 ```
 
-There is a more general OWASP resource about [unvalidated redirects and forwards](Unvalidated_Redirects_and_Forwards_Cheat_Sheet.md).
+Код обработки перенаправления: Существует более общий ресурс OWASP, посвященный [неподтвержденным перенаправлениям и форвардам](Unvalidated_Redirects_and_Forwards_Cheat_Sheet.md).
 
-### Dynamic Render Paths
+### Динамические пути рендеринга
 
-In Rails, controller actions and views can dynamically determine which view or partial to render by calling the `render` method. If user input is used in or for the template name, an attacker could cause the application to render an arbitrary view, such as an administrative page.
+В Rails действия контроллера и представления могут динамически определять, какой вид или его часть требуется отобразить, вызывая метод `render`. Если в имени шаблона или вместо него используется пользовательский ввод, злоумышленник может заставить приложение отобразить произвольный вид, например административную страницу.
 
-Care should be taken when using user input to determine which view to render. If possible, avoid any user input in the name or path to the view.
+Следует соблюдать осторожность при использовании пользовательского ввода для определения того, какой вид отображать. По возможности избегайте любого пользовательского ввода имени или пути к виду.
 
-### Cross Origin Resource Sharing
+### Совместное использование ресурсов из разных источников
 
-Occasionally, a need arises to share resources with another domain. For example, a file-upload function that sends data via an AJAX request to another domain. In these cases, the same-origin rules followed by web browsers must be sent. Modern browsers, in compliance with HTML5 standards, will allow this to occur but in order to do this; a couple precautions must be taken.
+Иногда возникает необходимость в совместном использовании ресурсов с другим доменом. Например, функция загрузки файлов, которая отправляет данные с помощью AJAX-запроса в другой домен. В таких случаях необходимо использовать правила того же источника, которым следуют веб-браузеры. Современные браузеры, соответствующие стандартам HTML5, позволяют это делать, но для этого необходимо принять несколько мер предосторожности.
 
-When using a nonstandard HTTP construct, such as an atypical Content-Type header, for example, the following applies:
+При использовании нестандартной конструкции HTTP, такой как, например, заголовок с нетипичным типом содержимого, применяется следующее:
 
-The receiving site should list only those domains allowed to make such requests as well as set the `Access-Control-Allow-Origin` header in both the response to the `OPTIONS` request and `POST` request. This is because the OPTIONS request is sent first, in order to determine if the remote or receiving site allows the requesting domain. Next, a second request, a `POST` request, is sent. Once again, the header must be set in order for the transaction to be shown as successful.
+Принимающий сайт должен указать только те домены, которым разрешено отправлять такие запросы, а также указать заголовок `Access-Control-Allow-Origin` как в ответе на запрос `OPTIONS`, так и в запросе `POST`. Это связано с тем, что сначала отправляется запрос OPTIONS, чтобы определить, разрешен ли удаленный сайт или принимающий сайт для запрашивающего домена. Затем отправляется второй запрос, запрос `POST`. И снова, чтобы транзакция была показана как успешная, необходимо задать заголовок.
 
-When standard HTTP constructs are used:
+При использовании стандартных HTTP-конструкций:
 
-*The request is sent and the browser, upon receiving a response, inspects the response headers in order to determine if the response can and should be processed.*
+*Запрос отправляется, и браузер, получив ответ, проверяет заголовки ответа, чтобы определить, может ли и должен ли быть обработан ответ.*
 
-Allowlist in Rails:
+Список разрешений в Rails:
 
 **Gemfile:**
 
@@ -382,15 +382,15 @@ module Sample
 end
 ```
 
-### Security-related headers
+### Заголовки, связанные с безопасностью
 
-To set a header value, simply access the response.headers object as a hash inside your controller (often in a before/after_filter).
+Чтобы задать значение заголовка, просто получите доступ к объекту response.headers в виде хэша внутри вашего контроллера (часто в before/after_filter).
 
 ```ruby
 response.headers['X-header-name'] = 'value'
 ```
 
-Rails provides the `default_headers` functionality that will automatically apply the values supplied. This works for most headers in almost all cases.
+Rails предоставляет функциональность `default_headers`, которая автоматически применяет указанные значения. Это работает для большинства заголовков практически во всех случаях.
 
 ```ruby
 ActionDispatch::Response.default_headers = {
@@ -400,82 +400,82 @@ ActionDispatch::Response.default_headers = {
 }
 ```
 
-[Strict transport security](https://owasp.org/www-project-secure-headers/#headers-link) is a special case, it is set in an environment file (e.g. `production.rb`)
+[Строгая транспортная безопасность](https://owasp.org/www-project-secure-headers/#headers-link) - это особый случай, он устанавливается в файле среды (например, `production.rb`).
 
 ```ruby
 config.force_ssl = true
 ```
 
-For those not on the edge, there is a library ([secure_headers](https://github.com/twitter/secureheaders)) for the same behavior with content security policy abstraction provided. It will automatically apply logic based on the user agent to produce a concise set of headers.
+Для тех, кто не в курсе, есть библиотека ([secure_headers](https://github.com/twitter/secureheaders)) для аналогичного поведения с предоставлением абстракции политики безопасности содержимого. Она автоматически применит логику, основанную на пользовательском агенте, для создания краткого набора заголовков.
 
-### Business Logic Bugs
+### Ошибки бизнес-логики
 
-Any application in any technology can contain business logic errors that result in security bugs. Business logic bugs are difficult to impossible to detect using automated tools. The best ways to prevent business logic security bugs are to do code review, pair program and write unit tests.
+Любое приложение в любой технологии может содержать ошибки бизнес-логики, которые приводят к ошибкам в системе безопасности. Ошибки бизнес-логики трудно или невозможно обнаружить с помощью автоматизированных средств. Лучшие способы предотвращения ошибок в системе безопасности - это проверка кода, сопряжение программ и написание модульных тестов.
 
-### Attack Surface
+### Поверхность для атаки
 
-Generally speaking, Rails avoids open redirect and path traversal types of vulnerabilities because of its /config/routes.rb file which dictates what URLs should be accessible and handled by which controllers. The routes file is a great place to look when thinking about the scope of the attack surface.
+Вообще говоря, Rails позволяет избежать уязвимостей типа открытого перенаправления и обхода путей благодаря своему файлу /config/routes.rb, который определяет, какие URL-адреса должны быть доступны и какими контроллерами обрабатываться. Файл routes - отличное место для поиска, когда вы думаете о масштабах атаки.
 
-An example might be as follows:
+Примером может быть следующее:
 
 ```ruby
-# this is an example of what NOT to do
+# это пример того, чего НЕ следует делать
 match ':controller(/:action(/:id(.:format)))'
 ```
 
-In this case, this route allows any public method on any controller to be called as an action. As a developer, you want to make sure that users can only reach the controller methods intended and in the way intended.
+В этом случае этот маршрут позволяет вызывать любой общедоступный метод на любом контроллере в качестве действия. Как разработчик, вы хотите убедиться, что пользователи могут обращаться только к методам контроллера, которые предназначены для этого, и только так, как это предусмотрено.
 
-### Sensitive Files
+### Конфиденциальные файлы
 
-Many Ruby on Rails apps are open source and hosted on publicly available source code repositories. Whether that is the case or the code is committed to a corporate source control system, there are certain files that should be either excluded or carefully managed.
+Многие приложения Ruby on Rails имеют открытый исходный код и размещаются в общедоступных репозиториях исходного кода. Независимо от того, так ли это на самом деле или код находится в корпоративной системе управления версиями, существуют определенные файлы, которые следует либо исключить, либо тщательно обрабатывать.
 
-```text
-/config/database.yml                 -  May contain production credentials.
-/config/initializers/secret_token.rb -  Contains a secret used to hash session cookie.
-/db/seeds.rb                         -  May contain seed data including bootstrap admin user.
-/db/development.sqlite3              -  May contain real data.
+``text
+/config/database.yml                 - Может содержать рабочие учетные данные.
+/config/initializers/secret_token.rb -  Содержит секрет, используемый для хэширования файла cookie сеанса.
+/db/seeds.rb                         - Может содержать исходные данные, включая пользователя bootstrap admin.
+/db/development.sqlite3              - Может содержать реальные данные.
 ```
 
-### Encryption
+### Шифрование
 
-Rails uses OS encryption. Generally speaking, it is always a bad idea to write your own encryption.
+Rails использует шифрование операционной системы. Вообще говоря, это всегда плохая идея - создавать собственное шифрование.
 
-Devise by default uses bcrypt for password hashing, which is an appropriate solution.
+Устройство по умолчанию использует bcrypt для хэширования паролей, что является подходящим решением.
 
-Typically, the following config causes the 10 stretches for production: `/config/initializers/devise.rb`
+Как правило, следующая конфигурация приводит к созданию 10 фрагментов для производства: `/config/initializers/devise.rb`
 
 ```ruby
 config.stretches = Rails.env.test? ? 1 : 10
 ```
 
-## Updating Rails and Having a Process for Updating Dependencies
+## Обновление Rails и наличие процесса обновления зависимостей
 
-In early 2013, a number of critical vulnerabilities were identified in the Rails Framework. Organizations that had fallen behind current versions had more trouble updating and harder decisions along the way, including patching the source code for the framework itself.
+В начале 2013 года в платформе Rails был выявлен ряд критических уязвимостей. Организации, которые отстали от текущих версий, сталкивались с большими трудностями при обновлении и принимали более сложные решения, включая внесение исправлений в исходный код самой платформы.
 
-An additional concern with Ruby applications in general is that most libraries (gems) are not signed by their authors. It is literally impossible to build a Rails based project with libraries that come from trusted sources. One good practice might be to audit the gems you are using.
+Еще одна проблема, связанная с приложениями на Ruby в целом, заключается в том, что большинство библиотек (gems) не подписаны их авторами. В буквальном смысле невозможно создать проект на основе Rails с библиотеками, полученными из надежных источников. Одной из полезных практик может быть аудит используемых вами gems.
 
-In general, it is important to have a process for updating dependencies. An example process might define three mechanisms for triggering an update of response:
+В общем, важно иметь процесс обновления зависимостей. В качестве примера процесса можно привести три механизма для запуска обновления ответа:
 
-- Every month/quarter dependencies in general are updated.
-- Every week important security vulnerabilities are taken into account and potentially trigger an update.
-- In EXCEPTIONAL conditions, emergency updates may need to be applied.
+- Как правило, зависимости обновляются каждый месяц/квартал.
+- Каждую неделю учитываются важные уязвимости в системе безопасности, которые могут привести к обновлению.
+- В исключительных случаях может потребоваться экстренное обновление.
 
-## Tools
+## Инструменты
 
-Use [brakeman](https://brakemanscanner.org/), an open source code analysis tool for Rails applications, to identify many potential issues. It will not necessarily produce comprehensive security findings, but it can find easily exposed issues. A great way to see potential issues in Rails is to review the brakeman documentation of warning types.
+Используйте [brakeman](https://brakemanscanner.org/), инструмент анализа кода с открытым исходным кодом для приложений Rails, чтобы выявить множество потенциальных проблем. Это не обязательно приведет к всесторонним выводам о безопасности, но с его помощью можно легко выявить проблемы. Отличный способ увидеть потенциальные проблемы в Rails - просмотреть документацию brakeman по типам предупреждений.
 
-A newer alternative is [bearer](https://github.com/Bearer/bearer), an open source code security and privacy analysis tool for both Ruby and JavaScript/TypeScript code, in order to identify a broad range of OWASP Top 10 potential issues. It provides many configuration options and can easily integrate into your CI/CD pipeline.
+Более новой альтернативой является [bearer](https://github.com/Bearer/bearer), инструмент для анализа безопасности и конфиденциальности кода с открытым исходным кодом как для Ruby, так и для кода на JavaScript/TypeScript, предназначенный для выявления широкого спектра потенциальных проблем, входящих в топ-10 OWASP. Он предоставляет множество вариантов конфигурации и может быть легко интегрирован в ваш конвейер CI/CD.
 
-There are emerging tools that can be used to track security issues in dependency sets, like automated scanning from [GitHub](https://github.blog/2017-11-16-introducing-security-alerts-on-github/) and [GitLab](https://docs.gitlab.com/ee/user/application_security/dependency_scanning/).
+Появляются новые инструменты, которые можно использовать для отслеживания проблем безопасности в наборах зависимостей, например, автоматическое сканирование с [GitHub](https://github.blog/2017-11-16-introducing-security-alerts-on-github/) и [GitLab](https://docs.gitlab.com/ee/user/application_security/dependency_scanning/).
 
-Another area of tooling is the security testing tool [Gauntlt](http://gauntlt.org) which is built on cucumber and uses gherkin syntax to define attack files.
+Другой областью инструментария является инструмент тестирования безопасности [Gauntlet](http://gauntlet.org), который создан на базе cucumber и использует синтаксис gherkin для определения файлов атак.
 
-Launched in May 2013 and very similar to brakeman scanner, the [dawnscanner](https://github.com/thesp0nge/dawnscanner) rubygem is a static analyzer for security issues that work with Rails, Sinatra and Padrino web applications. Version 1.6.6 has more than 235 ruby specific CVE security checks.
+Запущенный в мае 2013 года и очень похожий на brakeman scanner, [dawnscanner](https://github.com/thesp0nge/dawnscanner) rubygem - это статический анализатор проблем безопасности, который работает с веб-приложениями Rails, Sinatra и Padrino. Версия 1.6.6 содержит более 235 специальных проверок безопасности CVE для ruby.
 
-## Related Articles and References
+## Статьи и ссылки по теме
 
-- [The Official Rails Security Guide](https://guides.rubyonrails.org/security.html)
-- [OWASP Ruby on Rails Security Guide](https://owasp.org/www-pdf-archive/Rails_Security_2.pdf)
-- [The Ruby Security Reviewers Guide](http://code.google.com/p/ruby-security/wiki/Guide)
-- [The Ruby on Rails Security Mailing List](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-security)
-- [Rails Insecure Defaults](https://codeclimate.com/blog/rails-insecure-defaults/)
+- [Официальное руководство по безопасности Rails](https://guides.rubyonrails.org/security.html)
+- [Руководство по безопасности OWASP для Ruby on Rails](https://owasp.org/www-pdf-archive/Rails_Security_2.pdf)
+- [Руководство по проверке безопасности Ruby](http://code.google.com/p/ruby-security/wiki/Guide)
+- [Список рассылки по безопасности Ruby on Rails](https://groups.google.com/forum/?fromgroups#!форум/rubyonrails-безопасность)
+- [Rails небезопасен по умолчанию](https://codeclimate.com/blog/rails-insecure-defaults/)
