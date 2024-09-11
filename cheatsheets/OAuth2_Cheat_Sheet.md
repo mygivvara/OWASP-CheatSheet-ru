@@ -1,66 +1,66 @@
-# OAuth 2.0 Protocol Cheatsheet
+# Таблица рекомендаций по протоколу OAuth 2.0
 
-This cheatsheet describes the best current security practices [1] for OAuth 2.0 as derived from its RFC [2][3]. OAuth became the standard for API protection and the basis for federated login using OpenID Connect. OpenID Connect 1.0 is a simple identity layer on top of the OAuth 2.0 protocol. It enables clients to verify the identity of the end user based on the authentication performed by an authorization server, as well as to obtain basic profile information about the end user in an interoperable and REST-like manner.
+В этой таблице описываются лучшие современные методы обеспечения безопасности [1] для OAuth 2.0, основанные на его RFC [2][3]. OAuth стал стандартом защиты API и основой для федеративного входа в систему с использованием OpenID Connect. OpenID Connect 1.0 - это простой уровень идентификации поверх протокола OAuth 2.0. Это позволяет клиентам проверять личность конечного пользователя на основе аутентификации, выполняемой сервером авторизации, а также получать основную информацию о профиле конечного пользователя совместимым и REST-подобным образом.
 
-## Terminology
+## Терминология
 
-- Access tokens = provide an abstraction, replacing different authorization constructs (e.g., username and password, assertion) for a single token understood by the resource server. This abstraction enables issuing access tokens valid for a short period, as well as removing the resource server's need to understand a wide range of authentication schemes.
-- Refresh tokens = are credentials used to obtain access tokens. These are issued to the client by the authorization server and are used to obtain a new access token when the current access token becomes invalid or expires or to obtain additional access tokens with identical or narrower scope (access tokens may have a shorter lifetime and fewer permissions than authorized by the resource owner).
-- Client = generally refers to an application making protected resource requests on behalf of the resource owner and with its authorization. The term "client" does not imply any particular implementation characteristics (e.g., whether the application executes on a server, a desktop, or other devices).
-- Authorization Server (AS) = refers to the server issuing access tokens to the client after successfully authenticating the resource owner and obtaining authorization.
-- Resource Owner (RO) = refers to an entity capable of granting access to a protected resource. When the resource owner is a person, it is referred to as an end user.
-- Resource Server (RS) = refers to the server hosting the protected resources, capable of accepting and responding to protected resource requests using access tokens.
+- Токены доступа = предоставляют абстракцию, заменяющую различные конструкции авторизации (например, имя пользователя и пароль, утверждение) на один токен, понятный серверу ресурсов. Эта абстракция позволяет выдавать токены доступа, действительные в течение короткого периода времени, а также избавляет сервер ресурсов от необходимости разбираться в широком спектре схем аутентификации.
+- Токены обновления = это учетные данные, используемые для получения токенов доступа. Они выдаются клиенту сервером авторизации и используются для получения нового токена доступа, когда текущий токен доступа становится недействительным или истекает срок его действия, или для получения дополнительных токенов доступа с идентичной или более узкой областью действия (токены доступа могут иметь меньший срок службы и меньше разрешений, чем разрешено владельцем ресурса).
+- Клиент = обычно относится к приложению, отправляющему запросы к защищенным ресурсам от имени владельца ресурса и с его разрешения. Термин "клиент" не подразумевает каких-либо конкретных характеристик реализации (например, независимо от того, выполняется ли приложение на сервере, настольном компьютере или других устройствах).
+- Сервер авторизации (AS) = относится к серверу, выдающему токены доступа клиенту после успешной аутентификации владельца ресурса и получения авторизации.
+- Владелец ресурса (RO) = относится к организации, способной предоставлять доступ к защищенному ресурсу. Если владельцем ресурса является физическое лицо, оно называется конечным пользователем.
+- Сервер ресурсов (RS) = относится к серверу, на котором размещены защищенные ресурсы, способный принимать запросы на защищенные ресурсы и отвечать на них с использованием токенов доступа.
 
-## OAuth 2.0 Essential Basics
+## Основные принципы OAuth 2.0
 
-1. Clients and Authorization Server must not expose URLs that forward the user's browser to arbitrary URIs obtained from a query parameter ("open redirectors") which can enable exfiltration of authorization codes and access tokens.
-2. Clients have ensured that the Authorization Server supports PKCE may rely on the CRSF protection provided by PKCE. In OpenID Connect flows, the "nonce" parameter provides CSRF protection. Otherwise, one-time user CSRF tokens carried in the "state" parameter that are securely bound to the user agent must be used for CSRF protection.
-3. When an OAuth Client can interact with more than one Authorization Server, Clients should use the issuer "iss" parameter as a countermeasure, or based on an "iss" value in the authorization response (such as the "iss" Claim in the ID Token in OpenID)
-4. When the other countermeasure options for OAuth clients interacting with more than one Authorization Servers are absent, Clients may instead use distinct redirect URIs to identify authorization endpoints and token endpoints.
-5. An Authorization Server avoids forwarding or redirecting a request potentially containing user credentials accidentally.
+1. Клиенты и сервер авторизации не должны предоставлять URL-адреса, которые перенаправляют браузер пользователя на произвольные URI, полученные из параметра запроса ("открытые перенаправители"), который может обеспечить фильтрацию кодов авторизации и токенов доступа.
+2. Клиенты убедились, что сервер авторизации, поддерживающий PKCE, может полагаться на защиту CRSF, предоставляемую PKCE. В потоках OpenID Connect параметр "nonce" обеспечивает защиту CSRF. В противном случае для защиты CSRF необходимо использовать одноразовые пользовательские токены CSRF, переданные в параметре "state", которые надежно привязаны к пользовательскому агенту.
+3. Когда клиент OAuth может взаимодействовать с несколькими серверами авторизации, клиенты должны использовать параметр iss "issuer" в качестве контрмеры или на основе значения "iss" в ответе на авторизацию (например, утверждение "iss" в токене идентификации в OpenID).
+4. Когда другие варианты противодействия для клиентов OAuth, взаимодействующих с несколькими серверами авторизации, отсутствуют, клиенты могут вместо этого использовать отдельные URI перенаправления для идентификации конечных точек авторизации и токенов.
+5. Сервер авторизации позволяет избежать случайной пересылки или перенаправления запроса, потенциально содержащего учетные данные пользователя.
 
-## PKCE - Proof Key for Code Exchange Mechanism
+## Защищенный от PKCE ключ для механизма обмена кодами
 
-OAuth 2.0 public clients utilizing the Authorization Code Grant are susceptible to the authorization code interception attack. Proof Key for Code Exchange (PKCE, pronounced "pixy") is the technique used to mitigate against the threat of authorization code interception attack.
+Общедоступные клиенты OAuth 2.0, использующие предоставление кода авторизации, подвержены атаке на перехват кода авторизации. Защитный ключ для обмена кодами (PKCE, произносится как "pixy") - это метод, используемый для предотвращения угрозы атаки на перехват кода авторизации.
 
-Originally, PKCE is intended to be used solely focused on securing native apps, but then it became a deployed OAuth feature. It does not only protect against authorization code injection attacks but also protects authorization codes created for public clients as PKCE ensures that the attacker cannot redeem a stolen authorization code at the token endpoint of the authorization server without knowledge of the code_verifier.
+Первоначально PKCE предназначался исключительно для обеспечения безопасности собственных приложений, но затем он стал развернутой функцией OAuth. Он не только защищает от атак с использованием кода авторизации, но и защищает коды авторизации, созданные для общедоступных клиентов, поскольку PKCE гарантирует, что злоумышленник не сможет восстановить украденный код авторизации на конечной точке токена сервера авторизации без знания code_verifier.
 
-6. Clients are preventing injection (replay) of authorization codes into the authorization response by using PKCE flow. Additionally, clients may use the OpenID Connect "nonce" parameter and the respective Claim in the ID Token instead. The PKCE challenge or OpenID Connect "nonce" must be transaction-specific and securely bound to the client and the user agent in which the transaction was started.
-7. When using PKCE, Clients should use PKCE code challenge methods that do not expose the PKCE verifier in the authorization request. Otherwise, attackers who can read the authorization request can break the security provided by the PKCE. Authorization servers must support PKCE.
-8. If a Client sends a valid PKCE "code_challenge" parameter in the authorization request, the authorization server enforces the correct usage of "code_verifier" at the token endpoint.
-9. Authorization Servers are mitigating PKCE Downgrade Attacks by ensuring a token request containing a "code_verifier" parameter is accepted only if a "code_challenge" parameter is present in the authorization request.
+6. Клиенты предотвращают внедрение (повторное использование) кодов авторизации в ответ на авторизацию с помощью потока PKCE. Кроме того, клиенты могут использовать параметр OpenID Connect "nonce" и соответствующее утверждение в токене ID вместо этого. Запрос PKCE или OpenID Connect "одноразовый" должен быть привязан к конкретной транзакции и надежно привязан к клиенту и пользовательскому агенту, в которых была запущена транзакция.
+7. При использовании PKCE клиенты должны использовать методы проверки кода PKCE, которые не предоставляют средства проверки PKCE в запросе на авторизацию. В противном случае злоумышленники, которые могут прочитать запрос на авторизацию, могут нарушить безопасность, обеспечиваемую PKCE. Серверы авторизации должны поддерживать PKCE.
+8. Если Клиент отправляет действительный параметр PKCE "code_challenge" в запросе на авторизацию, сервер авторизации обеспечивает правильное использование "code_verifier" в конечной точке токена.
+9. Серверы авторизации предотвращают атаки с понижением рейтинга PKCE, гарантируя, что запрос токена, содержащий параметр "code_verifier", принимается только в том случае, если в запросе авторизации присутствует параметр "code_challenge".
 
-## Implicit Grant
+## Неявное разрешение
 
-The implicit grant is a simplified authorization code flow optimized for clients implemented in a browser using a scripting language such as JavaScript. In the implicit flow, instead of issuing the client an authorization code, the client is issued an access token directly (as the result of the resource owner authorization). The grant type is implicit, as no intermediate credentials (such as an authorization code) are issued (and later used to obtain an access token).
+Неявное разрешение - это упрощенный код авторизации, оптимизированный для клиентов, реализованный в браузере с использованием языка сценариев, такого как JavaScript. В неявном потоке вместо выдачи клиенту кода авторизации клиенту напрямую выдается токен доступа (в результате авторизации владельца ресурса). Тип предоставления является неявным, поскольку никакие промежуточные учетные данные (такие как код авторизации) не выдаются (и впоследствии не используются для получения токена доступа).
 
-10. Clients are using the response type "code" (aka authorization code grant type) or any other response type that causes the authorization server to issue access tokens in the token response, such as the "code id_token" response type. This allows the Authorization Server to detect replay attempts by attackers and generally reduces the attack surface since access tokens are not exposed in the URLs. It also allows the Authorization Server to sender-constrain the issued tokens.
+10. Клиенты используют тип ответа "код" (он же тип предоставления кода авторизации) или любой другой тип ответа, который заставляет сервер авторизации выдавать токены доступа в ответе на токен, например, тип ответа "код id_token". Это позволяет серверу авторизации обнаруживать попытки повторного воспроизведения со стороны злоумышленников и, как правило, уменьшает вероятность атаки, поскольку токены доступа не отображаются в URL-адресах. Это также позволяет серверу авторизации ограничивать отправку выданных токенов.
 
-## Token Replay Prevention
+## Предотвращение воспроизведения токенов
 
-11. The Authorization and Resource Servers are using mechanisms for sender-constraining access tokens to prevent token replays, such as Mutual TLS for OAuth 2.0 or OAuth Demonstration of Proof of Possession (DPoP).
-12. Refresh tokens are sender-constrained or use refresh token rotation.
+11. Серверы авторизации и ресурсов используют механизмы для ограничения доступа отправителей к токенам для предотвращения повторения токенов, такие как Mutual TLS для OAuth 2.0 или OAuth Demonstration of Proof of Possession (DPoP).
+12. Токены обновления ограничены отправителем или используйте ротацию токенов обновления.
 
-## Access Token Privilege Restriction
+## Ограничение привилегий токена доступа
 
-13. The privileges associated with an access token should be restricted to the minimum required for the particular application or use case. This prevents clients from exceeding the privileges authorized by the Resource Owner. It also prevents users from exceeding their privileges authorized by the respective security policy. Privilege restrictions also help to reduce the impact of access token leakage.
-14. Access tokens are restricted to certain Resource Servers (audience restriction), preferably to a single Resource Server. The Authorization Server should associate the access token with certain Resource Servers and every Resource Server is obliged to verify, for every request, whether the access token sent with that request was meant to be used for that particular Resource Server. If not, the Resource Server must refuse to serve the respective request. Clients and Authorization Servers may utilize the parameters "scope" and "resource", respectively to determine the Resource Server they want to access.
-15. Access tokens are restricted to certain resources and actions on Resource Servers or resources. The Authorization Server should associate the access token with the respective resource and actions and every Resource Server is obliged to verify, for every request, whether the access token sent with that request was meant to be used for that particular action on the particular resource. If not, the Resource Server must refuse to serve the respective request. Clients and Authorization Servers may utilize the parameters "scope" and "authorization_details" to determine those resources and/or actions.
+13. Привилегии, связанные с токеном доступа, должны быть ограничены минимумом, требуемым для конкретного приложения или варианта использования. Это не позволяет клиентам превышать привилегии, разрешенные владельцем ресурса. Это также не позволяет пользователям превышать свои привилегии, разрешенные соответствующей политикой безопасности. Ограничения привилегий также помогают уменьшить последствия утечки токенов доступа.
+14. Токены доступа ограничены определенными серверами ресурсов (ограничение аудитории), предпочтительно одним сервером ресурсов. Сервер авторизации должен связать токен доступа с определенными Серверами ресурсов, и каждый Сервер ресурсов обязан проверять для каждого запроса, предназначался ли токен доступа, отправленный с этим запросом, для использования на этом конкретном сервере ресурсов. Если нет, Сервер ресурсов должен отказать в обслуживании соответствующего запроса. Клиенты и серверы авторизации могут использовать параметры "область действия" и "ресурс" соответственно для определения сервера ресурсов, к которому они хотят получить доступ.
+15. Токены доступа ограничены определенными ресурсами и действиями на серверах ресурсов или ресурсных ресурсах. Сервер авторизации должен связать токен доступа с соответствующим ресурсом и действиями, и каждый сервер ресурсов обязан проверять для каждого запроса, предназначался ли токен доступа, отправленный с этим запросом, для использования для этого конкретного действия на конкретном ресурсе. В противном случае сервер ресурсов должен отказаться обслуживать соответствующий запрос. Клиенты и серверы авторизации могут использовать параметры "область действия" и "authorization_details" для определения этих ресурсов и/или действий.
 
-## Resource Owner Password Credentials Grant
+## Предоставление учетных данных с паролем владельцу ресурса
 
-16. The Resource Owner password credentials grant is not used. This grant type insecurely exposes the credentials of the Resource Owner to the client, increasing the attack surface of the application.
+16. Предоставление учетных данных с паролем владельца ресурса не используется. Этот тип предоставления небезопасно предоставляет клиенту учетные данные владельца ресурса, увеличивая вероятность атаки приложения.
 
-## Client Authentication
+## Аутентификация клиента
 
-17. Authorization Servers are using client authentication if possible. It is recommended to use asymmetric (public-key based) methods for client authentication such as mTLS or "private_key_jwt" (OpenID Connect). When asymmetric methods for client authentication are used, Authorization Servers do not need to store sensitive symmetric keys, making these methods more robust against several attacks.
+17. Серверы авторизации по возможности используют аутентификацию клиента. Рекомендуется использовать асимметричные методы (основанные на открытом ключе) для аутентификации клиента, такие как motels или "private_key_jwt" (OpenID Connect). При использовании асимметричных методов аутентификации клиентов серверам авторизации не нужно хранить конфиденциальные симметричные ключи, что делает эти методы более устойчивыми к нескольким атакам.
 
-## Other Recommendations
+## Другие рекомендации
 
-18. Authorization Servers do not allow clients to influence their "client_id" or "sub" value or any other Claim that can be confused with a genuine Resource Owner. It is recommended to use end-to-end TLS.
-19. Authorization responses are not transmitted over unencrypted network connections. Authorization Servers must not allow redirect URIs that use the "http" scheme except for native clients that use Loopback Interface Redirection.
+18. Серверы авторизации не позволяют клиентам влиять на свои значения "client_id" или "sub", а также на любые другие утверждения, которые могут быть перепутаны с подлинным владельцем ресурса. Рекомендуется использовать сквозной протокол TLS.
+19. Ответы на авторизацию не передаются по незашифрованным сетевым соединениям. Серверы авторизации не должны разрешать перенаправлять URI, использующие схему "http", за исключением собственных клиентов, которые используют обратное перенаправление интерфейса.
 
-References:
+# Ссылки:
 
 - [RFC 6750](https://www.rfc-editor.org/info/rfc6750)
 - [RFC 6749](https://www.rfc-editor.org/info/rfc6749)
