@@ -1,16 +1,16 @@
-# Prototype Pollution Prevention Cheat Sheet
+# Шпаргалка по предотвращению загрязнения прототипов
 
-## Explanation
+## Объяснение
 
-Prototype Pollution is a critical vulnerability that can allow attackers to manipulate an application's JavaScript objects and properties, leading to serious security issues such as unauthorized access to data, privilege escalation, and even remote code execution.
+Загрязнение прототипа - это критическая уязвимость, которая может позволить злоумышленникам манипулировать объектами и свойствами JavaScript приложения, что приводит к серьезным проблемам безопасности, таким как несанкционированный доступ к данным, повышение привилегий и даже удаленное выполнение кода.
 
-For examples of why this is dangerous, see the links in the [Other resources](#other-resources) section below.
+Примеры того, почему это опасно, смотрите по ссылкам в разделе [Другие ресурсы](#other-resources) ниже.
 
-## Suggested protection mechanisms
+## Предлагаемые механизмы защиты
 
-### Use "new Set()" or "new Map()"
+### Используйте `new Set()` или `new Map()`.
 
-Developers should use `new Set()` or `new Map()` instead of using object literals:
+Разработчикам следует использовать `new Set()` или `new Map()` вместо использования объектных литералов:
 
 ```javascript
 let allowedTags = new Set();
@@ -24,35 +24,35 @@ options.set('spaces', 1);
 let spaces = options.get('spaces')
 ```
 
-### If objects or object literals are required
+### Если требуются объекты или объектные литералы
 
-If objects have to be used then they should be created using the `Object.create(null)` API to ensure they don't inherit from the Object prototype:
+Если необходимо использовать объекты, то их следует создавать с помощью `Object.create(null)` API, чтобы гарантировать, что они не наследуются от прототипа объекта:
 
 ```javascript
 let obj = Object.create(null);
 ```
 
-If object literals are required then as a last resort you could use the `__proto__` property:
+Если требуются объектные литералы, то в качестве последнего средства вы можете использовать свойство `__proto__`:
 
 ```javascript
 let obj = {__proto__:null};
 ```
 
-### Use object "freeze" and "seal" mechanisms
+### Используйте механизмы «freeze» и «seal» для объектов
 
-You can also use the `Object.freeze()` and `Object.seal()` APIs to prevent built-in prototypes from being modified however this can break the application if the libraries they use modify the built-in prototypes.
+Вы также можете использовать API-интерфейсы `Object.freeze()` и `Object.seal()`, чтобы предотвратить изменение встроенных прототипов, однако это может привести к сбою в работе приложения, если используемые библиотеки изменят встроенные прототипы.
 
-### Node.js configuration flag
+### Флаг конфигурации Node.js
 
-Node.js also offers the ability to remove the `__proto__` property completely using the `--disable-proto=delete` flag. Note this is a defense in depth measure.
+Node.js также имеется возможность полностью удалить свойство `__proto__`, используя флаг `--disable-proto=delete`. Обратите внимание, что это мера глубокой защиты.
 
-Prototype pollution is still possible using `constructor.prototype` properties but removing `__proto__` helps reduce attack surface and prevent certain attacks.
+Загрязнение прототипа все еще возможно при использовании свойств `constructor.prototype`, но удаление `__proto__` помогает уменьшить площадь атаки и предотвратить некоторые атаки.
 
-### Other resources
+### Другие ресурсы
 
-- [What is prototype pollution? (Portswigger Web Security Academy)](https://portswigger.net/web-security/prototype-pollution)
-- [Prototype pollution (Snyk Learn)](https://learn.snyk.io/lessons/prototype-pollution/javascript/)
+- [Что такое загрязнение прототипа? (Академия веб-безопасности Portswigger)](https://portswigger.net/web-security/prototype-pollution)
+- [Загрязнение прототипа (Snyk Learn)](https://learn.snyk.io/lessons/prototype-pollution/javascript/)
 
-### Credits
+### Заслуги
 
-Credit to [Gareth Hayes](https://garethheyes.co.uk/) for providing the original protection guidance [in this comment](https://github.com/OWASP/ASVS/issues/1563#issuecomment-1470027723).
+Выражаем признательность [Gareth Hayes](https://garethheyes.co.uk/) за предоставление оригинальных рекомендаций по защите [в этом комментарии](https://github.com/OWASP/ASVS/issues/1563#issuecomment-1470027723).
