@@ -1,99 +1,99 @@
-# Password Storage Cheat Sheet
+# Шпаргалка для хранения паролей
 
-## Introduction
+## Вступление
 
-This cheat sheet advises you on the proper methods for storing passwords for authentication. When passwords are stored, they must be protected from an attacker even if the application or database is compromised. Fortunately, a majority of modern languages and frameworks provide built-in functionality to help store passwords safely.
+В этой шпаргалке вы найдете рекомендации по надлежащим методам хранения паролей для аутентификации. Когда пароли хранятся, они должны быть защищены от злоумышленников, даже если приложение или база данных скомпрометированы. К счастью, большинство современных языков и платформ предоставляют встроенные функции, помогающие безопасно хранить пароли.
 
-However, once an attacker has acquired stored password hashes, they are always able to brute force hashes offline. Defenders can slow down offline attacks by selecting hash algorithms that are as resource intensive as possible.
+Однако, как только злоумышленник заполучит сохраненные хэши паролей, он всегда сможет взломать их в автономном режиме. Защитники могут замедлить атаки в автономном режиме, выбрав максимально ресурсоемкие алгоритмы хэширования.
 
-To sum up our recommendations:
+Подводя итог нашим рекомендациям:
 
-- **Use [Argon2id](#argon2id) with a minimum configuration of 19 MiB of memory, an iteration count of 2, and 1 degree of parallelism.**
-- **If [Argon2id](#argon2id) is not available, use [scrypt](#scrypt) with a minimum CPU/memory cost parameter of (2^17), a minimum block size of 8 (1024 bytes), and a parallelization parameter of 1.**
-- **For legacy systems using [bcrypt](#bcrypt), use a work factor of 10 or more and with a password limit of 72 bytes.**
-- **If FIPS-140 compliance is required, use [PBKDF2](#pbkdf2) with a work factor of 600,000 or more and set with an internal hash function of HMAC-SHA-256.**
-- **Consider using a [pepper](#peppering) to provide additional defense in depth (though alone, it provides no additional secure characteristics).**
+- **Используйте [Argon 2 id](#argon2id) с минимальной конфигурацией в 19 Мб памяти, числом итераций 2 и степенью параллелизма 1.**
+- **Если [Argon2id](#argon2id) недоступен, используйте [scrypt](#scrypt) с параметром минимальной стоимости процессора/памяти, равным (2^17), минимальным размером блока 8 (1024 байта) и параметром распараллеливания, равным 1.**
+- **Для устаревших систем, использующих [bcrypt](#bcrypt), используйте коэффициент полезного действия, равный 10 или более, и ограничение по паролю в 72 байта.**
+- **Если требуется соответствие стандарту FIPS-140, используйте [PBKDF2](#pbkdf2) с рабочим коэффициентом 600 000 или более и настройте его с помощью внутренней хэш-функции HMAC-SHA-256.**
+- **Рассмотрите возможность использования [pepper] (#перчинка) для обеспечения дополнительной глубокой защиты (хотя само по себе оно не обеспечивает дополнительных защитных характеристик).**
 
-## Background
+## Бэкграунд
 
-### Hashing vs Encryption
+### Хэширование против шифрования
 
-Hashing and encryption can keep sensitive data safe, but in almost all circumstances, **passwords should be hashed, NOT encrypted.**
+Хэширование и шифрование могут обеспечить безопасность конфиденциальных данных, но почти при любых обстоятельствах **пароли следует хэшировать, а не шифровать.**
 
-Because **hashing is a one-way function** (i.e., it is impossible to "decrypt" a hash and obtain the original plaintext value), it is the most appropriate approach for password validation. Even if an attacker obtains the hashed password, they cannot use it to log in as the victim.
+Поскольку **хэширование - это односторонняя функция** (т.е. невозможно "расшифровать" хэш и получить исходное текстовое значение), это наиболее подходящий подход для проверки пароля. Даже если злоумышленник получит хэшированный пароль, он не сможет использовать его для входа в систему в качестве жертвы.
 
-Since **encryption is a two-way function**, attackers can retrieve the original plaintext from the encrypted data. It can be used to store data such as a user's address since this data is displayed in plaintext on the user's profile. Hashing their address would result in a garbled mess.
+Поскольку **шифрование является двусторонней функцией**, злоумышленники могут извлечь исходный открытый текст из зашифрованных данных. Его можно использовать для хранения таких данных, как адрес пользователя, поскольку эти данные отображаются в виде открытого текста в профиле пользователя. Хеширование их адреса привело бы к искажению информации.
 
- The only time encryption should be used in passwords is in edge cases where it is necessary to obtain the original plaintext password. This might be necessary if the application needs to use the password to authenticate with another system that does not support a modern way to programmatically grant access, such as OpenID Connect (OIDC). Wherever possible, an alternative architecture should be used to avoid the need to store passwords in an encrypted form.
+ Шифрование паролей следует использовать только в крайних случаях, когда необходимо получить исходный текстовый пароль. Это может быть необходимо, если приложению необходимо использовать пароль для аутентификации в другой системе, которая не поддерживает современный способ программного предоставления доступа, такой как OpenID Connect (OIDC). Везде, где это возможно, следует использовать альтернативную архитектуру, чтобы избежать необходимости хранить пароли в зашифрованном виде.
 
-For further guidance on encryption, see the [Cryptographic Storage Cheat Sheet](Cryptographic_Storage_Cheat_Sheet.md).
+Дополнительные указания по шифрованию приведены в [Шпаргалке по криптографическому хранилищу](Cryptographic_Storage_Cheat_Sheet.md).
 
-### When Password Hashes Can Be Cracked
+### Когда Хэши Паролей Могут Быть Взломаны
 
-**Strong passwords stored with modern hashing algorithms and using hashing best practices should be effectively impossible for an attacker to crack.**  It is your responsibility as an application owner to select a modern hashing algorithm.
+**Взломать надежные пароли, сохраненные с использованием современных алгоритмов хеширования и лучших практик в области хеширования, злоумышленнику практически невозможно.** Выбор современного алгоритма хеширования является вашей ответственностью как владельца приложения.
 
-However, there are some situations where an attacker can "crack" the hashes in some circumstances by doing the following:
+Однако существуют некоторые ситуации, когда злоумышленник может "взломать" хэши при определенных обстоятельствах, выполнив следующие действия:
 
-- Selecting a password you think the victim has chosen (e.g.`password1!`)
-- Calculating the hash
-- Comparing the hash you calculated to the hash of the victim. If they match, you have correctly "cracked" the hash and now know the plaintext value of their password.
+- Выбор пароля, который, по вашему мнению, выбрала жертва (например, "пароль 1!")
+- Вычисление хэша
+- Сравнение вычисленного вами хэша с хэшем жертвы. Если они совпадают, вы правильно "взломали" хэш и теперь знаете текстовое значение их пароля.
 
-Usually, the attacker will repeat this process with a list of large number of potential candidate passwords, such as:
+Обычно злоумышленник повторяет этот процесс со списком из большого количества потенциальных паролей-кандидатов, таких как:
 
-- Lists of passwords obtained from other compromised sites
-- Brute force (trying every possible candidate)
-- Dictionaries or wordlists of common passwords
+- Списки паролей, полученных с других взломанных сайтов
+- Перебор (перебор всех возможных вариантов)
+- Словари или списки словосочетаний для распространенных паролей
 
-While the number of permutations can be enormous, with high speed hardware (such as GPUs) and cloud services with many servers for rent, the cost to an attacker is relatively small to do successful password cracking, especially when best practices for hashing are not followed.
+Несмотря на то, что количество перестановок может быть огромным, при наличии высокоскоростного оборудования (такого как графические процессоры) и облачных сервисов с большим количеством арендуемых серверов затраты злоумышленника на успешный взлом паролей относительно невелики, особенно если не соблюдаются рекомендации по хешированию.
 
-## Methods for Enhancing Password Storage
+## Методы улучшения хранения паролей
 
 ### Salting
 
-A salt is a unique, randomly generated string that is added to each password as part of the hashing process. As the salt is unique for every user, an attacker has to crack hashes one at a time using the respective salt rather than calculating a hash once and comparing it against every stored hash. This makes cracking large numbers of hashes significantly harder, as the time required grows in direct proportion to the number of hashes.
+Соль (Salt) - это уникальная, случайно сгенерированная строка, которая добавляется к каждому паролю в процессе хэширования. Поскольку соль уникальна для каждого пользователя, злоумышленнику приходится взламывать хэши по одному, используя соответствующую соль, а не вычислять хэш один раз и сравнивать его с каждым сохраненным хэшем. Это значительно усложняет взлом большого количества хэшей, поскольку требуемое время растет прямо пропорционально количеству хэшей.
 
-Salting also protects against an attacker's pre-computing hashes using rainbow tables or database-based lookups. Finally, salting means that it is impossible to determine whether two users have the same password without cracking the hashes, as the different salts will result in different hashes even if the passwords are the same.
+Соление также защищает от предварительного вычисления хэшей злоумышленником с использованием радужных таблиц или поиска в базе данных. Наконец, соление означает, что невозможно определить, есть ли у двух пользователей один и тот же пароль, не взломав хэши, поскольку разные соли приведут к разным хэшам, даже если пароли совпадают.
 
-[Modern hashing algorithms](#password-hashing-algorithms) such as Argon2id, bcrypt, and PBKDF2 automatically salt the passwords, so no additional steps are required when using them.
+[Современные алгоритмы хэширования](#password-hashing-algorithms), такие как Argon 2 id, bcrypt и PBKDF2, автоматически преобразуют пароли в соль, поэтому при их использовании не требуется никаких дополнительных действий.
 
 ### Peppering
 
-A [pepper](https://www.ietf.org/archive/id/draft-ietf-kitten-password-storage-04.html#section-4.2) can be used in addition to salting to provide an additional layer of protection. It prevents an attacker from being able to crack any of the hashes if they only have access to the database, for example, if they have exploited a SQL injection vulnerability or obtained a backup of the database. Peppering strategies do not affect the password hashing function in any way.
+В дополнение к солению можно использовать [papper](https://www.ietf.org/archive/id/draft-ietf-kitten-password-storage-04.html#section-4.2), чтобы обеспечить дополнительный слой защиты. Это лишает злоумышленника возможности взломать любой из хэшей, если у него есть доступ только к базе данных, например, если он воспользовался уязвимостью SQL-инъекции или получил резервную копию базы данных. Стратегии перчинга никоим образом не влияют на функцию хэширования паролей.
 
-For example, one peppering strategy is hashing the passwords as usual (using a password hashing algorithm) and then using an HMAC (e.g., HMAC-SHA256, HMAC-SHA512, depending on the desired output length) on the original password hash before storing the password hash in the database, with the pepper acting as the HMAC  key.
+Например, одна из стратегий peppering заключается в обычном хэшировании паролей (с использованием алгоритма хэширования паролей), а затем в использовании HMAC (например, HMAC-SHA256, HMAC-SHA512, в зависимости от желаемой длины вывода) для исходного хэша пароля перед сохранением хэша пароля в базе данных, при этом pepper выполняет функцию pepper. как ключ HMAC.
 
-- The pepper is **shared between stored passwords**, rather than being *unique* like a salt.
-- Unlike a password salt, the pepper **should not be stored in the database**.
-- Peppers are secrets and should be stored in "secrets vaults" or HSMs (Hardware Security Modules). See the [Secrets Management Cheat Sheet](Secrets_Management_Cheat_Sheet.md) for more information on securely storing secrets.
-- Like any other cryptographic key, a pepper rotation strategy should be considered.
+- Pepper **используется совместно между сохраненными паролями**, а не является *уникальным*, как salt.
+- В отличие от salt для паролей, pepper **не должен храниться в базе данных**.
+- Peppers являются секретными и должны храниться в "хранилищах секретов" или HSM (аппаратных модулях безопасности). Смотрите [Шпаргалку по управлению секретами](Secrets_Management_Cheat_Sheet.md) для получения дополнительной информации о безопасном хранении секретов.
+- Как и в случае с любым другим криптографическим ключом, следует учитывать стратегию ротации pepper.
 
-### Using Work Factors
+### Использование рабочих факторов
 
- The work factor is the number of iterations of the hashing algorithm that are performed for each password (usually, it's actually `2^work` iterations). The work factor is typically stored in the hash output. It makes calculating the hash more computationally expensive, which in turn reduces the speed and/or increases the cost for which an attacker can attempt to crack the password hash.
+ Коэффициент полезного действия - это количество итераций алгоритма хэширования, которые выполняются для каждого пароля (обычно это "2 ^ рабочие" итерации). Коэффициент полезного действия обычно сохраняется в выходных данных хэша. Это делает вычисление хэша более затратным с точки зрения вычислений, что, в свою очередь, снижает скорость и/или увеличивает затраты, за которые злоумышленник может попытаться взломать хэш пароля.
 
-When you choose a work factor, strike a balance between security and performance. Though higher work factors make hashes more difficult for an attacker to crack, they will slow down the process of verifying a login attempt. If the work factor is too high, the performance of the application may be degraded, which could used by an attacker to carry out a denial of service attack by exhausting the server's CPU with a large number of login attempts.
+Выбирая коэффициент полезного действия, соблюдайте баланс между безопасностью и производительностью. Хотя более высокие коэффициенты полезного действия затрудняют взлом хэшей злоумышленником, они замедляют процесс проверки попытки входа в систему. Если коэффициент полезного действия слишком высок, производительность приложения может снизиться, что может быть использовано злоумышленником для проведения атаки типа "отказ в обслуживании", изматывающей центральный процессор сервера большим количеством попыток входа в систему.
 
-There is no golden rule for the ideal work factor - it will depend on the performance of the server and the number of users on the application. Determining the optimal work factor will require experimentation on the specific server(s) used by the application. As a general rule, calculating a hash should take less than one second.
+Не существует золотого правила для определения оптимального коэффициента полезного действия - он будет зависеть от производительности сервера и количества пользователей в приложении. Определение оптимального коэффициента полезного действия потребует экспериментов на конкретных серверах, используемых приложением. Как правило, вычисление хэша должно занимать менее одной секунды.
 
-#### Upgrading the Work Factor
+#### Повышение коэффициента полезного действия
 
-One key advantage of having a work factor is that it can be increased over time as hardware becomes more powerful and cheaper.
+Одним из ключевых преимуществ наличия коэффициента полезного действия является то, что он может быть увеличен с течением времени по мере того, как оборудование становится более мощным и дешевым.
 
-The most common approach to upgrading the work factor is to wait until the user next authenticates, then re-hash their password with the new work factor. The different hashes will have different work factors and hashes may never be upgraded if the user doesn't log back into the application. Depending on the application, it may be appropriate to remove the older password hashes and require users to reset their passwords next time they need to login in order to avoid storing older and less secure hashes.
+Наиболее распространенный подход к обновлению work factor заключается в том, чтобы дождаться следующей аутентификации пользователя, а затем повторно использовать его пароль с новым work factor. Разные хэши будут иметь разные рабочие факторы, и хэши могут никогда не обновляться, если пользователь не выполнит повторный вход в приложение. В зависимости от приложения может оказаться целесообразным удалить старые хэши паролей и потребовать от пользователей сбросить свои пароли при следующем входе в систему, чтобы избежать сохранения старых и менее безопасных хэшей.
 
-## Password Hashing Algorithms
+## Алгоритмы хэширования паролей
 
-Some modern hashing algorithms have been specifically designed to securely store passwords. This means that they should be slow (unlike algorithms such as MD5 and SHA-1, which were designed to be fast), and you can change how slow they are by changing the work factor.
+Некоторые современные алгоритмы хеширования были специально разработаны для безопасного хранения паролей. Это означает, что они должны быть медленными (в отличие от таких алгоритмов, как MD5 и SHA-1, которые были разработаны как быстрые), и вы можете изменить их скорость, изменив коэффициент полезного действия.
 
-You do not need to hide which password hashing algorithm is used by an application. If you utilize a modern password hashing algorithm with proper configuration parameters, it should be safe to state in public which password hashing algorithms are in use and be listed [here](https://pulse.michalspacek.cz/passwords/storages).
+Вам не нужно скрывать, какой алгоритм хэширования паролей используется приложением. Если вы используете современный алгоритм хэширования паролей с надлежащими параметрами конфигурации, должно быть безопасно публично указывать, какие алгоритмы хэширования паролей используются, и указывать их [здесь](https://pulse.michalspacek.cz/passwords/storages).
 
-Three hashing algorithms that should be considered:
+Три алгоритма хеширования, которые следует учитывать:
 
 ### Argon2id
 
-[Argon2](https://en.wikipedia.org/wiki/Argon2) was the winner of the 2015 [Password Hashing Competition](https://en.wikipedia.org/wiki/Password_Hashing_Competition). Out of the three Argon2 versions, use the  Argon2id variant since it provides a balanced approach to resisting both side-channel and GPU-based attacks.
+[Argon 2](https://en.wikipedia.org/wiki/Argon 2) стал победителем конкурса 2015 года [по хэшированию паролей](https://en.wikipedia.org/wiki/Password_Hashing_Competition). Из трех версий Argon 2 используйте вариант Argon2id, поскольку он обеспечивает сбалансированный подход к защите как от атак по сторонним каналам, так и от атак на основе графического процессора.
 
-Rather than a simple work factor like other algorithms, Argon2id has three different parameters that can be configured: the base minimum of the minimum memory size (m), the minimum number of iterations (t), and the degree of parallelism (p). We recommend the following configuration settings:
+В отличие от других алгоритмов, Argon2id имеет три различных параметра, которые можно настроить: базовый минимум минимального объема памяти (m), минимальное количество итераций (t) и степень параллелизма (p). Мы рекомендуем использовать следующие параметры конфигурации:
 
 - m=47104 (46 MiB), t=1, p=1 (Do not use with Argon2i)
 - m=19456 (19 MiB), t=2, p=1 (Do not use with Argon2i)
@@ -101,13 +101,13 @@ Rather than a simple work factor like other algorithms, Argon2id has three diffe
 - m=9216 (9 MiB), t=4, p=1
 - m=7168 (7 MiB), t=5, p=1
 
-These configuration settings provide an equal level of defense, and the only difference is a trade off between CPU and RAM usage.
+Эти параметры конфигурации обеспечивают одинаковый уровень защиты, и единственное различие заключается в балансе между использованием процессора и оперативной памяти.
 
 ### scrypt
 
-[scrypt](http://www.tarsnap.com/scrypt/scrypt.pdf) is a password-based key derivation function created by [Colin Percival](https://twitter.com/cperciva). While [Argon2id](#argon2id) should be the best choice for password hashing, [scrypt](#scrypt) should be used when the former is not available.
+[script](http://www.tarsnap.com/scrypt/scrypt.pdf) - это функция получения ключа на основе пароля, созданная [Колином Персивалем](https://twitter.com/cperciva). В то время как [Argon2id](#argon2id) должен быть лучшим выбором для хэширования паролей, [scrypt](#scrypt) следует использовать, когда первый недоступен.
 
-Like [Argon2id](#argon2id), scrypt has three different parameters that can be configured: the minimum CPU/memory cost parameter (N), the blocksize (r) and the degree of parallelism (p). Use one of the following settings:
+Как и [Argon2id](#argon2id), scrypt имеет три различных параметра, которые можно настроить: параметр минимальной стоимости процессора/памяти (N), размер блока (r) и степень параллелизма (p). Используйте одну из следующих настроек:
 
 - N=2^17 (128 MiB), r=8 (1024 bytes), p=1
 - N=2^16 (64 MiB), r=8 (1024 bytes), p=2
@@ -115,29 +115,29 @@ Like [Argon2id](#argon2id), scrypt has three different parameters that can be co
 - N=2^14 (16 MiB), r=8 (1024 bytes), p=5
 - N=2^13 (8 MiB), r=8 (1024 bytes), p=10
 
-These configuration settings provide an equal level of defense. The only difference is a trade off between CPU and RAM usage.
+Эти параметры конфигурации обеспечивают одинаковый уровень защиты. Единственное различие заключается в соотношении использования процессора и оперативной памяти.
 
 ### bcrypt
 
-The [bcrypt](https://en.wikipedia.org/wiki/bcrypt) password hashing function should be the best choice for password storage in legacy systems or if PBKDF2 is required to achieve FIPS-140 compliance.
+Функция хэширования паролей [bcrypt](https://en.wikipedia.org/wiki/bcrypt) должна быть наилучшим выбором для хранения паролей в устаревших системах или если для обеспечения соответствия требованиям FIPS-140 требуется PBKDF2.
 
-The work factor should be as large as verification server performance will allow, with a minimum of 10.
+Коэффициент полезного действия должен быть настолько большим, насколько позволяет производительность сервера верификации, но не менее 10.
 
-#### Input Limits of bcrypt
+#### Ограничения на ввод данных в bcrypt
 
-bcrypt has a maximum length input length of 72 bytes [for most implementations](https://security.stackexchange.com/questions/39849/does-bcrypt-have-a-maximum-password-length), so you should enforce a maximum password length of 72 bytes (or less if the bcrypt implementation in use has smaller limits).
+максимальная длина ввода в bcrypt составляет 72 байта [для большинства случаев implementations](https://security.stackexchange.com/questions/39849/does-bcrypt-have-a-maximum-password-length), поэтому вам следует установить максимальную длину пароля в 72 байта (или меньше, если используемая реализация bcrypt имеет меньшие ограничения).
 
-#### Pre-Hashing Passwords with bcrypt
+#### Предварительное хэширование паролей с помощью bcrypt
 
-An alternative approach is to pre-hash the user-supplied password with a fast algorithm such as SHA-256, and then to hash the resulting hash with bcrypt (i.e., `bcrypt(base64(hmac-sha256(data:$password, key:$pepper)), $salt, $cost)`). This is a dangerous (but common) practice that **should be avoided** due to [password shucking](https://www.youtube.com/watch?v=OQD3qDYMyYQ) and other issues when [combining bcrypt with other hash functions](https://blog.ircmaxell.com/2015/03/security-issue-combining-bcrypt-with.html).
+Альтернативный подход заключается в предварительном хэшировании введенного пользователем пароля с помощью быстрого алгоритма, такого как SHA-256, а затем в хэшировании полученного хэша с помощью bcrypt (т.е. `bcrypt(base64(hmac-sha256(данные:$пароль, ключ:$перец)), $соль, $стоимость)`). Это опасная (но распространенная) практика, которой ** следует избегать ** из-за [смены пароля] (https://www.youtube.com/watch?v=OQD3qDYMyYQ) и других проблем при [объединении bcrypt с другими хэш-функциями](https://blog.ircmaxell.com/2015/03/security-issue-combining-bcrypt-with.html).
 
 ### PBKDF2
 
-Since [PBKDF2](https://en.wikipedia.org/wiki/PBKDF2) is recommended by [NIST](https://pages.nist.gov/800-63-3/sp800-63b.html#memsecretver) and has FIPS-140 validated implementations, so it should be the preferred algorithm when these are required.
+Поскольку [PBKDF2](https://en.wikipedia.org/wiki/PBKDF2) рекомендован [NIST](https://pages.nist.gov/800-63-3/sp800-63b.html#memsecretver) и имеет реализации, подтвержденные FIPS-140, он должен быть предпочтительным алгоритмом, когда они требуются.
 
-The PBKDF2 algorithm requires that you select an internal hashing algorithm such as an HMAC or a variety of other hashing algorithms. HMAC-SHA-256 is widely supported and is recommended by NIST.
+Алгоритм PBKDF2 требует, чтобы вы выбрали внутренний алгоритм хэширования, такой как HMAC, или множество других алгоритмов хэширования. HMAC-SHA-256 широко поддерживается и рекомендован NIST.
 
-The work factor for PBKDF2 is implemented through an iteration count, which should set differently based on the internal hashing algorithm used.
+Коэффициент полезного действия для PBKDF2 реализуется с помощью счетчика итераций, который должен устанавливаться по-разному в зависимости от используемого внутреннего алгоритма хеширования.
 
 - PBKDF2-HMAC-SHA1: 1,300,000 iterations
 - PBKDF2-HMAC-SHA256: 600,000 iterations
@@ -149,26 +149,26 @@ The work factor for PBKDF2 is implemented through an iteration count, which shou
 - PPBKDF2-SHA256: cost 5
 - PPBKDF2-SHA1: cost 10
 
-These configuration settings are equivalent in the defense they provide. ([Number as of december 2022, based on testing of RTX 4000 GPUs](https://tobtu.com/minimum-password-settings/))
+Эти параметры конфигурации эквивалентны по защите, которую они обеспечивают. ([Количество по состоянию на декабрь 2022 года, основано на тестировании графических процессоров RTX 4000](https://tobtu.com/minimum-password-settings/))
 
 #### PBKDF2 Pre-Hashing
 
-When PBKDF2 is used with an HMAC, and the password is longer than the hash function's block size (64 bytes for SHA-256), the password will be automatically pre-hashed. For example, the password "This is a password longer than 512 bits which is the block size of SHA-256" is converted to the hash value (in hex): `fa91498c139805af73f7ba275cca071e78d78675027000c99a9925e2ec92eedd`.
+Когда PBKDF2 используется с HMAC, а длина пароля превышает размер блока хэш-функции (64 байта для SHA-256), пароль будет автоматически предварительно хэширован. Например, пароль "Длина этого пароля превышает 512 бит, что соответствует размеру блока SHA-256" преобразуется в хэш-значение (в шестнадцатеричном формате): `fa91498c139805af73f7ba275cca071e78d78675027000c99a9925e2ec92eedd`.
 
-Good implementations of PBKDF2 perform pre-hashing before the expensive iterated hashing phase. However, some implementations perform the conversion on each iteration, which can make hashing long passwords significantly more expensive than hashing short passwords. When users supply very long passwords, a potential denial of service vulnerability could occur, such as the one published in [Django](https://www.djangoproject.com/weblog/2013/sep/15/security/) during 2013. Manual pre-hashing can reduce this risk but requires adding a [salt](#salting) to the pre-hash step.
+Хорошие реализации PBKDF2 выполняют предварительное хэширование перед дорогостоящей итерационной фазой хэширования. Однако некоторые реализации выполняют преобразование на каждой итерации, что может сделать хэширование длинных паролей значительно более дорогостоящим, чем хэширование коротких паролей. Когда пользователи вводят очень длинные пароли, может возникнуть потенциальная уязвимость типа "отказ в обслуживании", подобная той, что была опубликована в [Django](https://www.djangoproject.com/weblog/2013/sep/15/security/) в 2013 году. Предварительная промывка вручную может снизить этот риск, но требует добавления [соли] (#засолки) на этапе подготовки к окрошке.
 
-## Upgrading Legacy Hashes
+## Обновление устаревших хэшей
 
-Older applications that use less secure hashing algorithms, such as MD5 or SHA-1, can be upgraded to modern password hashing algorithms as described above. When the users enter their password (usually by authenticating on the application), that input should be re-hashed using the new algorithm. Defenders should expire the users' current password and require them to enter a new one, so that any older (less secure) hashes of their password are no longer useful to an attacker.
+Старые приложения, использующие менее безопасные алгоритмы хэширования, такие как MD5 или SHA-1, могут быть обновлены до современных алгоритмов хэширования паролей, как описано выше. Когда пользователи вводят свой пароль (обычно путем аутентификации в приложении), этот ввод должен быть повторно хэширован с использованием нового алгоритма. Защитники должны истечь срок действия текущего пароля пользователя и потребовать от него ввести новый, чтобы любые старые (менее защищенные) хэши их пароля больше не были полезны злоумышленнику.
 
-However, this means that old (less secure) password hashes will be stored in the database until the user logs in. You can take one of two approaches to avoid this dilemma.
+Однако это означает, что старые (менее защищенные) хэши паролей будут храниться в базе данных до тех пор, пока пользователь не войдет в систему. Вы можете воспользоваться одним из двух подходов, чтобы избежать этой дилеммы.
 
-Upgrade Method One: Expire and delete the password hashes of users who have been inactive for an extended period and require them to reset their passwords to login again. Although secure, this approach is not particularly user-friendly. Expiring the passwords of many users may cause issues for support staff or may be interpreted by users as an indication of a breach.
+Способ обновления первый: истечение срока действия и удаление хэшей паролей пользователей, которые были неактивны в течение длительного периода времени, и требуется, чтобы они сбросили свои пароли для повторного входа в систему. Несмотря на безопасность, этот подход не особенно удобен для пользователя. Истечение срока действия паролей многих пользователей может вызвать проблемы у сотрудников службы поддержки или может быть истолковано пользователями как признак взлома.
 
-Upgrade Method Two: Use the existing password hashes as inputs for a more secure algorithm. For example, if the application originally stored passwords as `md5($password)`, this could be easily upgraded to `bcrypt(md5($password))`. Layering the hashes avoids the need to know the original password; however, it can make the hashes easier to crack. These hashes should be replaced with direct hashes of the users' passwords next time the user logs in.
+Второй способ обновления: Используйте существующие хэши паролей в качестве входных данных для более безопасного алгоритма. Например, если приложение изначально хранило пароли как `md5($password)`, его можно легко обновить до `bcrypt(md5($password))`. Разбивка хэшей на уровни позволяет избежать необходимости знать исходный пароль, однако это может упростить взлом хэшей. Эти хэши следует заменить прямыми хэшами паролей пользователей при следующем входе в систему.
 
-Remember that once your password hashing method is selected, it will have to be upgraded in the future, so ensure that upgrading your hashing algorithm is as easy as possible. During the transition period, allow for a mix of old and new hashing algorithms. Using a mix of hashing algorithms is easier if the password hashing algorithm and work factor are stored with the password using a standard format, for example, the [modular PHC string format](https://github.com/P-H-C/phc-string-format/blob/master/phc-sf-spec.md).
+Помните, что как только вы выберете метод хэширования паролей, в будущем его необходимо будет обновить, поэтому убедитесь, что обновление алгоритма хэширования будет максимально простым. В течение переходного периода используйте как старые, так и новые алгоритмы хэширования. Использование комбинации алгоритмов хэширования упрощается, если алгоритм хэширования пароля и коэффициент полезного действия хранятся вместе с паролем в стандартном формате, например, [модульный формат строк PHC](https://github.com/P-H-C/phc-string-format/blob/master/phc-sf-spec.md).
 
-### International Characters
+### Международные символы
 
-Your hashing library must be able to accept a wide range of characters and should be compatible with all Unicode codepoints, so users can use the full range of characters available on modern devices - especially mobile keyboards. They should be able to select passwords from various languages and include pictograms. Prior to hashing the entropy of the user's entry should not be reduced, and password hashing libraries need to be able to use input that may contain a NULL byte.
+Ваша библиотека хэширования должна быть способна принимать широкий спектр символов и должна быть совместима со всеми кодовыми обозначениями Unicode, чтобы пользователи могли использовать весь спектр символов, доступных на современных устройствах, особенно на мобильных клавиатурах. Они должны уметь выбирать пароли на разных языках и включать пиктограммы. Перед хэшированием энтропия пользовательской записи не должна уменьшаться, и библиотеки хэширования паролей должны иметь возможность использовать входные данные, которые могут содержать нулевой байт.
