@@ -1,68 +1,68 @@
-# REST Assessment Cheat Sheet
+# Шпаргалка по оценке REST
 
-## About RESTful Web Services
+## О веб-сервисах RESTful
 
-Web Services are an implementation of web technology used for machine to machine communication. As such they are used for Inter application communication, Web 2.0 and Mashups and by desktop and mobile applications to call a server.
+Веб-сервисы - это реализация веб-технологии, используемой для взаимодействия между машинами. Как таковые, они используются для взаимодействия между приложениями, Web 2.0 и Mashup, а также настольными и мобильными приложениями для вызова сервера.
 
-RESTful web services (often called simply REST) are a light weight variant of Web Services based on the RESTful design pattern. In practice RESTful web services utilizes HTTP requests that are similar to regular HTTP calls in contrast with other Web Services technologies such as SOAP which utilizes a complex protocol.
+Веб-сервисы RESTful (часто называемые просто REST) представляют собой упрощенный вариант веб-сервисов, основанный на шаблоне проектирования RESTful. На практике веб-сервисы RESTful используют HTTP-запросы, которые похожи на обычные HTTP-вызовы, в отличие от других технологий веб-сервисов, таких как SOAP, которые используют сложный протокол.
 
-## Key relevant properties of RESTful web services
+## Основные релевантные свойства веб-сервисов RESTful
 
-- Use of HTTP methods (`GET`, `POST`, `PUT` and `DELETE`) as the primary verb for the requested operation.
-- Non-standard parameters specifications:
-    - As part of the URL.
-    - In headers.
-- Structured parameters and responses using JSON or XML in a parameter values, request body or response body. Those are required to communicate machine useful information.
-- Custom authentication and session management, often utilizing custom security tokens: this is needed as machine to machine communication does not allow for login sequences.
-- Lack of formal documentation. A [proposed standard for describing RESTful web services called WADL](http://www.w3.org/Submission/wadl/) was submitted by Sun Microsystems but was never officially adapted.
+- Использование HTTP-методов (`GET`, `POST`, `PUT` и `DELETE`) в качестве основного глагола для запрашиваемой операции.
+- Спецификации нестандартных параметров:
+    - Как часть URL-адреса.
+    - В заголовках.
+- Структурированные параметры и ответы с использованием JSON или XML в виде значений параметров, текста запроса или ответа. Они необходимы для передачи полезной информации для компьютера.
+- Пользовательская аутентификация и управление сеансами, часто с использованием пользовательских токенов безопасности: это необходимо, поскольку взаимодействие между машинами не позволяет использовать последовательности входа в систему.
+- Отсутствие официальной документации. [Предлагаемый стандарт для описания веб-сервисов RESTful под названием WADL](http://www.w3.org/Submission/wadl/) был представлен Sun Microsystems, но так и не был официально адаптирован.
 
-## The challenge of security testing RESTful web services
+## Сложности тестирования безопасности RESTful веб-сервисов
 
-- Inspecting the application does not reveal the attack surface, I.e. the URLs and parameter structure used by the RESTful web service. The reasons are:
-    - No application utilizes all the available functions and parameters exposed by the service
-    - Those used are often activated dynamically by client side code and not as links in pages.
-    - The client application is often not a web application and does not allow inspection of the activating link or even relevant code.
-- The parameters are non-standard making it hard to determine what is just part of the URL or a constant header and what is a parameter worth [fuzzing](https://owasp.org/www-community/Fuzzing).
-- As a machine interface the number of parameters used can be very large, for example a JSON structure may include dozens of parameters. [fuzzing](https://owasp.org/www-community/Fuzzing) each one significantly lengthen the time required for testing.
-- Custom authentication mechanisms require reverse engineering and make popular tools not useful as they cannot track a login session.
+- Проверка приложения не выявила "поверхности атаки", то есть URL-адресов и структуры параметров, используемых веб-службой RESTful. Причины в следующем:
+    - Ни одно приложение не использует все доступные функции и параметры, предоставляемые службой
+    - Используемые ссылки часто активируются динамически с помощью клиентского кода, а не в виде ссылок на страницах.
+    - Клиентское приложение часто не является веб-приложением и не позволяет проверить активирующую ссылку или даже соответствующий код.
+- Параметры нестандартны, что затрудняет определение того, что является просто частью URL-адреса или постоянным заголовком, а что является параметром, который стоит [фаззить](https://owasp.org/www-community/Fuzzing).
+- В качестве машинного интерфейса количество используемых параметров может быть очень большим, например, структура JSON может включать десятки параметров. [фаззинг](https://owasp.org/www-community/Fuzzing) каждого из них значительно увеличивает время, необходимое для тестирования.
+- Пользовательские механизмы аутентификации требуют обратного проектирования и делают популярные инструменты бесполезными, поскольку они не могут отслеживать сеанс входа в систему.
 
-## How to pentest a RESTful web service
+## Как протестировать веб-сервис RESTful
 
-Determine the attack surface through documentation - RESTful pen testing might be better off if some level of clear-box testing is allowed and you can get information about the service.
+Определите область атаки с помощью документации. Возможно, было бы лучше провести тестирование с помощью RESTful pen, если бы был разрешен некоторый уровень открытого тестирования, и вы могли бы получить информацию о сервисе.
 
-This information will ensure fuller coverage of the attack surface. Such information to look for:
+Эта информация обеспечит более полный охват области атаки. Такую информацию следует искать:
 
-- Formal service description - While for other types of web services such as SOAP a formal description, usually in WSDL is often available, this is seldom the case for REST. That said, either WSDL 2.0 or WADL can describe REST and are sometimes used.
-- A developer guide for using the service may be less detailed but will commonly be found, and might even be considered *opaque-box* testing.
-- Application source or configuration - in many frameworks, including dotNet ,the REST service definition might be easily obtained from configuration files rather than from code.
+- Формальное описание сервиса - В то время как для других типов веб-сервисов, таких как SOAP, часто доступно формальное описание, обычно в WSDL, для REST это редко встречается. Тем не менее, либо WSDL 2.0, либо WADL могут описывать REST и иногда используются.
+- Руководство разработчика по использованию сервиса может быть менее подробным, но его обычно можно найти, и оно может даже рассматриваться как "непрозрачное" тестирование.
+- Исходный код приложения или конфигурация - во многих платформах, включая dotNet, определение сервиса REST может быть легко получено из файлов конфигурации, а не из кода.
 
-Collect full requests using a [proxy](https://www.zaproxy.org/) - while always an important pen testing step, this is more important for REST based applications as the application UI may not give clues on the actual attack surface.
+Сбор полных запросов с помощью [прокси-сервера](https://www.zaproxy.org/) - хотя это всегда важный этап тестирования, он более важен для приложений на базе REST, поскольку пользовательский интерфейс приложения может не указывать на фактическую поверхность атаки.
 
-Note that the proxy must be able to collect full requests and not just URLs as REST services utilize more than just GET parameters.
+Обратите внимание, что прокси-сервер должен быть способен собирать полные запросы, а не только URL-адреса, поскольку службы REST используют нечто большее, чем просто получение параметров.
 
-Analyze collected requests to determine the attack surface:
+Проанализируйте собранные запросы, чтобы определить область атаки:
 
-- Look for non-standard parameters:
-    - Look for abnormal HTTP headers - those would many times be header based parameters.
-    - Determine if a URL segment has a repeating pattern across URLs. Such patterns can include a date, a number or an ID like string and indicate that the URL segment is a URL embedded parameter.
-        - For example: `http://server/srv/2013-10-21/use.php`
-    - Look for structured parameter values - those may be JSON, XML or a non-standard structure.
-    - If the last element of a URL does not have an extension, it may be a parameter. This is especially true if the application technology normally uses extensions or if a previous segment does have an extension.
-        - For example: `http://server/svc/Grid.asmx/GetRelatedListItems`
-    - Look for highly varying URL segments - a single URL segment that has many values may be parameter and not a physical directory.
-        - For example if the URL `http://server/src/XXXX/page` repeats with hundreds of value for `XXXX`, chances `XXXX` is a parameter.
+- Ищите нестандартные параметры:
+    - Ищите ненормальные HTTP-заголовки - во многих случаях это могут быть параметры, основанные на заголовке.
+    - Определите, имеет ли сегмент URL повторяющийся шаблон для всех URL-адресов. Такие шаблоны могут включать дату, число или строку, подобную идентификатору, и указывать на то, что сегмент URL является встроенным параметром URL.
+        - Например: `http://server/srv/2013-10-21/use.php`
+    - Ищите структурированные значения параметров - это могут быть JSON, XML или нестандартная структура.
+    - Если последний элемент URL-адреса не имеет расширения, это может быть параметр. Это особенно актуально, если в технологии приложения обычно используются расширения или если предыдущий сегмент имеет расширение.
+        - Например: `http://server/svc/Grid.asmx/GetRelatedListItems`
+    - Ищите сильно различающиеся сегменты URL-адресов - один сегмент URL, который имеет много значений, может быть параметром, а не физическим каталогом.
+        - Например, если URL-адрес `http://server/src/XXXX/page` повторяется с сотнями значений для `XXXX`, вероятность того, что `XXXX` является параметром.
 
-Verify non-standard parameters: in some cases (but not all), setting the value of a URL segment suspected of being a parameter to a value expected to be invalid can help determine if it is a path elements of a parameter. If a path element, the web server will return a *404* message, while for an invalid value to a parameter the answer would be an application level message as the value is legal at the web server level.
+Проверка нестандартных параметров: в некоторых случаях (но не во всех) установка значения сегмента URL, который предположительно может быть параметром, на значение, которое, как ожидается, будет недопустимым, может помочь определить, является ли это элементом пути к параметру. Если указан элемент path, веб-сервер вернет сообщение *404*, в то время как для недопустимого значения параметра ответом будет сообщение прикладного уровня, поскольку значение является допустимым на уровне веб-сервера.
 
-Analyzing collected requests to optimize [fuzzing](https://owasp.org/www-community/Fuzzing) - after identifying potential parameters to fuzz, analyze the collected values for each to determine:
+Анализ собранных запросов для оптимизации [фаззинга](https://owasp.org/www-community/Fuzzing) - после определения потенциальных параметров для фаззинга проанализируйте собранные значения для каждого из них, чтобы определить:
 
-- Valid vs. invalid values, so that [fuzzing](https://owasp.org/www-community/Fuzzing) can focus on marginal invalid values.
-    - For example sending *0* for a value found to be always a positive integer.
-- Sequences allowing to fuzz beyond the range presumably allocated to the current user.
+- Допустимые и недопустимые значения, так что [fuzzing](https://owasp.org/www-community/Fuzzing) может фокусироваться на минимально допустимых значениях.
+    - Например, отправка *0* для значения, которое всегда является положительным целым числом.
+- Последовательности, позволяющие выполнять фаззинг за пределами диапазона, предположительно выделенного текущему пользователю.
 
-Lastly, when [fuzzing](https://owasp.org/www-community/Fuzzing), don't forget to emulate the authentication mechanism used.
+Наконец, при [размывании] (https://owasp.org/www-community/Fuzzing) не забудьте эмулировать используемый механизм аутентификации.
 
-## Related Resources
+## Похожие ресурсы
 
-- [REST Security Cheat Sheet](REST_Security_Cheat_Sheet.md) - the other side of this cheat sheet
-- [YouTube: RESTful services, web security blind spot](https://www.youtube.com/watch?v=pWq4qGLAZHI) - a video presentation elaborating on most of the topics on this cheat sheet.
+- [Шпаргалка по безопасности REST](REST_Security_Cheat_Sheet.md) - обратная сторона этой шпаргалки
+- [YouTube: сервисы RESTful, слепая зона веб-безопасности](https://www.youtube.com/watch?v=pWq4qGLAZHI) - видеопрезентация, раскрывающая большинство тем, описанных в этой шпаргалке.
