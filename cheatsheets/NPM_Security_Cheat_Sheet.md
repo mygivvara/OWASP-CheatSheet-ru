@@ -1,163 +1,163 @@
-# NPM Security best practices
+# Лучшие практики обеспечения безопасности NPM
 
-In the following npm cheatsheet, we’re going to focus on [10 npm security best practices](https://snyk.io/blog/ten-npm-security-best-practices) and productivity tips, useful for JavaScript and Node.js developers.
+В следующей таблице рекомендаций по npm мы сосредоточимся на [10 рекомендациях по обеспечению безопасности npm](https://snyk.io/blog/ten-npm-security-best-practices) и советах по повышению производительности, полезных для разработчиков JavaScript и Node.js.
 
-## 1) Avoid publishing secrets to the npm registry
+## 1) Избегайте публикации секретных данных в реестре npm
 
-Whether you’re making use of API keys, passwords or other secrets, they can very easily end up leaking into source control or even a published package on the public npm registry. You may have secrets in your working directory in designated files such as a `.env` which should be added to a `.gitignore` to avoid committing it to a SCM, but what happen when you publish an npm package from the project’s directory?
+Независимо от того, используете ли вы API-ключи, пароли или другие секреты, они могут очень легко просочиться в систему управления версиями или даже в опубликованный пакет в общедоступном реестре npm. У вас могут быть секреты в вашем рабочем каталоге в определенных файлах, таких как `.env`, которые следует добавить в `.gitignore`, чтобы избежать привязки к SCM, но что произойдет, когда вы опубликуете пакет npm из каталога проекта?
 
-The npm CLI packs up a project into a tar archive (tarball) in order to push it to the registry. The following criteria determine which files and directories are added to the tarball:
+Командная строка npm упаковывает проект в tar-архив (tarball), чтобы поместить его в реестр. Следующие критерии определяют, какие файлы и каталоги будут добавлены в tarball:
 
-- If there is either a `.gitignore` or a `.npmignore` file, the contents of the file are used as an ignore pattern when preparing the package for publication.
-- If both ignore files exist, everything not located in `.npmignore` is published to the registry. This condition is a common source of confusion and is a problem that can lead to leaking secrets.
+- Если имеется файл `.gitignore` или `.npmignore`, содержимое файла используется в качестве шаблона игнорирования при подготовке пакета к публикации.
+- Если существуют оба файла игнорирования, все, что не находится в файле ".npmignore", публикуется в реестре. Это условие часто приводит к путанице и является проблемой, которая может привести к утечке секретных данных.
 
-Developers may end up updating the `.gitignore` file, but forget to update `.npmignore` as well, which can lead to a potentially sensitive file not being pushed to source control, but still being included in the npm package.
+Разработчики могут в конечном итоге обновить файл `.gitignore`, но забыть также обновить `.npmignore`, что может привести к тому, что потенциально конфиденциальный файл не будет передан в систему управления версиями, но все равно будет включен в пакет npm.
 
-Another good practice to adopt is making use of the `files` property in package.json, which works as an allowlist and specifies the array of files to be included in the package that is to be created and installed (while the ignore file functions as a denylist). The `files` property and an ignore file can both be used together to determine which files should explicitly be included, as well as excluded, from the package. When using both, the former the `files` property in package.json takes precedence over the ignore file.
+Другой полезной практикой является использование свойства `files` в package.json, которое работает как allowlist и определяет массив файлов, которые должны быть включены в пакет, который должен быть создан и установлен (в то время как игнорируемый файл функционирует как denylist). Свойство `files` и игнорируемый файл могут использоваться вместе для определения того, какие файлы следует явно включать, а какие исключать из пакета. При использовании обоих свойств свойство `files` в package.json имеет приоритет над игнорируемым файлом.
 
-When a package is published, the npm CLI will verbosely display the archive being created. To be extra careful, add a `--dry-run` command-line argument to your publish command in order to first review how the tarball is created without actually publishing it to the registry.
+Когда пакет публикуется, командная строка npm CLI подробно отображает создаваемый архив. Чтобы быть особенно осторожным, добавьте аргумент командной строки `--dry-run` в вашу команду публикации, чтобы сначала просмотреть, как создается архиватор, не публикуя его в реестре.
 
-In January 2019, npm shared on their blog that they added a [mechanism that automatically revokes a token](https://blog.npmjs.org/post/182015409750/automated-token-revocation-for-when-you) if they detect that one has been published with a package.
+В январе 2019 года npm опубликовали в своем блоге информацию о том, что они добавили [механизм, который автоматически отзывает токен](https://blog.npmjs.org/post/182015409750/automated-token-revocation-for-when-you), если они обнаруживают, что токен был опубликован вместе с пакетом.
 
-## 2) Enforce the lockfile
+## 2) Принудительное применение lockfile
 
-We embraced the birth of package lockfiles with open arms, which introduced: deterministic installations across different environments, and enforced dependency expectations across team collaboration. Life is good! Or so I thought… what would have happened had I slipped a change into the project’s `package.json` file but had forgotten to commit the lockfile alongside of it?
+Мы с распростертыми объятиями восприняли появление файлов блокировки пакетов, которые привнесли: детерминированные установки в различных средах и принудительные ожидания в отношении зависимостей при совместной работе в команде. Жизнь прекрасна! По крайней мере, я так думал… что бы произошло, если бы я внес изменения в файл проекта `package.json`, но забыл зафиксировать файл блокировки вместе с ним?
 
-Both Yarn, and npm act the same during dependency installation . When they detect an inconsistency between the project’s `package.json` and the lockfile, they compensate for such change based on the `package.json` manifest by installing different versions than those that were recorded in the lockfile.
+Как Yarn, так и npm действуют одинаково во время установки зависимостей. Когда они обнаруживают несоответствие между `package.json` проекта и файлом блокировки, они компенсируют такое изменение на основе манифеста `package.json`, устанавливая версии, отличные от тех, которые были записаны в файле блокировки.
 
-This kind of situation can be hazardous for build and production environments as they could pull in unintended package versions and render the entire benefit of a lockfile futile.
+Такая ситуация может быть опасной для сред сборки и производства, поскольку они могут привести к появлению непреднамеренных версий пакетов и свести на нет все преимущества файла блокировки.
 
-Luckily, there is a way to tell both Yarn and npm to adhere to a specified set of dependencies and their versions by referencing them from the lockfile. Any inconsistency will abort the installation. The command-line should read as follows:
+К счастью, есть способ указать Yarn и npm, что они должны придерживаться указанного набора зависимостей и их версий, указав их в файле блокировки. Любое несоответствие приведет к прерыванию установки. Командная строка должна выглядеть следующим образом:
 
-- If you’re using Yarn, run `yarn install --frozen-lockfile`.
-- If you’re using npm run `npm ci`.
+- Если вы используете Yarn, запустите `yarn install --frozen-lockfile`.
+- Если вы используете npm, запустите `npm ci`.
 
-## 3) Minimize attack surfaces by ignoring run-scripts
+## 3) Минимизируйте возможности атаки, игнорируя сценарии выполнения
 
-The npm CLI works with package run-scripts. If you’ve ever run `npm start` or `npm test` then you’ve used package run-scripts too. The npm CLI builds on scripts that a package can declare, and allows packages to define scripts to run at specific entry points during the package’s installation in a project. For example, some of these [script hook](https://docs.npmjs.com/misc/scripts) entries may be `postinstall` scripts that a package that is being installed will execute in order to perform housekeeping chores.
+Интерфейс CLI npm работает со сценариями запуска пакетов. Если вы когда-либо запускали `npm start` или `npm test`, то вы тоже использовали сценарии запуска пакетов. Интерфейс CLI npm основан на сценариях, которые может объявлять пакет, и позволяет пакетам определять сценарии для запуска в определенных точках входа во время установки пакета в проекте. Например, некоторые из этих записей [script hook](https://docs.npmjs.com/misc/scripts) могут быть скриптами `после установки`, которые будут выполняться устанавливаемым пакетом для выполнения домашней работы.
 
-With this capability, bad actors may create or alter packages to perform malicious acts by running any arbitrary command when their package is installed. A couple of cases where we’ve seen this already happening is the popular [eslint-scope incident](https://snyk.io/vuln/npm:eslint-scope:20180712) that harvested npm tokens, and the [crossenv incident](https://snyk.io/vuln/npm:crossenv:20170802), along with 36 other packages that abused a typosquatting attack on the npm registry.
+Обладая этой возможностью, злоумышленники могут создавать или изменять пакеты для выполнения вредоносных действий, выполняя любую произвольную команду при установке своего пакета. Несколько случаев, когда мы уже видели, как это происходило, - это популярный [инцидент с eslint-scope](https://snyk.io/vuln/npm:eslint-scope:20180712), который привел к сбору токенов npm, и [инцидент с crossenv](https://snyk.io/vuln/npm:crossenv:20170802), а также 36 других пакетов, которые подверглись атаке с использованием опечаток в реестре npm.
 
-Apply these npm security best practices in order to minimize the malicious module attack surface:
+Применяйте эти рекомендации по обеспечению безопасности npm, чтобы свести к минимуму вероятность атаки вредоносного модуля:
 
-- Always vet and perform due-diligence on third-party modules that you install in order to confirm their health and credibility.
-- Hold-off on upgrading immediately to new versions; allow new package versions some time to circulate before trying them out.
-- Before upgrading, make sure to review changelog and release notes for the upgraded version.
-- When installing packages make sure to add the `--ignore-scripts` suffix to disable the execution of any scripts by third-party packages.
-- Consider adding `ignore-scripts` to your `.npmrc` project file, or to your global npm configuration.
+- Всегда проверяйте и выполняйте комплексную проверку устанавливаемых вами модулей сторонних производителей, чтобы убедиться в их работоспособности и надежности.
+- Воздержитесь от немедленного обновления до новых версий; дайте новым версиям пакетов некоторое время распространиться, прежде чем опробовать их.
+- Перед обновлением обязательно ознакомьтесь с журналом изменений и примечаниями к выпуску обновленной версии.
+- При установке пакетов обязательно добавьте суффикс `--ignore-scripts`, чтобы отключить выполнение любых скриптов сторонними пакетами.
+- Подумайте о том, чтобы добавить `ignore-scripts` в ваш файл проекта `.npmrc` или в вашу глобальную конфигурацию npm.
 
-## 4) Assess npm project health
+## 4) Оценка работоспособности проекта нпм
 
-### npm outdated command
+### устаревшая команда npm
 
-Rushing to constantly upgrade dependencies to their latest releases is not necessarily a good practice if it is done without reviewing release notes, the code changes, and generally testing new upgrades in a comprehensive manner. With that said, staying out of date and not upgrading at all, or after a long time, is a source for trouble as well.
+Стремление постоянно обновлять зависимости до их последних версий не обязательно является хорошей практикой, если это делается без ознакомления с примечаниями к выпуску, изменениями в коде и, как правило, всестороннего тестирования новых обновлений. С учетом сказанного, устаревание и отсутствие обновления вообще или по прошествии длительного времени также является источником проблем.
 
-The npm CLI can provide information about the freshness of dependencies you use with regards to their semantic versioning offset. By running `npm outdated`, you can see which packages are out of date. Dependencies in yellow correspond to the semantic versioning as specified in the package.json manifest, and dependencies colored in red mean that there’s an update available. Furthermore, the output also shows the latest version for each dependency.
+Интерфейс командной строки npm может предоставлять информацию о свежести используемых вами зависимостей с учетом их семантического смещения при управлении версиями. Запустив `npm устарел`, вы сможете увидеть, какие пакеты устарели. Зависимости, выделенные желтым цветом, соответствуют семантическому управлению версиями, указанному в манифесте package.json, а зависимости, выделенные красным цветом, означают, что доступно обновление. Кроме того, в выходных данных также отображается последняя версия для каждой зависимости.
 
-### npm doctor command
+### Команда npm doctor
 
-Between the variety of Node.js package managers, and different versions of Node.js you may have installed in your path, how do you verify a healthy npm installation and working environment? Whether you’re working with the npm CLI in a development environment or within a CI, it is important to assess that everything is working as expected.
+Учитывая разнообразие Node.js менеджеров пакетов и различных версий Node.js, которые вы, возможно, установили в своем path, как вы проверяете работоспособность установки npm и рабочей среды? Независимо от того, работаете ли вы с npm CLI в среде разработки или в рамках CI, важно убедиться, что все работает так, как ожидалось.
 
-Call the doctor! The npm CLI incorporates a health assessment tool to diagnose your environment for a well-working npm interaction. Run `npm doctor` to review your npm setup:
+Вызовите врача! Интерфейс командной строки npm включает в себя инструмент оценки работоспособности, позволяющий диагностировать вашу среду для обеспечения эффективного взаимодействия с npm. Запустите "npm doctor", чтобы просмотреть настройки npm:
 
-- Check the official npm registry is reachable, and display the currently configured registry.
-- Check that Git is available.
-- Review installed npm and Node.js versions.
-- Run permission checks on the various folders such as the local and global `node_modules`, and on the folder used for package cache.
-- Check the local npm module cache for checksum correctness.
+- Проверьте, доступен ли официальный реестр npm, и отобразите текущий настроенный реестр.
+- Проверьте, доступен ли Git.
+- Просмотрите установленные версии npm и Node.js.
+- Запустите проверку прав доступа к различным папкам, таким как локальная и глобальная `node_modules`, а также к папке, используемой для кэширования пакетов.
+- Проверьте локальный кэш модуля npm на корректность контрольной суммы.
 
-## 5) Audit for vulnerabilities in open source dependencies
+## 5) Аудит уязвимостей в зависимостях с открытым исходным кодом
 
-The npm ecosystem is the single largest repository of application libraries amongst all the other language ecosystems. The registry and the libraries in it are at the core for JavaScript developers as they are able to leverage work that others have already built and incorporate it into their codebase. With that said, the increasing adoption of open source libraries in applications brings with it an increased risk of introducing security vulnerabilities.
+Экосистема npm является единственным крупнейшим хранилищем библиотек приложений среди всех других языковых экосистем. Реестр и библиотеки в нем являются ключевыми для разработчиков JavaScript, поскольку они могут использовать работу, которую уже создали другие, и включать ее в свою кодовую базу. С учетом сказанного, растущее внедрение библиотек с открытым исходным кодом в приложения влечет за собой повышенный риск появления уязвимостей в системе безопасности.
 
-Many popular npm packages have been found to be vulnerable and may carry a significant risk without proper security auditing of your project’s dependencies. Some examples are npm [request](https://snyk.io/vuln/npm:request:20160119), [superagent](https://snyk.io/vuln/search?q=superagent&type=npm), [mongoose](https://snyk.io/vuln/search?q=mongoose&type=npm), and even security-related packages like [jsonwebtoken](https://snyk.io/vuln/npm:jsonwebtoken:20150331), and  [validator](https://snyk.io/vuln/search?q=validator&type=npm).
+Было обнаружено, что многие популярные пакеты npm уязвимы и могут представлять значительный риск без надлежащего аудита безопасности зависимостей вашего проекта. Вот некоторые примеры: npm [запрос](https://snyk.io/vuln/npm:request:20160119), [суперагент](https://snyk.io/vuln/search?q=superagent&type=npm), [mongoose](https://snyk.io/vuln/search?q=mongoose&type=npm) и даже пакеты, связанные с безопасностью, такие как [jsonwebtoken](https://snyk.io/vuln/npm:jsonwebtoken:20150331) и [validator](https://snyk.io/vuln/search?q=валидатор иtype=npm).
 
-Security doesn’t end by just scanning for security vulnerabilities when installing a package but should also be streamlined with developer workflows to be effectively adopted throughout the entire lifecycle of software development, and monitored continuously when code is deployed:
+Обеспечение безопасности не сводится к простому сканированию на наличие уязвимостей в системе безопасности при установке пакета, но также должно быть оптимизировано с помощью рабочих процессов разработчиков для эффективного внедрения на протяжении всего жизненного цикла разработки программного обеспечения и постоянного мониторинга при развертывании кода:
 
-- Scan for security vulnerabilities in [third-party open source projects](https://owasp.org/www-community/Component_Analysis)
-- Monitor snapshots of your project's manifests so you can receive alerts when new CVEs impact them
+- Сканирование на наличие уязвимостей в [сторонних проектах с открытым исходным кодом](https://owasp.org/www-community/Component_Analysis)
+- Отслеживайте моментальные снимки манифестов вашего проекта, чтобы вы могли получать оповещения, когда на них влияют новые CVE
 
-## 6) Use a local npm proxy
+## 6) Используйте локальный прокси-сервер npm
 
-The npm registry is the biggest collection of packages that is available for all JavaScript developers and is also the home of the most of the Open Source projects for web developers. But sometimes you might have different needs in terms of security, deployments or performance. When this is true, npm allows you to switch to a different registry:
+Реестр npm - это самая большая коллекция пакетов, доступная всем разработчикам JavaScript, а также база для большинства проектов с открытым исходным кодом для веб-разработчиков. Но иногда у вас могут возникнуть другие потребности в плане безопасности, развертывания или производительности. Если это так, npm позволяет вам переключиться на другой реестр:
 
-When you run `npm install`, it automatically starts a communication with the main registry to resolve all your dependencies; if you wish to use a different registry, that too is pretty straightforward:
+Когда вы запускаете `npm install`, он автоматически устанавливает связь с основным реестром для устранения всех ваших зависимостей; если вы хотите использовать другой реестр, это тоже довольно просто:
 
-- Set `npm set registry` to set up a default registry.
-- Use the argument `--registry` for one single registry.
+- Установите `npm set registry` для настройки реестра по умолчанию.
+- Используйте аргумент `--registry` для одного реестра.
 
-[Verdaccio](https://verdaccio.org/) is a simple lightweight zero-config-required private registry and installing it is as simple as follows: `$ npm install --global verdaccio`.
+[Verdaccio](https://verdaccio.org/) это простой облегченный частный реестр, не требующий настройки, и установить его так же просто, как и следующее: `$ npm install --global verdaccio`.
 
-Hosting your own registry was never so easy! Let’s check the most important features of this tool:
+Создать свой собственный реестр еще никогда не было так просто! Давайте ознакомимся с наиболее важными функциями этого инструмента:
 
-- It supports the npm registry format including private package features, scope support, package access control and authenticated users in the web interface.
-- It provides capabilities to hook remote registries and the power to route each dependency to different registries and caching tarballs. To reduce duplicate downloads and save bandwidth in your local development and CI servers, you should proxy all dependencies.
-- As an authentication provider by default, it uses an htpasswd security, but also supports Gitlab, Bitbucket, LDAP. You can also use your own.
-- It’s easy to scale using a different storage provider.
-- If your project is based in Docker, using the official image is the best choice.
-- It enables really fast bootstrap for testing environments, and is handy for testing big mono-repos projects.
+- Он поддерживает формат реестра npm, включая функции частного пакета, поддержку области применения, контроль доступа к пакетам и аутентификацию пользователей в веб-интерфейсе.
+- Он предоставляет возможности для подключения удаленных реестров и возможность перенаправлять каждую зависимость в разные реестры и кэшировать архивные файлы. Чтобы уменьшить количество повторяющихся загрузок и сэкономить трафик на локальных серверах разработки и CI, вы должны проксировать все зависимости.
+- В качестве поставщика аутентификации по умолчанию используется htpasswd, но также поддерживаются Gitlab, Bitbucket, LDAP. Вы также можете использовать свой собственный.
+- Его легко масштабировать, используя другого поставщика хранилища.
+- Если ваш проект основан на Docker, лучшим выбором будет использование официального образа.
+- Он обеспечивает действительно быструю загрузку в тестовых средах и удобен для тестирования больших проектов с монорепозиториями.
 
-## 7) Responsibly disclose security vulnerabilities
+## 7) Ответственно раскрывать уязвимости в системе безопасности
 
-When security vulnerabilities are found, they pose a potentially serious threat if they are publicised without prior warning or appropriate remedial action for users who cannot protect themselves.
+При обнаружении уязвимостей в системе безопасности они представляют потенциально серьезную угрозу, если становятся достоянием общественности без предварительного предупреждения или соответствующих мер по исправлению положения для пользователей, которые не могут защитить себя.
 
-It is recommended that security researchers follow a responsible disclosure program, which is a set of processes and guidelines that aims to connect the researchers with the vendor or maintainer of the vulnerable asset, in order to convey the vulnerability, it’s impact and applicability. Once the vulnerability is correctly triaged, the vendor and researcher coordinate a fix and a publication date for the vulnerability in an effort to provide an upgrade-path or remediation for affected users before the security issue is made public.
+Исследователям безопасности рекомендуется следовать программе ответственного раскрытия информации, которая представляет собой набор процессов и руководящих принципов, направленных на установление связи между исследователями и поставщиком или сопровождающим уязвимого актива, чтобы донести информацию об уязвимости, ее влиянии и применимости. После правильной сортировки уязвимости поставщик и исследователь согласовывают исправление и дату публикации уязвимости, чтобы обеспечить возможность обновления или устранения уязвимости для затронутых пользователей до того, как проблема безопасности станет достоянием общественности.
 
-## 8) Enable 2FA
+## 8) Включите 2FA
 
-In October 2017, npm officially announced support for two-factor authentication (2FA) for developers using the npm registry to host their closed and open source packages.
+В октябре 2017 года npm официально объявила о поддержке двухфакторной аутентификации (2FA) для разработчиков, использующих реестр npm для размещения своих пакетов с закрытым и открытым исходным кодом.
 
-Even though 2FA has been supported on the npm registry for a while now, it seems to be slowly adopted with one example being the eslint-scope incident in mid-2018 when a stolen developer account on the ESLint team lead to a [malicious version of eslint-scope](https://snyk.io/vuln/npm:eslint-scope) being published by bad actors.
+Несмотря на то, что 2FA поддерживается в реестре npm уже некоторое время, его, похоже, медленно внедряют. Одним из примеров является инцидент с eslint-scope в середине 2018 года, когда украденный аккаунт разработчика в команде ESLint привел к публикации [malicious version of eslint-scope](https://snyk.io/vuln/npm:eslint-scope) плохими субъектами.
 
-Enabling 2FA is an easy and significant win for an npm security best practices. The registry supports two modes for enabling 2FA in a user’s account:
+Включение 2FA - это простой и существенный шаг в пользу лучших практик обеспечения безопасности npm. Реестр поддерживает два режима включения 2FA в учетной записи пользователя:
 
-- Authorization-only—when a user logs in to npm via the website or the CLI, or performs other sets of actions such as changing profile information.
-- Authorization and write-mode—profile and log-in actions, as well as write actions such as managing tokens and packages, and minor support for team and package visibility information.
+- Только авторизация - когда пользователь входит в npm через веб—сайт или интерфейс командной строки или выполняет другие действия, такие как изменение информации профиля.
+- Авторизация и режим записи - действия с профилем и входом в систему, а также действия с записью, такие как управление токенами и пакетами, и незначительная поддержка информации о команде и видимости пакетов.
 
-Equip yourself with an authentication application, such as Google Authentication, which you can install on a mobile device, and you’re ready to get started. One easy way to get started with the 2FA extended protection for your account is through npm’s user interface, which allows enabling it very easily. If you’re a command-line person, it’s also easy to enable 2FA when using a supported npm client version (>=5.5.1):
+Подготовьте приложение для проверки подлинности, такое как Google Authentication, которое вы можете установить на мобильное устройство, и вы готовы приступить к работе. Один из простых способов начать использовать расширенную защиту 2FA для своей учетной записи - это воспользоваться пользовательским интерфейсом npm, который позволяет очень легко ее включить. Если вы работаете с командной строкой, также легко включить 2FA при использовании поддерживаемой версии клиента npm (>=5.5.1).:
 
 ```sh
 npm profile enable-2fa auth-and-writes
 ```
 
-Follow the command-line instructions to enable 2FA, and to save emergency authentication codes. If you wish to enable 2FA mode for login and profile changes only, you may replace the `auth-and-writes` with `auth-only` in the code as it appears above.
+Следуйте инструкциям командной строки, чтобы включить 2FA и сохранить коды экстренной аутентификации. Если вы хотите включить режим 2FA только для входа в систему и изменения профиля, вы можете заменить `авторизация и запись` на `только для авторизации` в приведенном выше коде.
 
-## 9) Use npm author tokens
+## 9) Используйте npm author токены
 
-Every time you log in with the npm CLI, a token is generated for your user and authenticates you to the npm registry. Tokens make it easy to perform npm registry-related actions during CI and automated procedures, such as accessing private modules on the registry or publishing new versions from a build step.
+Каждый раз, когда вы входите в систему с помощью npm CLI, для вашего пользователя генерируется токен, который аутентифицирует вас в реестре npm. Токены упрощают выполнение действий, связанных с реестром npm, во время CI и автоматизированных процедур, таких как доступ к закрытым модулям в реестре или публикация новых версий на этапе сборки.
 
-Tokens can be managed through the npm registry website, as well as using the npm command-line client. An example of using the CLI to create  a read-only token that is restricted to a specific IPv4 address range is as follows:
+Токенами можно управлять через веб-сайт реестра npm, а также с помощью клиента командной строки npm. Ниже приведен пример использования интерфейса командной строки для создания токена только для чтения, который ограничен определенным диапазоном IPv4-адресов:
 
 ```sh
 npm token create --read-only --cidr=192.0.2.0/24
 ```
 
-To verify which tokens are created for your user or to revoke tokens in cases of emergency, you can use `npm token list` or `npm token revoke` respectively.
+Чтобы проверить, какие токены созданы для вашего пользователя, или отозвать токены в экстренных случаях, вы можете использовать `npm token list` или `отзыв токена npm` соответственно.
 
-Ensure you are following this npm security best practice by protecting and minimizing the exposure of your npm tokens.
+Убедитесь, что вы следуете рекомендациям по безопасности npm, защищая и сводя к минимуму риск использования ваших токенов npm.
 
-## 10) Understand module naming conventions and typosquatting attacks
+## 10) Разбирайтесь в соглашениях об именовании модулей и атаках на использование опечаток
 
-Naming a module is the first thing you might do when creating a package, but before defining a final name, npm defines some rules that a package name must follow:
+Присвоение имени модулю - это первое, что вы можете сделать при создании пакета, но перед определением окончательного имени npm определяет некоторые правила, которым должно соответствовать имя пакета:
 
-- It is limited to 214 characters
-- It cannot start with dot or underscore
-- No uppercase letters in the name
-- No trailing spaces
-- Only lowercase
-- Some special characters are not allowed: “~\’!()*”)’
-- Can’t start with . or _
-- Can’t use node_modules or favicon.ico due are banned
-- Even if you follow these rules, be aware that npm uses a spam detection mechanism when publishing new packages, based on score and whether a package name violates the terms of the service. If conditions are violated, the registry might deny the request.
+- Оно должно содержать не более 214 символов
+- Оно не может начинаться с точки или подчеркивания
+- В названии не должно быть заглавных букв
+- В конце не должно быть пробелов
+- Только строчные буквы
+- Некоторые специальные символы недопустимы: “~\’!()*”)’
+- Не может начинаться с . или _
+- Не удается использовать node_modules или значок.сроки проведения ico запрещены
+- Даже если вы соблюдаете эти правила, имейте в виду, что npm использует механизм обнаружения нежелательной почты при публикации новых пакетов на основе оценки и того, нарушает ли название пакета условия предоставления услуги. В случае нарушения условий реестр может отклонить запрос.
 
-Typosquatting is an attack that relies on mistakes made by users, such as typos. With typosquatting, bad actors could publish malicious modules to the npm registry with names that look much like existing popular modules.
+Тайпосквоттинг - это атака, основанная на ошибках пользователей, таких как опечатки. С помощью тайпсквоттинга злоумышленники могут публиковать вредоносные модули в реестре npm с именами, которые очень похожи на существующие популярные модули.
 
-We have been tracking tens of malicious packages in the npm ecosystem; they have been seen on the PyPi Python registry as well. Perhaps some of the most popular incidents have been for [cross-env](https://snyk.io/vuln/npm:crossenv:20170802), [event-stream](https://snyk.io/vuln/SNYK-JS-EVENTSTREAM-72638), and [eslint-scope](https://snyk.io/vuln/npm:eslint-scope:20180712).
+Мы отслеживали десятки вредоносных пакетов в экосистеме npm; они также были обнаружены в реестре PyPI на Python. Возможно, некоторые из наиболее популярных инцидентов были связаны с [перекрестной обработкой](https://snyk.io/vuln/npm:crossenv:20170802), [потоком событий](https://snyk.io/vuln/SNYK-JS-EVENTSTREAM-72638) и [eslint-областью видимости](https://snyk.io/vuln/npm:eslint-scope:20180712).
 
-One of the main targets for typosquatting attacks are the user credentials, since any package has access to environment variables via the global variable process.env. Other examples we’ve seen in the past include the case with event-stream, where the attack targeted developers in the hopes of [injecting malicious code](https://snyk.io/blog/a-post-mortem-of-the-malicious-event-stream-backdoor) into an application’s source code.
+Одной из основных целей для атак с использованием опечаток являются учетные данные пользователя, поскольку любой пакет имеет доступ к переменным среды через глобальную переменную process.env. Другие примеры, которые мы видели в прошлом, включают случай с event-stream, когда атака была нацелена на разработчиков в надежде на [внедрение вредоносного кода](https://snyk.io/blog/a-post-mortem-of-the-malicious-event-stream-backdoor) в исходный код приложения.
 
-Closing our list of ten npm security best practices are the following tips to reduce the risk of such attacks:
+Завершают наш список десяти рекомендаций по обеспечению безопасности npm следующие советы по снижению риска подобных атак:
 
-- Be extra-careful when copy-pasting package installation instructions into the terminal. Make sure to verify in the source code repository as well as on the npm registry that this is indeed the package you are intending to install. You might verify the metadata of the package with `npm info` to fetch more information about contributors and latest versions.
-- Default to having an npm logged-out user in your daily work routines so your credentials won’t be the weak spot that would lead to easily compromising your account.
-- When installing packages, append the `--ignore-scripts` to reduce the risk of arbitrary command execution. For example: `npm install my-malicious-package --ignore-scripts`
+- Будьте особенно осторожны при копировании инструкций по установке пакета в терминал. Обязательно проверьте в репозитории исходного кода, а также в реестре npm, что это действительно тот пакет, который вы собираетесь установить. Вы можете проверить метаданные пакета с помощью `npm info`, чтобы получить больше информации об авторах и последних версиях.
+- По умолчанию в вашей повседневной работе используется пользователь npm, вышедший из системы, чтобы ваши учетные данные не были слабым местом, которое может легко привести к компрометации вашей учетной записи.
+- При установке пакетов добавляйте `--ignore-scripts`, чтобы снизить риск выполнения произвольных команд. Например: `npm install my-malicious-package --ignore-scripts`
