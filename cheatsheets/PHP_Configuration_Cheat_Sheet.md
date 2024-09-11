@@ -1,27 +1,27 @@
-# PHP Configuration Cheat Sheet
+# Шпаргалка по настройке PHP
 
-## Introduction
+## Вступление
 
-This page is meant to help those configuring PHP and the web server it is running on to be very secure.
+Эта страница предназначена для того, чтобы помочь тем, кто настраивает PHP и веб-сервер, на котором он работает, для обеспечения максимальной безопасности.
 
-Below you will find information on the proper settings for the `php.ini` file and instructions on configuring Apache, Nginx, and Caddy web servers.
+Ниже вы найдете информацию о правильных настройках файла `php.ini` и инструкции по настройке веб-серверов Apache, Nginx и Caddy.
 
-For general PHP codebase security please refer to the two following great guides:
+Для получения информации об общей безопасности кодовой базы PHP, пожалуйста, обратитесь к двум следующим замечательным руководствам:
 
-- [Paragonie's 2018 PHP Security Guide](https://paragonie.com/blog/2017/12/2018-guide-building-secure-php-software)
-- [Awesome PHP Security](https://github.com/guardrailsio/awesome-php-security)
+- [Руководство по безопасности PHP от Paragonie на 2018 год](https://paragonie.com/blog/2017/12/2018-guide-building-secure-php-software)
+- [Потрясающая защита PHP](https://github.com/guardrailsio/awesome-php-security)
 
-## PHP Configuration and Deployment
+## Настройка и развертывание PHP
 
 ### php.ini
 
-Some of following settings need to be adapted to your system, in particular `session.save_path`, `session.cookie_path` (e.g. `/var/www/mysite`), and `session.cookie_domain` (e.g. `ExampleSite.com`).
+Некоторые из приведенных ниже настроек необходимо адаптировать к вашей системе, в частности `session.save_path`, `session.cookie_path` (например, `/var/www/mysite`) и `session.cookie_domain` (например, `ExampleSite.com`).
 
-You should be running a [supported version of PHP](https://www.php.net/supported-versions.php) (as of this writing, 8.1 is the oldest version receiving security support from PHP, though distribution vendors often provide extended support). Review the [core `php.ini` directives](https://www.php.net/manual/ini.core.php) in the PHP Manual for a complete reference on every value in the `php.ini` configuration file.
+У вас должна быть установлена [поддерживаемая версия PHP](https://www.php.net/supported-versions.php) (на момент написания этой статьи 8.1 - самая старая версия, получающая поддержку безопасности от PHP, хотя поставщики дистрибутивов часто предоставляют расширенную поддержку). Ознакомьтесь с [основными директивами `php.ini`](https://www.php.net/manual/ini.core.php) в руководстве по PHP для получения полной информации о каждом значении в файле конфигурации `php.ini`.
 
-You can find a copy of the following values in a [ready-to-go `php.ini` file here](https://github.com/danehrlich1/very-secure-php-ini).
+Вы можете найти копию следующих значений в [готовом к использованию файле `php.ini` здесь](https://github.com/dan ehrlich 1/very-secure-php-ini).
 
-#### PHP error handling
+#### Обработка ошибок PHP
 
 ```text
 expose_php              = Off
@@ -33,9 +33,9 @@ error_log               = /valid_path/PHP-logs/php_error.log
 ignore_repeated_errors  = Off
 ```
 
-Keep in mind that you need to have `display_errors` to `Off` on a production server and it's a good idea to frequently notice the logs.
+Помните, что на рабочем сервере необходимо установить `display_errors` в значение `Off`, и нелишним будет часто просматривать журналы.
 
-#### PHP general settings
+#### Общие настройки PHP
 
 ```text
 doc_root                = /path/DocumentRoot/PHP-scripts/
@@ -50,9 +50,9 @@ allow_webdav_methods    = Off
 session.gc_maxlifetime  = 600
 ```
 
-`allow_url_*` prevents [LFI](https://www.acunetix.com/blog/articles/local-file-inclusion-lfi/)s to be easily escalated to [RFI](https://www.acunetix.com/blog/articles/remote-file-inclusion-rfi/)s.
+`allow_url_*` предотвращает простое преобразование [LFI](https://www.acunetix.com/blog/articles/local-file-inclusion-lfi/) в [RFI](https://www.acunetix.com/blog/articles/remote-file-inclusion-rfi/).
 
-#### PHP file upload handling
+#### Обработка загрузки файлов на PHP
 
 ```text
 file_uploads            = On
@@ -61,9 +61,9 @@ upload_max_filesize     = 2M
 max_file_uploads        = 2
 ```
 
-If your application is not using file uploads, and say the only data the user will enter / upload is forms that do not require any document attachments, `file_uploads` should be turned `Off`.
+Если ваше приложение не использует загрузку файлов, а единственными данными, которые пользователь будет вводить/загружать, являются формы, не требующие вложения документов, `file_uploads` следует поставить значение `Off`.
 
-#### PHP executable handling
+#### Обработка исполняемого файла PHP
 
 ```text
 enable_dl               = Off
@@ -71,11 +71,11 @@ disable_functions       = system, exec, shell_exec, passthru, phpinf
 disable_classes         =
 ```
 
-These are dangerous PHP functions. You should disable all that you don't use.
+Это опасные функции PHP. Вам следует отключить все, что вы не используете.
 
-#### PHP session handling
+#### Обработка сеанса PHP
 
-Session settings are some of the MOST important values to concentrate on in configuring. It is a good practice to change `session.name` to something new.
+Настройки сеанса являются одними из наиболее важных параметров, на которые следует обратить особое внимание при настройке. Рекомендуется изменить `session.name` на что-то новое.
 
 ```text
  session.save_path                = /path/PHP-session/
@@ -96,7 +96,7 @@ Session settings are some of the MOST important values to concentrate on in conf
  session.sid_bits_per_character   = 6
 ```
 
-#### Some more security paranoid checks
+#### Еще несколько параноидальных проверок системы безопасности
 
 ```text
 session.referer_check   = /application/path
@@ -110,7 +110,4 @@ zend.exception_ignore_args = On
 
 ### Snuffleupagus
 
-[Snuffleupagus](https://snuffleupagus.readthedocs.io) is the spiritual
-descendent of Suhosin for PHP 7 and onwards, with [modern
-features](https://snuffleupagus.readthedocs.io/features.html). It's considered
-stable, and is usable in production.
+[Snuffleupagus](https://snuffleupagus.readthedocs.io) является продолжением Suhosin для PHP 7 и более поздних версий, с [современными функциями](https://snuffleupagus.readthedocs.io/features.html). Он считается стабильным и может использоваться в рабочей среде.
