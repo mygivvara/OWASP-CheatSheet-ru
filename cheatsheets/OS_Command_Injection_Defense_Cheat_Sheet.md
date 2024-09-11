@@ -1,123 +1,123 @@
-# OS Command Injection Defense Cheat Sheet
+# Шпаргалка по защите от внедрения команд операционной системы
 
-## Introduction
+## Вступление
 
-Command injection (or OS Command Injection) is a type of injection where software that constructs a system command using externally influenced input does not correctly neutralize the input from special elements that can modify the initially intended command.
+Внедрение команд (или внедрение команд операционной системы) - это тип внедрения, при котором программное обеспечение, создающее системную команду с использованием вводимых извне данных, неправильно нейтрализует вводимые данные от специальных элементов, которые могут изменить первоначально предназначенную команду.
 
-For example, if the supplied value is:
+Например, если указанное значение равно:
 
 ``` shell
 calc
 ```
 
-when typed in a Windows command prompt, the application *Calculator* is displayed.
+при вводе в командной строке Windows отображается приложение *Калькулятор*.
 
-However, if the supplied value has been tampered with, and now it is:
+Однако, если введенное значение было изменено, и теперь оно:
 
 ``` shell
 calc & echo "test"
 ```
 
-when executed, it changes the meaning of the initial intended value.
+при выполнении оно изменяет значение первоначально заданного значения.
 
-Now, both the *Calculator* application and the value *test* are displayed:
+Теперь отображаются как приложение "Калькулятор", так и значение "тест".:
 
 ![CommandInjection](../assets/OS_Command_Injection_Defense_Cheat_Sheet_CmdInjection.png)
 
-The problem is exacerbated if the compromised process does not follow the principle of least privileges and attacker-controlled commands end up running with special system privileges that increase the amount of damage.
+Проблема усугубляется, если скомпрометированный процесс не соответствует принципу наименьших привилегий, и команды, управляемые злоумышленником, в конечном итоге запускаются со специальными системными привилегиями, которые увеличивают размер ущерба.
 
-### Argument Injection
+### Инъекция аргумента
 
-Every OS Command Injection is also an Argument Injection. In this type of attacks, user input can be passed as arguments while executing a specific command.
+Каждое внедрение команды операционной системы также является введением аргумента. В этом типе атак пользовательский ввод может передаваться в качестве аргументов при выполнении определенной команды.
 
-For example, if the user input is passed through an escape function to escape certain characters like `&`, `|`, `;`, etc.
+Например, если пользовательский ввод передается через функцию экранирования для экранирования определенных символов, таких как `&`, `|`, `;`, и т.д.
 
 ```php
 system("curl " . escape($url));
 ```
 
-which will prevent an attacker to run other commands.
+что помешает злоумышленнику выполнить другие команды.
 
-However, if the attacker controlled string contains an additional argument of the `curl` command:
+Однако, если строка, контролируемая злоумышленником, содержит дополнительный аргумент команды `curl`:
 
 ```
 system("curl " . escape("--help"))
 ```
 
-Now when the above code is executed, it will show the output of `curl --help`.
+Теперь, когда приведенный выше код будет выполнен, он покажет выходные данные `curl --help`.
 
-Depending upon the system command used, the impact of an Argument injection attack can range from **Information Disclosure** to critical **Remote Code Execution**.
+В зависимости от используемой системной команды последствия атаки с использованием аргументов могут варьироваться от **Раскрытия информации** до критического **Удаленного выполнения кода**.
 
-## Primary Defenses
+## Основные варианты защиты
 
-### Defense Option 1: Avoid calling OS commands directly
+### Вариант защиты 1: Избегайте прямого вызова команд операционной системы
 
-The primary defense is to avoid calling OS commands directly. Built-in library functions are a very good alternative to OS Commands, as they cannot be manipulated to perform tasks other than those it is intended to do.
+Основная защита заключается в том, чтобы избегать прямого вызова команд операционной системы. Встроенные библиотечные функции являются очень хорошей альтернативой командам операционной системы, поскольку ими нельзя манипулировать для выполнения задач, отличных от тех, для которых они предназначены.
 
-For example use `mkdir()` instead of `system("mkdir /dir_name")`.
+Например, используйте `mkdir()` вместо `system("mkdir /dir_name")`.
 
-If there are available libraries or APIs for the language you use, this is the preferred method.
+Если для используемого вами языка имеются доступные библиотеки или API-интерфейсы, это предпочтительный метод.
 
-### Defense option 2: Escape values added to OS commands specific to each OS
+### Вариант защиты 2: Экранирующие значения, добавленные к командам операционной системы, специфичным для каждой операционной системы
 
 **TODO: To enhance.**
 
-For examples, see [escapeshellarg()](https://www.php.net/manual/en/function.escapeshellarg.php) in PHP.
+Примеры смотрите в [escapeshellarg()](https://www.php.net/manual/en/function.escapeshellarg.php) в PHP.
 
-The `escapeshellarg()` surrounds the user input in single quotes, so if the malformed user input is something like `& echo "hello"`, the final output will be like `calc '& echo "hello"'` which will be parsed as a single argument to the command `calc`.
+`escapeshellarg()` заключает пользовательский ввод в одинарные кавычки, поэтому, если неправильно сформированный пользовательский ввод - это что-то вроде `& echo "hello"`, конечный результат будет похож на `calc '& echo "hello"", который будет проанализирован как единственный аргумент команды `calc`.
 
-Even though `escapeshellarg()` prevents OS Command Injection, an attacker can still pass a single argument to the command.
+Несмотря на то, что `escapeshellarg()` предотвращает внедрение команды операционной системы, злоумышленник все равно может передать команде один аргумент.
 
-### Defense option 3: Parameterization in conjunction with Input Validation
+### Вариант защиты 3: Параметризация в сочетании с проверкой входных данных
 
-If calling a system command that incorporates user-supplied cannot be avoided, the following two layers of defense should be used within software to prevent attacks:
+Если невозможно избежать вызова системной команды, которая включает пользовательскую, в программном обеспечении следует использовать следующие два уровня защиты для предотвращения атак:
 
-#### Layer 1
+#### Слой 1
 
-**Parameterization:** If available, use structured mechanisms that automatically enforce the separation between data and command. These mechanisms can help provide the relevant quoting and encoding.
+**Параметризация:** Если это возможно, используйте структурированные механизмы, которые автоматически обеспечивают разделение между данными и командой. Эти механизмы могут помочь обеспечить соответствующие кавычки и кодировку.
 
-#### Layer 2
+#### Слой 2
 
-**Input validation:** The values for commands and the relevant arguments should be both validated. There are different degrees of validation for the actual command and its arguments:
+**Проверка вводимых данных:** Значения команд и соответствующие аргументы должны быть проверены. Существуют различные степени проверки для самой команды и ее аргументов:
 
-- When it comes to the **commands** used, these must be validated against a list of allowed commands.
-- In regards to the **arguments** used for these commands, they should be validated using the following options:
-    - **Positive or allowlist input validation**: Where are the arguments allowed explicitly defined.
-    - **Allowlist Regular Expression**: Where a list of good, allowed characters and the maximum length of the string are defined. Ensure that metacharacters like ones specified in `Note A` and whitespaces are not part of the Regular Expression. For example, the following regular expression only allows lowercase letters and numbers and does not contain metacharacters. The length is also being limited to 3-10 characters: `^[a-z0-9]{3,10}$`
-- According to **Guideline 10** of this [POSIX](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html), *The first -- argument that is not an option-argument should be accepted as a delimiter indicating the end of options. Any following arguments should be treated as operands, even if they begin with the '-' character.* For example, `curl -- $url` will prevent an argument injection even if the `$url` is malformed and contains an additional argument.
+- Когда дело доходит до используемых **команд**, они должны быть сверены со списком разрешенных команд.
+- Что касается **аргументов**, используемых для этих команд, то они должны быть проверены с помощью следующих параметров:
+    - **Проверка ввода Positive или allowlist**: Где явно определены разрешенные аргументы.
+    - **Регулярное выражение Allowlist**: Содержит список допустимых символов и максимальную длину строки. Убедитесь, что метасимволы, подобные указанным в `примечании A`, и пробелы не являются частью регулярного выражения. Например, следующее регулярное выражение допускает использование только строчных букв и цифр и не содержит метасимволов. Длина также ограничена 3-10 символами: `^[a-z0-9]{3,10}$`
+- В соответствии с **Руководящим принципом 10** этого [POSIX](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html), *Первый аргумент --, который не является аргументом option-, должен приниматься в качестве разделителя, указывающего на конец списка options. Любые следующие аргументы следует рассматривать как операнды, даже если они начинаются с символа "-".* Например, "curl -- $url" предотвратит ввод аргумента, даже если "$url" неправильно сформирован и содержит дополнительный аргумент.
 
-**Note A:**
+**Примечание А:**
 
 ```text
 & |  ; $ > < ` \ ! ' " ( )
 ```
 
-## Additional Defenses
+## Дополнительные средства защиты
 
-On top of primary defenses, parameterizations, and input validation, we also recommend adopting all of these additional defenses to provide defense in depth.
+В дополнение к основным средствам защиты, параметризации и проверке вводимых данных мы также рекомендуем использовать все эти дополнительные средства защиты для обеспечения всесторонней защиты.
 
-These additional defenses are:
+Эти дополнительные средства защиты:
 
-- Applications should run using the lowest privileges that are required to accomplish the necessary tasks.
-- If possible, create isolated accounts with limited privileges that are only used for a single task.
+- Приложения должны запускаться с минимальными привилегиями, необходимыми для выполнения необходимых задач.
+- Если возможно, создайте изолированные учетные записи с ограниченными привилегиями, которые используются только для выполнения одной задачи.
 
-## Code examples
+## Примеры кода
 
 ### Java
 
-In Java, use [ProcessBuilder](https://docs.oracle.com/javase/8/docs/api/java/lang/ProcessBuilder.html) and the command must be separated from its arguments.
+В Java используйте [ProcessBuilder](https://docs.oracle.com/javase/8/docs/api/java/lang/ProcessBuilder.html), и команда должна быть отделена от ее аргументов.
 
-*Note about the Java's `Runtime.exec` method behavior:*
+*Обратите внимание на поведение метода Java `Runtime.exec`:*
 
-There are many sites that will tell you that Java's `Runtime.exec` is exactly the same as `C`'s system function. This is not true. Both allow you to invoke a new program/process.
+Есть много сайтов, которые расскажут вам, что `Runtime.exec` в Java точно такая же, как и системная функция `C`. Это не так. Обе они позволяют вызывать новую программу/процесс.
 
-However, `C`'s system function passes its arguments to the shell (`/bin/sh`) to be parsed, whereas `Runtime.exec` tries to split the string into an array of words, then executes the first word in the array with the rest of the words as parameters.
+Однако системная функция `C` передает свои аргументы командной строке (`/bin/sh`) для анализа, тогда как `Runtime.exec' пытается разбить строку на массив слов, затем выполняет первое слово в массиве с остальными словами в качестве параметров.
 
-**`Runtime.exec` does NOT try to invoke the shell at any point and does not support shell metacharacters**.
+**`Runtime.exec` ни в коем случае не пытается вызвать оболочку и не поддерживает метасимволы оболочки**.
 
-The key difference is that much of the functionality provided by the shell that could be used for mischief (chaining commands using  `&`, `&&`, `|`, `||`, etc,  redirecting input and output) would simply end up as a parameter being passed to the first command, likely causing a syntax error or being thrown out as an invalid parameter.
+Ключевое отличие заключается в том, что большая часть функциональных возможностей, предоставляемых оболочкой, которые могли бы быть использованы во вред (объединение команд в цепочку с помощью `&`, `&&`, `|`, `||`, и т.д., перенаправление ввода и вывода), просто в конечном итоге будут переданы в качестве параметра первой команде , что, вероятно, приведет к синтаксической ошибке или будет выброшено как недопустимый параметр.
 
-*Code to test the note above:*
+*Код для проверки приведенного выше примечания:*
 
 ``` java
 String[] specialChars = new String[]{"&", "&&", "|", "||"};
@@ -147,7 +147,7 @@ System.out.printf("ERROR :\n%s\n", IOUtils.toString(p.getErrorStream(),
                   "utf-8"));
 ```
 
-*Result of the test:*
+*Результат теста:*
 
 ```text
 ##### TEST CMD: java -version & cmd /c whoami
@@ -186,17 +186,17 @@ mydomain\simpleuser
 ERROR :
 ```
 
-*Incorrect usage:*
+*Неправильное использование:*
 
 ```java
 ProcessBuilder b = new ProcessBuilder("C:\DoStuff.exe -arg1 -arg2");
 ```
 
-In this example, the command together with the arguments are passed as a one string, making it easy to manipulate that expression and inject malicious strings.
+В этом примере команда вместе с аргументами передается в виде одной строки, что упрощает манипулирование этим выражением и внедрение вредоносных строк.
 
-*Correct Usage:*
+*Правильное использование:*
 
-Here is an example that starts a process with a modified working directory. The command and each of the arguments are passed separately. This makes it easy to validate each term and reduces the risk of malicious strings being inserted.
+Вот пример, который запускает процесс с измененным рабочим каталогом. Команда и каждый из аргументов передаются отдельно. Это упрощает проверку каждого условия и снижает риск вставки вредоносных строк.
 
 ``` java
 ProcessBuilder pb = new ProcessBuilder("TrustedCmd", "TrustedArg1", "TrustedArg2");
@@ -210,30 +210,30 @@ Process p = pb.start();
 
 ### .Net
 
-See relevant details in the [DotNet Security Cheat Sheet](DotNet_Security_Cheat_Sheet.md#os-injection)
+Смотрите соответствующие подробности в [Шпаргалке по безопасности DotNet](DotNet_Security_Cheat_Sheet.md#os-injection).
 
 ### PHP
 
-In PHP use [escapeshellarg()](https://www.php.net/manual/en/function.escapeshellarg.php) or [escapeshellcmd()](https://www.php.net/manual/en/function.escapeshellcmd.php) rather than [exec()](https://www.php.net/manual/en/function.exec.php), [system()](https://www.php.net/manual/en/function.system.php), [passthru()](https://www.php.net/manual/en/function.passthru.php).
+В PHP используйте [escapeshellarg()](https://www.php.net/manual/en/function.escapeshellarg.php) или [escapeshellcmd()](https://www.php.net/manual/en/function.escapeshellcmd.php) вместо [exec()](https://www.php.net/manual/en/function.exec.php), [system()](https://www.php.net/manual/en/function.system.php), [passthru()](https://www.php.net/manual/en/function.passthru.php).
 
-## Related articles
+## Статьи по теме
 
-### Description of Command Injection Vulnerability
+### Описание уязвимости при внедрении команд
 
 - OWASP [Command Injection](https://owasp.org/www-community/attacks/Command_Injection).
 
-### How to Avoid Vulnerabilities
+### Как избежать уязвимостей
 
-- C Coding: [Do not call system()](https://wiki.sei.cmu.edu/confluence/pages/viewpage.action?pageId=87152177).
+- Кодирование на C: [Не вызывайте system()](https://wiki.sei.cmu.edu/confluence/pages/viewpage.action?pageId=87152177).
 
-### How to Review Code
+### Как просмотреть код
 
-- OWASP [Reviewing Code for OS Injection](https://wiki.owasp.org/index.php/Reviewing_Code_for_OS_Injection).
+- OWASP [Проверка кода для внедрения в операционную систему](https://wiki.owasp.org/index.php/Reviewing_Code_for_OS_Injection).
 
-### How to Test
+### Как протестировать
 
-- [OWASP Testing Guide](https://owasp.org/www-project-web-security-testing-guide/) article on [Testing for Command Injection](https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/07-Input_Validation_Testing/12-Testing_for_Command_Injection.html).
+- [Руководство по тестированию OWASP](https://owasp.org/www-project-web-security-testing-guide/) статья о [тестировании для команд Injection](https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/07-Input_Validation_Testing/12-Testing_for_Command_Injection.html).
 
-### External References
+### Внешние ссылки
 
 - [CWE Entry 77 on Command Injection](https://cwe.mitre.org/data/definitions/77.html).
