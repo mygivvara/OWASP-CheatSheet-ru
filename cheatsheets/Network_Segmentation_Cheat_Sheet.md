@@ -1,49 +1,49 @@
-# Network segmentation Cheat Sheet
+# Шпаргалка по сегментации сети
 
-## Introduction
+## Вступление
 
-Network segmentation is the core of multi-layer defense in depth for modern services. Segmentation slow down an attacker if he cannot implement attacks such as:
+Сегментация сети является основой многоуровневой защиты современных сервисов. Сегментация замедляет работу злоумышленника, если он не может реализовать такие атаки, как:
 
-- SQL-injections, see [SQL Injection Prevention Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md);
-- compromise of workstations of employees with elevated privileges;
-- compromise of another server in the perimeter of the organization;
-- compromise of the target service through the compromise of the LDAP directory, DNS server, and other corporate services and sites published on the Internet.
+- SQL-инъекции, см. [SQL Injection Prevention Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md);
+- компрометация рабочих станций сотрудников с повышенными привилегиями;
+- компрометация другого сервера в периметре организации;
+- компрометация целевой службы путем компрометации каталога LDAP, DNS-сервера и других корпоративных служб и сайтов, опубликованных в Интернете.
 
-The main goal of this cheat sheet is to show the basics of network segmentation to effectively counter attacks by building a secure and maximally isolated service network architecture.
+Основная цель этой шпаргалки - показать основы сегментации сети для эффективного противодействия атакам путем построения безопасной и максимально изолированной архитектуры сервисной сети.
 
-Segmentation will avoid the following situations:
+Сегментация позволит избежать следующих ситуаций:
 
-- executing arbitrary commands on a public web server (NginX, Apache, Internet Information Service) prevents an attacker from gaining direct access to the database;
-- having unauthorized access to the database server, an attacker cannot access CnC on the Internet.
+- выполнение произвольных команд на общедоступном веб-сервере (NginX, Apache, Internet Information Service) не позволяет злоумышленнику получить прямой доступ к базе данных;
+- имея несанкционированный доступ к серверу базы данных, злоумышленник не может получить доступ к CnC через Интернет.
 
-## Content
+## Содержание
 
-- Schematic symbols;
-- Three-layer network architecture;
-- Interservice interaction;
-- Network security policy;
-- Useful links.
+- Схематические обозначения;
+- Трехуровневая сетевая архитектура;
+- Межсервисное взаимодействие;
+- Политика сетевой безопасности;
+- Полезные ссылки.
 
-## Schematic symbols
+## Схематические обозначения
 
-Elements used in network diagrams:
+Элементы, используемые в сетевых схемах:
 
-![Schematic symbols](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/assets/Network_Segmentation_Cheat_Sheet_Schematic_symbols.drawio.png)
+![Схематические обозначения](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/assets/Network_Segmentation_Cheat_Sheet_Schematic_symbols.drawio.png)
 
-Crossing the border of the rectangle means crossing the firewall:
-![Traffic passes through two firewalls](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/assets/Network_Segmentation_Cheat_Sheet_firewall_1.drawio.png)
+Пересечение границы прямоугольника означает пересечение брандмауэра:
+![Трафик проходит через два брандмауэра](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/assets/Network_Segmentation_Cheat_Sheet_firewall_1.drawio.png)
 
-In the image above, traffic passes through two firewalls with the names FW1 and FW2
+На изображении выше трафик проходит через два брандмауэра с именами FW1 и FW2
 
-![Traffic passes through one firewall](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/assets/Network_Segmentation_Cheat_Sheet_firewall_2.drawio.png)
+![Трафик проходит через один брандмауэр](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/assets/Network_Segmentation_Cheat_Sheet_firewall_2.drawio.png)
 
-In the image above, traffic passes through one firewall, behind which there are two VLANs
+На изображении выше трафик проходит через один брандмауэр, за которым находятся две виртуальные сети
 
-Further, the schemes do not contain firewall icons so as not to overload the schemes
+Кроме того, схемы не содержат значков брандмауэра, чтобы не перегружать схемы
 
-## Three-layer network architecture
+## Трехуровневая сетевая архитектура
 
-By default, developed information systems should consist of at least three components (**security zones**):
+По умолчанию разрабатываемые информационные системы должны состоять как минимум из трех компонентов (**зоны безопасности**).:
 
 1. [FRONTEND](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Network_Segmentation_Cheat_Sheet.md#FRONTEND);
 2. [MIDDLEWARE](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Network_Segmentation_Cheat_Sheet.md#MIDDLEWARE);
@@ -51,115 +51,115 @@ By default, developed information systems should consist of at least three compo
 
 ### FRONTEND
 
-FRONTEND - A frontend is a set of segments with the following network elements:
+FRONTEND - Фронтэнд - это набор сегментов со следующими сетевыми элементами:
 
-- balancer;
-- application layer firewall;
-- web server;
-- web cache.
+- балансировщик;
+- межсетевой экран прикладного уровня;
+- веб-сервер;
+- веб-кэш.
 
 ![FRONTEND](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/assets/Network_Segmentation_Cheat_Sheet_FRONTEND.drawio.png)
 
 ### MIDDLEWARE
 
-MIDDLEWARE - a set of segments to accommodate the following network elements:
+MIDDLEWARE - набор сегментов для размещения следующих сетевых элементов:
 
-- web applications that implement the logic of the information system (processing requests from clients, other services of the company and external services; execution of requests);
-- authorization services;
-- analytics services;
-- message queues;
-- stream processing platform.
+- веб-приложения, реализующие логику работы информационной системы (обработка запросов от клиентов, других сервисов компании и внешних сервисов; выполнение запросов);
+- сервисы авторизации;
+- аналитические услуги;
+- очереди сообщений;
+- платформа потоковой обработки данных.
 
 ![MIDDLEWARE](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/assets/Network_Segmentation_Cheat_Sheet_MIDDLEWARE.drawio.png)
 
 ### BACKEND
 
-BACKEND - a set of network segments to accommodate the following network elements:
+BACKEND - набор сегментов сети для размещения следующих сетевых элементов:
 
-- SQL database;
-- LDAP directory (Domain controller);
-- storage of cryptographic keys;
-- file server.
+- База данных SQL;
+- LDAP каталог (контроллер домена);
+- хранение криптографических ключей;
+- файловый сервер.
 
 ![BACKEND](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/assets/Network_Segmentation_Cheat_Sheet_BACKEND.drawio.png)
 
-### Example of Three-layer network architecture
+### Пример архитектуры трехслойной сети
 
 ![BACKEND](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/assets/Network_Segmentation_Cheat_Sheet_TIER_Example.drawio.png)
-The following example shows an organization's local network. The organization is called "Сontoso".
+В следующем примере показана локальная сеть организации. Организация называется "Contoso".
 
-The edge firewall contains 2 VLANs of **FRONTEND** security zone:
+Пограничный брандмауэр содержит 2 виртуальные сети **FRONTEND** зоны безопасности:
 
-- _DMZ Inbound_ - a segment for hosting services and applications accessible from the Internet, they must be protected by WAF;
-- _DMZ Outgoing_ - a segment for hosting services that are inaccessible from the Internet, but have access to external networks (the firewall does not contain any rules for allowing traffic from external networks).
+- _DMZ Inbound_ - сегмент для хостинга сервисов и приложений, доступных из Интернета, они должны быть защищены WAF;
+- _DMZ Outgoing_ - сегмент для хостинг-сервисов, которые недоступны из Интернета, но имеют доступ к внешним сетям (брандмауэр не содержит никаких правил для разрешения трафика из внешних сетей).
 
-The internal firewall contains 4 VLANs:
+Внутренний брандмауэр содержит 4 виртуальные сети:
 
-- **MIDDLEWARE** security zone contains only one VLAN with name _APPLICATIONS_ - a segment designed to host information system applications that interact with each other (interservice communication) and interact with other services;
-- **BACKEND** security zone contains:
-    - _DATABASES_ - a segment designed to delimit various databases of an automated system;
-    - _AD SERVICES_ - segment designed to host various Active Directory services, in the example only one server with a domain controller Contoso.com is shown;
-    - _LOGS_ - segment, designed to host servers with logs, servers centrally store application logs of an automated system.
+- Зона безопасности **MIDDLEWARE** содержит только одну VLAN с именем _APPLICATIONS_ - сегмент, предназначенный для размещения приложений информационной системы, которые взаимодействуют друг с другом (межсервисное взаимодействие) и взаимодействуют с другими сервисами;
+- **BACKEND** зона безопасности содержит:
+    - _DATABASES_ - сегмент, предназначенный для разграничения различных баз данных автоматизированной системы;
+    - _AD SERVICES_ - сегмент, предназначенный для размещения различных служб Active Directory, в примере показан только один сервер с контроллером домена Contoso.com;
+    - _LOGS_ - сегмент, предназначенный для размещения серверов с журналами, на серверах централизованно хранятся журналы приложений автоматизированной системы.
 
-## Interservice interaction
+## Межсервисное взаимодействие
 
-Usually some information systems of the company interact with each other. It is important to define a firewall policy for such interactions.
-The base allowed interactions are indicated by the green arrows in the image below:
-![Interservice interaction](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/assets/Network_Segmentation_Cheat_Sheet_interservice.drawio.png)
-The image above also shows the allowed access from the FRONTEND and MIDDLEWARE segments to external networks (the Internet, for example).
+Обычно несколько информационных систем компании взаимодействуют друг с другом. Важно определить политику брандмауэра для таких взаимодействий.
+Базовые разрешенные взаимодействия обозначены зелеными стрелками на рисунке ниже:
+![Межсервисное взаимодействие](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/assets/Network_Segmentation_Cheat_Sheet_interservice.drawio.png)
+На рисунке выше также показан разрешенный доступ из сегментов FRONTEND и MIDDLEWARE во внешние сети (например, в Интернет).
 
-From this image follows:
+Из этого изображения следует:
 
-1. Access between FRONTEND and MIDDLEWARE segments of different information systems is prohibited;
-2. Access from the MIDDLEWARE segment to the BACKEND segment of another service is prohibited (access to a foreign database bypassing the application server is prohibited).
+1. Запрещен доступ между сегментами FRONTEND и MIDDLEWARE разных информационных систем;
+2. Запрещен доступ из сегмента MIDDLEWARE к серверному сегменту другого сервиса (запрещен доступ к чужой базе данных в обход сервера приложений).
 
-Forbidden accesses are indicated by red arrows in the image below:
+Запрещенные доступы обозначены красными стрелками на изображении ниже:
 ![Prohibited Interservice Communication](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/assets/Network_Segmentation_Cheat_Sheet_interservice_deny.drawio.png)
 
-### Many applications on the same network
+### Множество приложений в одной сети
 
-If you prefer to have fewer networks in your organization and host more applications on each network, it is acceptable to host the load balancer on those networks. This balancer will balance traffic to applications on the network.
-In this case, it will be necessary to open one port to such a network, and balancing will be performed, for example, based on the HTTP request parameters.
-An example of such segmentation:
+Если вы предпочитаете, чтобы в вашей организации было меньше сетей и в каждой из них размещалось больше приложений, допустимо разместить балансировщик нагрузки в этих сетях. Этот балансировщик будет балансировать трафик приложений в сети.
+В этом случае необходимо будет открыть один порт для такой сети, и балансировка будет выполнена, например, на основе параметров HTTP-запроса.
+Пример такой сегментации:
 ![Interservice Communication with balancing](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/assets/Network_Segmentation_Cheat_Sheet_interservice_balancer.drawio.png)
 
-As you can see, there is only one incoming access to each network, access is opened up to the balancer in the network. However, in this case, segmentation no longer works, access control between applications from different network segments is performed at the 7th level of the OSI model using a balancer.
+Как вы можете видеть, в каждую сеть поступает только один входящий доступ, доступ открыт для балансировщика в сети. Однако в этом случае сегментация больше не работает, управление доступом между приложениями из разных сегментов сети осуществляется на 7-м уровне модели OSI с использованием балансировщика.
 
-## Network security policy
+## Политика сетевой безопасности
 
-The organization must define a "paper" policy that describes firewall rules and basic allowed network access.
-This policy is at least useful:
+Организация должна разработать "бумажную" политику, описывающую правила брандмауэра и базовый разрешенный доступ к сети.
+Эта политика, по крайней мере, полезна:
 
-- network administrators;
-- security representatives;
-- IT auditors;
-- architects of information systems and software;
-- developers;
-- IT administrators.
+- сетевым администраторам;
+- представителям служб безопасности;
+- ИТ-аудиторам;
+- архитекторам информационных систем и программного обеспечения;
+- разработчикам;
+- ИТ-администраторам.
 
-It is convenient when the policy is described by similar images. The information is presented as concisely and simply as possible.
+Удобно, когда политика описывается похожими изображениями. Информация представлена максимально сжато и просто.
 
-### Examples of individual policy provisions
+### Примеры отдельных положений политики
 
-Examples in the network policy will help colleagues quickly understand what access is potentially allowed and can be requested.
+Примеры из сетевой политики помогут коллегам быстро понять, какой доступ потенциально разрешен и может быть запрошен.
 
-#### Permissions for CI/CD
+#### Разрешения для CI/CD
 
-The network security policy may define, for example, the basic permissions allowed for the software development system. Let's look at an example of what such a policy might look like:
+Политика сетевой безопасности может определять, например, основные разрешения, разрешенные для системы разработки программного обеспечения. Давайте рассмотрим пример того, как может выглядеть такая политика:
 ![CI-CD](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/assets/Network_Segmentation_Cheat_Sheet_repo.drawio.png)
 
-#### Secure logging
+#### Безопасное ведение журнала
 
-It is important that in the event of a compromise of any information system, its logs are not subsequently modified by an attacker. To do this, you can do the following: copy the logs to a separate server, for example, using the syslog protocol, which does not allow an attacker to modify the logs, syslog only allows you to add new events to the logs.
-The network security policy for this activity looks like this:
+Важно, чтобы в случае компрометации какой-либо информационной системы ее логи впоследствии не были изменены злоумышленником. Для этого можно сделать следующее: скопировать логи на отдельный сервер, например, используя протокол syslog, который не позволяет злоумышленнику изменять логи, syslog позволяет только добавлять в логи новые события.
+Политика сетевой безопасности для этого действия выглядит следующим образом:
 ![Logging](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/assets/Network_Segmentation_Cheat_Sheet_logs.drawio.png)
-In this example, we are also talking about application logs that may contain security events, as well as potentially important events that may indicate an attack.
+В этом примере мы также говорим о журналах приложений, которые могут содержать события безопасности, а также потенциально важные события, которые могут указывать на атаку.
 
-#### Permissions for monitoring systems
+#### Разрешения для систем мониторинга
 
-Suppose a company uses Zabbix as an IT monitoring system. In this case, the policy might look like this:
+Предположим, компания использует Zabbix в качестве системы мониторинга ИТ. В этом случае политика может выглядеть следующим образом:
 ![Zabbix-Example](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/assets/Network_Segmentation_Cheat_Sheet_Monitoring.drawio.png)
 
-## Useful links
+## Полезные ссылки
 
-- Full network segmentation cheat sheet by [sergiomarotco](https://github.com/sergiomarotco): [link](https://github.com/sergiomarotco/Network-segmentation-cheat-sheet).
+- Полная шпаргалка по сегментации сети от [sergiomarotco](https://github.com/sergiomarotco): [ссылка](https://github.com/sergiomarotco/Network-segmentation-cheat-sheet).
