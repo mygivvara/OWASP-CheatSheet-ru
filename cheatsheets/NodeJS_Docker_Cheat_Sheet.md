@@ -1,35 +1,35 @@
-# Node.js Docker Cheat Sheet
+# Node.js Шпаргалка для Docker
 
-The following cheatsheet provides production-grade guidelines for building optimized and [secure Node.js Docker](https://snyk.io/blog/10-best-practices-to-containerize-nodejs-web-applications-with-docker/). You’ll find it helpful regardless of the Node.js application you aim to build. This article will be helpful for you if:
+В приведенной ниже шпаргалке приведены практические рекомендации по созданию оптимизированного и [безопасного Node.js Docker](https://snyk.io/blog/10-best-practices-to-containerize-nodejs-web-applications-with-docker/). Вы найдете ее полезной независимо от того, какое Node.js приложение вы планируете создать. Эта статья будет полезна вам, если:
 
-- your aim is to build a frontend application using server-side rendering (SSR) Node.js capabilities for React.
-- you’re looking for advice on how to properly build a Node.js Docker image for your microservices, running Fastify, NestJS or other application frameworks.
+- ваша цель - создать интерфейсное приложение с использованием серверного рендеринга (SSR) Node.js возможности Reactor.
+- вам нужен совет о том, как правильно создать Node.js Образ Docker для ваших микросервисов, работающих под управлением Fastify, NestJS или других платформ приложений.
 
-## 1) Use explicit and deterministic Docker base image tags
+## 1) Используйте явные и детерминированные теги базовых изображений Docker
 
-It may seem to be an obvious choice to build your image based on the `node` Docker image, but what are you actually pulling in when you build the image? Docker images are always referenced by tags, and when you don’t specify a tag the default, `:latest` tag is used.
+Может показаться очевидным выбором создать свой образ на основе образа Docker `node`, но что вы на самом деле получаете при создании образа? На изображения в Docker всегда ссылаются теги, и если вы не указываете тег, по умолчанию используется тег `:latest`.
 
-So, in fact, by specifying the following in your Dockerfile, you always build the latest version of the Docker image that has been built by the **Node.js Docker working group**:
+Таким образом, фактически, указав следующее в своем файле Dockerfile, вы всегда создаете последнюю версию образа Docker, созданную **рабочей группой Node.js Docker**:
 
 ### FROM node
 
-The shortcomings of building based on the default `node` image are as follows:
+Недостатки построения на основе образа `node` по умолчанию заключаются в следующем:
 
-1. Docker image builds are inconsistent. Just like we’re using `lockfiles` to get a deterministic `npm install` behavior every time we install npm packages, we’d also like to get deterministic docker image builds. If we build the image from node—which effectively means the `node:latest` tag—then every build will pull a newly built Docker image of `node`. We don’t want to introduce this sort of non-deterministic behavior.
-2. The node Docker image is based on a full-fledged operating system, full of libraries and tools that you may or may not need to run your Node.js web application. This has two downsides. Firstly a bigger image means a bigger download size which, besides increasing the storage requirement, means more time to download and re-build the image. Secondly, it means you’re potentially introducing security vulnerabilities, that may exist in all of these libraries and tools, into the image.
+1. Сборки образов Docker несовместимы. Точно так же, как мы используем `lockfiles` для получения детерминированного поведения `npm install` при каждой установке пакетов npm, мы также хотели бы получать детерминированные сборки образов docker. Если мы создадим образ из node, что фактически означает тег `node:latest`, то при каждой сборке будет создаваться новый образ Docker для `node`. Мы не хотим вводить такого рода недетерминированное поведение.
+2. Образ node Docker основан на полноценной операционной системе, полной библиотек и инструментов, которые могут вам понадобиться, а могут и не понадобиться для запуска вашего Node.js веб-приложение. У этого есть два недостатка. Во-первых, чем больше изображение, тем больше объем загружаемого файла, что, помимо увеличения требований к хранилищу, увеличивает время загрузки и повторного создания образа. Во-вторых, это означает, что вы потенциально вносите в изображение уязвимости в системе безопасности, которые могут существовать во всех этих библиотеках и инструментах.
 
-In fact, the `node` Docker image is quite big and includes hundreds of security vulnerabilities of different types and severities. If you’re using it, then by default your starting point is going to be a baseline of 642 security vulnerabilities, and hundreds of megabytes of image data that is downloaded on every pull and build.
+На самом деле, образ `node` Docker довольно большой и содержит сотни уязвимостей в системе безопасности различных типов и степени тяжести. Если вы используете его, то по умолчанию вашей отправной точкой будет базовый уровень из 642 уязвимостей в системе безопасности и сотни мегабайт данных об изображениях, которые загружаются при каждом извлечении и сборке.
 
-The recommendations for building better Docker images are:
+Вот рекомендации по созданию более качественных образов Docker::
 
-1. Use small Docker images—this will translate to a smaller software footprint on the Docker image reducing the potential vulnerability vectors, and a smaller size, which will speed up the image build process
-2. Use the Docker image digest, which is the static SHA256 hash of the image. This ensures that you are getting deterministic Docker image builds from the base image.
+1. Используйте образы Docker небольшого размера — это уменьшит нагрузку на программное обеспечение в образе Docker, уменьшит потенциальные уязвимости и уменьшит размер, что ускорит процесс создания образа
+2. Используйте Docker image digest, который представляет собой статический SHA256-хэш изображения. Это гарантирует, что вы получаете детерминированные сборки Docker image из базового изображения.
 
-Based on this, let’s ensure that we use the Long Term Support (LTS) version of Node.js, and the minimal `alpine` image type to have the smallest size and software footprint on the image:
+Исходя из этого, давайте убедимся, что мы используем версию с долгосрочной поддержкой (LTS) Node.js и минимальный тип изображения `alpine`, чтобы оно имело наименьший размер и занимало меньше места в программном обеспечении:
 
 ### FROM node:lts-alpine
 
-Nonetheless, this base image directive will still pull new builds of that tag. We can find the `SHA256` hash for it in the [Docker Hub for this Node.js tag](https://hub.docker.com/layers/node/library/node/lts-alpine/images/sha256-51e341881c2b77e52778921c685e711a186a71b8c6f62ff2edfc6b6950225a2f?context=explore), or by running the following command once we pulled this image locally, and locate the `Digest` field in the output:
+Тем не менее, эта директива base image по-прежнему будет использовать новые сборки этого тега. Мы можем найти хэш `SHA256` для него в [Docker Hub для этого Node.js тэга](https://hub.docker.com/layers/node/library/node/its-alpine/images/sha256-51e341881c2b77e52778921c685e711a186a71b8c6f62ff2edfc6b6950225a2f?context=explore), или выполнив следующую команду, как только мы извлекли это изображение локально, и найдите поле `Digest` в выходных данных:
 
     $ docker pull node:lts-alpine
     lts-alpine: Pulling from library/node
@@ -41,13 +41,13 @@ Nonetheless, this base image directive will still pull new builds of that tag. W
     Status: Downloaded newer image for node:lts-alpine
     docker.io/library/node:lts-alpine
 
-Another way to find the `SHA256` hash is by running the following command:
+Другой способ найти хэш `SHA256` - это выполнить следующую команду:
 
     $ docker images --digests
     REPOSITORY                     TAG              DIGEST                                                                    IMAGE ID       CREATED             SIZE
     node                           lts-alpine       sha256:b2da3316acdc2bec442190a1fe10dc094e7ba4121d029cb32075ff59bb27390a   51d926a5599d   2 weeks ago         116MB
 
-Now we can update the Dockerfile for this Node.js Docker image as follows:
+Теперь мы можем обновить файл Dockerfile для этого Node.js Образа Docker следующим образом:
 
     FROM node@sha256:b2da3316acdc2bec442190a1fe10dc094e7ba4121d029cb32075ff59bb27390a
     WORKDIR /usr/src/app
@@ -55,9 +55,9 @@ Now we can update the Dockerfile for this Node.js Docker image as follows:
     RUN npm install
     CMD "npm" "start"
 
-However, the Dockerfile above, only specifies the Node.js Docker image name without an image tag which creates ambiguity for which exact image tag is being used—it’s not readable, hard to maintain and doesn’t create a good developer experience.
+Однако приведенный выше файл Dockerfile определяет только Node.js Название изображения в Docker без тега image, что создает неопределенность в отношении того, для какого именно тега используется изображение — оно нечитаемо, его сложно поддерживать и оно не создает благоприятных условий для разработчиков.
 
-Let’s fix it by updating the Dockerfile, providing the full base image tag for the Node.js version that corresponds to that `SHA256` hash:
+Давайте исправим это, обновив Dockerfile, указав полный базовый тег изображения для версии Node.js, соответствующей хэшу `SHA256`:
 
     FROM node:lts-alpine@sha256:b2da3316acdc2bec442190a1fe10dc094e7ba4121d029cb32075ff59bb27390a
     WORKDIR /usr/src/app
@@ -65,19 +65,19 @@ Let’s fix it by updating the Dockerfile, providing the full base image tag for
     RUN npm install
     CMD "npm" "start"
 
-## 2) Install only production dependencies in the Node.js Docker image
+## 2) Устанавливайте только производственные зависимости в образе Node.js Docker
 
-The following Dockerfile directive installs all dependencies in the container, including `devDependencies`, which aren’t needed for a functional application to work. It adds an unneeded security risk from packages used as development dependencies, as well as inflating the image size unnecessarily.
+Следующая директива Dockerfile устанавливает все зависимости в контейнере, включая `devDependencies`, которые не нужны для работы функционального приложения. Это создает ненужную угрозу безопасности из-за пакетов, используемых в качестве зависимостей для разработки, а также без необходимости увеличивает размер образа.
 
 **`RUN npm install`**
 
-Enforce deterministic builds with `npm ci`. This prevents surprises in a continuous integration (CI) flow because it halts if any deviations from the lockfile are made.
+Применяйте детерминированные сборки с помощью `npm ci`. Это предотвращает неожиданные изменения в потоке непрерывной интеграции (CI), поскольку он останавливается при любых отклонениях от файла блокировки.
 
-In the case of building a Docker image for production we want to ensure that we only install production dependencies in a deterministic way, and this brings us to the following recommendation for the best practice for installing npm dependencies in a container image:
+В случае создания образа Docker для производственной среды мы хотим убедиться, что устанавливаем производственные зависимости только детерминированным образом, и это подводит нас к следующей рекомендации по наилучшей практике установки зависимостей npm в образе контейнера:
 
 **`RUN npm ci --omit=dev`**
 
-The updated Dockerfile contents in this stage are as follows:
+Обновленное содержимое файла Dockerfile на этом этапе выглядит следующим образом:
 
     FROM node:lts-alpine@sha256:b2da3316acdc2bec442190a1fe10dc094e7ba4121d029cb32075ff59bb27390a
     WORKDIR /usr/src/app
@@ -85,29 +85,29 @@ The updated Dockerfile contents in this stage are as follows:
     RUN npm ci --omit=dev
     CMD "npm" "start"
 
-## 3) Optimize Node.js tooling for production
+## 3) Оптимизировать Node.js оснастку для производства
 
-When you build your Node.js Docker image for production, you want to ensure that all frameworks and libraries are using the optimal settings for performance and security.
+Когда вы создаете свой Node.js Образ Docker для рабочей среды, вы хотите убедиться, что все платформы и библиотеки используют оптимальные настройки для повышения производительности и безопасности.
 
-This brings us to add the following Dockerfile directive:
+Это позволяет нам добавить следующую директиву Dockerfile:
 
 **`ENV NODE_ENV production`**
 
-At first glance, this looks redundant, since we already specified only production dependencies in the `npm install` phase—so why is this necessary?
+На первый взгляд, это выглядит излишним, поскольку мы уже указали только производственные зависимости на этапе `npm install` — так зачем это нужно?
 
-Developers mostly associate the `NODE_ENV=production` environment variable setting with the installation of production-related dependencies, however, this setting also has other effects which we need to be aware of.
+Разработчики в основном связывают настройку переменной среды `NODE_ENV=production` с установкой зависимостей, связанных с производством, однако эта настройка также имеет другие эффекты, о которых мы должны знать.
 
-Some frameworks and libraries may only turn on the optimized configuration that is suited to production if that `NODE_ENV` environment variable is set to `production`. Putting aside our opinion on whether this is a good or bad practice for frameworks to take, it is important to know this.
+Некоторые фреймворки и библиотеки могут включать оптимизированную конфигурацию, подходящую для работы, только в том случае, если переменной среды `NODE_ENV` присвоено значение `production`. Оставляя в стороне наше мнение о том, является ли это хорошей или плохой практикой для фреймворков, важно знать следующее.
 
-As an example, the [Express documentation](https://expressjs.com/en/advanced/best-practice-performance.html#set-node_env-to-production) outlines the importance of setting this environment variable for enabling performance and security related optimizations:
+В качестве примера, [Express documentation](https://expressjs.com/en/advanced/best-practice-performance.html#set-node_env-to-production) описывает важность настройки этой переменной среды для обеспечения оптимизации производительности и безопасности:
 
 ![Express documentation screenshot](https://lh3.googleusercontent.com/idNDKUUyML-rRpnNYmOo4eNBimq-u343401spkAdKWWKjNt0c_xux2Aw1W2r64qWGEcvxfQRkosPcO339g5DzQk0snm1nr6MupSPNB_zAtGgLsr3lp1L-tia4KgHwvOXMW1jT0J-)
 
-The performance impact of the `NODE_ENV` variable could be very significant.
+Влияние переменной `NODE_ENV` на производительность может быть очень значительным.
 
-Many of the other libraries that you are relying on may also expect this variable to be set, so we should set this in our Dockerfile.
+Многие другие библиотеки, на которые вы полагаетесь, также могут ожидать, что эта переменная будет установлена, поэтому мы должны установить ее в нашем Dockerfile.
 
-The updated Dockerfile should now read as follows with the `NODE_ENV` environment variable setting baked in:
+Обновленный файл Dockerfile теперь должен выглядеть следующим образом с параметром переменной окружения `NODE_ENV`, заданным в:
 
     FROM node:lts-alpine@sha256:b2da3316acdc2bec442190a1fe10dc094e7ba4121d029cb32075ff59bb27390a
     ENV NODE_ENV production
@@ -116,22 +116,22 @@ The updated Dockerfile should now read as follows with the `NODE_ENV` environmen
     RUN npm ci --omit=dev
     CMD "npm" "start"
 
-## 4) Don’t run containers as root
+## 4) Не запускайте контейнеры от имени root
 
-The principle of least privilege is a long-time security control from the early days of Unix and we should always follow this when we’re running our containerized Node.js web applications.
+Принцип минимальных привилегий-давний контроль безопасности с первых дней существования Unix и мы всегда должны следовать этому, когда мы теряем наши контейнерные веб-приложений Node.js.
 
-The threat assessment is pretty straight-forward—if an attacker is able to compromise the web application in a way that allows for [command injection](https://owasp.org/www-community/attacks/Command_Injection) or [directory path traversal](https://owasp.org/www-community/attacks/Path_Traversal), then these will be invoked with the user who owns the application process. If that process happens to be root then they can do virtually everything within the container, including [attempting a container escape or [privilege escalation](https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/05-Authorization_Testing/03-Testing_for_Privilege_Escalation). Why would we want to risk it? You’re right, we don’t.
+Оценка угрозы довольно проста - если злоумышленник сможет скомпрометировать веб—приложение таким образом, что это позволит использовать [внедрение команды](https://owasp.org/www-community/attacks/Command_Injection) или [обход пути к каталогу] (https://owasp.org/www-community/attacks/Path_Traversal), то они будут запущены пользователем, которому принадлежит процесс приложения. Если этот процесс принадлежит root, то он может выполнять практически все действия внутри контейнера, включая [попытку выхода из контейнера или повышения привилегий](https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/05-Authorization_Testing/03-Testing_for_Privilege_Escalation). Зачем нам рисковать? Вы правы, мы этого не делаем.
 
-Repeat after me: **“friends don’t let friends run containers as root!”**
+Повторяйте за мной: **«Друзья не позволяют друзьям запускать контейнеры от имени root!»**.
 
-The official `node` Docker image, as well as its variants like `alpine`, include a least-privileged user of the same name: `node`. However, it’s not enough to just run the process as `node`. For example, the following might not be ideal for an application to function well:
+Официальный образ Docker `node`, а также его варианты, такие как `alpine`, включают пользователя с наименьшими привилегиями с тем же именем: `node`. Однако недостаточно просто запустить процесс как `node`. Например, приведенные ниже действия могут оказаться неидеальными для нормальной работы приложения:
 
     USER node
     CMD "npm" "start"
 
-The reason for that is the `USER` Dockerfile directive only ensures that the process is owned by the `node` user. What about all the files we copied earlier with the `COPY` instruction? They are owned by root. That’s how Docker works by default.
+Причина этого в том, что директива `USER` Dockerfile гарантирует, что процесс принадлежит только пользователю `node`. Как насчет всех файлов, которые мы скопировали ранее с помощью команды `COPY`? Они принадлежат root. По умолчанию Docker работает именно так.
 
-The complete and proper way of dropping privileges is as follows, also showing our up to date Dockerfile practices up to this point:
+Ниже приведен полный и правильный способ удаления привилегий, в котором также показаны наши современные методы работы с файлами Dockerfile на данный момент:
 
     FROM node:lts-alpine@sha256:b2da3316acdc2bec442190a1fe10dc094e7ba4121d029cb32075ff59bb27390a
     ENV NODE_ENV production
@@ -141,67 +141,67 @@ The complete and proper way of dropping privileges is as follows, also showing o
     USER node
     CMD "npm" "start"
 
-## 5) Properly handle events to safely terminate a Node.js Docker web application
+## 5) Правильно обрабатывать события для безопасного завершения работы Node.js Веб-приложение Docker
 
-One of the most common mistakes I see with blogs and articles about containerizing Node.js applications when running in Docker containers is the way that they invoke the process. All of the following and their variants are bad patterns you should avoid:
+Одна из самых распространенных ошибок, которую я вижу в блогах и статьях о контейнеризации Node.js приложения, запущенные в контейнерах Docker, - это способ, которым они запускают процесс. Все перечисленное ниже и их варианты являются плохими моделями поведения, которых вам следует избегать:
 
 - `CMD “npm” “start”`
 - `CMD [“yarn”, “start”]`
 - `CMD “node” “server.js”`
 - `CMD “start-app.sh”`
 
-Let’s dig in! I’ll walk you through the differences between them and why they’re all patterns to avoid.
+Давайте разберемся! Я расскажу вам о различиях между ними и о том, почему их следует избегать.
 
-The following concerns are key to understanding the context for properly running and terminating Node.js Docker applications:
+Следующие соображения являются ключевыми для понимания контекста правильного запуска и завершения работы Node.js Приложений Docker:
 
-1. An orchestration engine, such as Docker Swarm, Kubernetes, or even just Docker engine itself, needs a way to send signals to the process in the container. Mostly, these are signals to terminate an application, such as `SIGTERM` and `SIGKILL`.
-2. The process may run indirectly, and if that happens then it’s not always guaranteed that it will receive these signals.
-3. The Linux kernel treats processes that run as process ID 1 (PID) differently than any other process ID.
+1. Механизм оркестрации, такой как Docker Swarm, Kubernetes или даже просто сам Docker engine, нуждается в способе отправки сигналов процессу в контейнере. В основном, это сигналы для завершения работы приложения, такие как `SIGTERM` и `SIGKILL`.
+2. Процесс может запускаться косвенно, и если это произойдет, то не всегда гарантируется, что он получит эти сигналы.
+3. Ядро Linux обрабатывает процессы, которые выполняются с идентификатором процесса 1 (PID), иначе, чем любой другой идентификатор процесса.
 
-Equipped with that knowledge, let’s begin investigating the ways of invoking the process for a container, starting off with the example from the Dockerfile we’re building:
+Вооружившись этими знаниями, давайте начнем изучать способы вызова процесса для контейнера, начав с примера из Dockerfile, который мы создаем:
 
 **`CMD "npm" "start"`**
 
-The caveat here is two fold. Firstly, we’re indirectly running the node application by directly invoking the npm client. Who’s to say that the npm CLI forwards all events to the node runtime? It actually doesn’t, and we can easily test that.
+Здесь есть два нюанса. Во-первых, мы косвенно запускаем приложение node, напрямую вызывая клиент npm. Кто сказал, что интерфейс CLI npm перенаправляет все события в среду выполнения node? На самом деле это не так, и мы можем легко это проверить.
 
-Make sure that in your Node.js application you set an event handler for the `SIGHUP` signal which logs to the console every time you’re sending an event. A simple code example should look as follows:
+Убедитесь, что в вашем приложении Node.js вы настроили обработчик событий для сигнала `SIGHUP`, который регистрируется на консоли каждый раз, когда вы отправляете событие. Простой пример кода должен выглядеть следующим образом:
 
     function handle(signal) {
        console.log(`*^!@4=> Received event: ${signal}`)
     }
     process.on('SIGHUP', handle)
 
-Then run the container, and once it’s up specifically send it the `SIGHUP` signal using the `docker` CLI and the special `--signal` command-line flag:
+Затем запустите контейнер и, как только он будет запущен, отправьте ему специальный сигнал `SIGHUP`, используя CLI `docker` и специальный флаг командной строки `--signal`:
 
 **`$ docker kill --signal=SIGHUP elastic_archimedes`**
 
-Nothing happened, right? That’s because the npm client doesn’t forward any signals to the node process that it spawned.
+Ничего не произошло, верно? Это потому, что клиент npm не передает никаких сигналов процессу node, который он породил.
 
-The other caveat has to do with the different ways in which way you can specify the `CMD` directive in the Dockerfile. There are two ways, and they are not the same:
+Другое предостережение связано с различными способами, которыми вы можете указать директиву `CMD` в файле Dockerfile. Есть два способа, и они не совпадают:
 
-1. the shellform notation, in which the container spawns a shell interpreter that wraps the process. In such cases, the shell may not properly forward signals to your process.
-2. the execform notation, which directly spawns a process without wrapping it in a shell. It is specified using the JSON array notation, such as: `CMD [“npm”, “start”]`. Any signals sent to the container are directly sent to the process.
+1. нотация shell form, в которой контейнер запускает интерпретатор оболочки, который завершает процесс. В таких случаях оболочка может неправильно передавать сигналы вашему процессу.
+2. нотация exec form, которая непосредственно запускает процесс, не помещая его в оболочку. Он задается с помощью обозначения массива JSON, например: `CMD [“npm”, “start”]`. Любые сигналы, отправляемые в контейнер, напрямую передаются процессу.
 
-Based on that knowledge, we want to improve our Dockerfile process execution directive as follows:
+Основываясь на этих знаниях, мы хотим улучшить нашу директиву по выполнению процесса Dockerfile следующим образом:
 
 **`CMD ["node", "server.js"]`**
 
-We are now invoking the node process directly, ensuring that it receives all of the signals sent to it, without it being wrapped in a shell interpreter.
+Теперь мы вызываем процесс node напрямую, гарантируя, что он получит все отправленные ему сигналы, без использования интерпретатора оболочки.
 
-However, this introduces another pitfall.
+Однако это приводит к еще одному подводному камню.
 
-When processes run as PID 1 they effectively take on some of the responsibilities of an init system, which is typically responsible for initializing an operating system and processes. The kernel treats PID 1 in a different way than it treats other process identifiers. This special treatment from the kernel means that the handling of a `SIGTERM` signal to a running process won’t invoke a default fallback behavior of killing the process if the process doesn’t already set a handler for it.
+Когда процессы запускаются с идентификатором PID 1, они фактически берут на себя часть обязанностей системы инициализации, которая обычно отвечает за инициализацию операционной системы и процессов. Ядро обрабатывает PID 1 иначе, чем другие идентификаторы процессов. Это специальное решение ядра означает, что обработка сигнала `SIGTERM` запущенному процессу не приведет к резервному поведению по умолчанию, заключающемуся в завершении процесса, если процесс еще не установил для него обработчик.
 
-To [quote the Node.js Docker working group recommendation](https://github.com/nodejs/docker-node/blob/master/docs/BestPractices.md#handling-kernel-signals) on this:  “Node.js was not designed to run as PID 1 which leads to unexpected behaviour when running inside of Docker. For example, a Node.js process running as PID 1 will not respond to SIGINT (CTRL-C) and similar signals”.
+Цитирую [рекомендацию рабочей группы Node.js Docker](https://github.com/nodejs/docker-node/blob/master/docs/BestPractices.md#handling-kernel-signals) по этому поводу:  «Node.js не был разработан для запуска в качестве PID 1, что приводит к неожиданному поведению при запуске внутри Docker. Например, процесс Node.js, запущенный как PID 1, не будет реагировать на SIGINT (CTRL-C) и подобные сигналы».
 
-The way to go about it then is to use a tool that will act like an init process, in that it is invoked with PID 1, then spawns our Node.js application as another process whilst ensuring that all signals are proxied to that Node.js process. If possible, we’d like a small as possible tooling footprint for doing so to not risk having security vulnerabilities added to our container image.
+Тогда для этого нужно использовать инструмент, который будет действовать как процесс инициализации, поскольку он вызывается с PID 1, а затем запускает наше Node.js приложение как другой процесс, обеспечивая при этом, чтобы все сигналы передавались этому Node.js процессу. Если это возможно, мы хотели бы использовать как можно меньше инструментов для этого, чтобы избежать риска добавления уязвимостей в наш образ контейнера.
 
-One such tool is [dumb-init](https://engineeringblog.yelp.com/2016/01/dumb-init-an-init-for-docker.html) which is statically linked and has a small footprint. Here’s how we’ll set it up:
+Одним из таких инструментов является [dumb-init](https://engineeringblog.yelp.com/2016/01/dumb-init-an-init-for-docker.html), который статически связан и занимает мало места. Вот как мы его настроим:
 
     RUN apk add dumb-init
     CMD ["dumb-init", "node", "server.js"]
 
-This brings us to the following up to date Dockerfile. You’ll notice that we placed the `dumb-init` package install right after the image declaration, so we can take advantage of Docker’s caching of layers:
+Это подводит нас к следующему обновленному файлу Dockerfile. Вы заметите, что мы поместили установку пакета `dumb-init` сразу после объявления изображения, чтобы мы могли воспользоваться преимуществами кэширования слоев в Docker:
 
     FROM node:lts-alpine@sha256:b2da3316acdc2bec442190a1fe10dc094e7ba4121d029cb32075ff59bb27390a
     RUN apk add dumb-init
@@ -212,15 +212,15 @@ This brings us to the following up to date Dockerfile. You’ll notice that we p
     USER node
     CMD ["dumb-init", "node", "server.js"]
 
-Good to know: `docker kill` and `docker stop` commands only send signals to the container process with PID 1. If you’re running a shell script that runs your Node.js application, then take note that a shell instance—such as `/bin/sh`, for example—doesn’t forward signals to child processes, which means your app will never get a `SIGTERM`.
+Полезно знать: команды `docker kill` и `docker stop` посылают сигналы контейнерному процессу только с PID 1. Если вы используете сценарий оболочки, который запускает ваше приложение Node.js, обратите внимание, что экземпляр оболочки, такой как, например, "/bin/sh", не пересылает сигналы дочерним процессам, что означает, что ваше приложение никогда не получит `SIGTERM`.
 
-## 6) Graceful tear down for your Node.js web applications
+## 6) Услужливое завершение работы ваших веб-приложений Node.js
 
-If we’re already discussing process signals that terminate applications, let’s make sure we’re shutting them down properly and gracefully without disrupting users.
+Если мы уже обсуждаем сигналы процесса, которые завершают работу приложений, давайте убедимся, что мы завершаем их должным образом и корректно, не нарушая работу пользователей.
 
-When a Node.js application receives an interrupt signal, also known as `SIGINT`, or `CTRL+C`, it will cause an abrupt process kill, unless any event handlers were set of course to handle it in a different behavior. This means that connected clients to a web application will be immediately disconnected. Now, imagine hundreds of Node.js web containers orchestrated by Kubernetes, going up and down as needs arise to scale or manage errors. Not the greatest user experience.
+Когда Node.js приложение получает сигнал прерывания, также известный как `SIGINT` или `CTRL+C`, это приводит к внезапному завершению процесса, если, конечно, не были настроены какие-либо обработчики событий для обработки этого по-другому. Это означает, что подключенные к веб-приложению клиенты будут немедленно отключены. А теперь представьте себе сотни Node.js веб-контейнеры, управляемые Kubernetes, расширяются и закрываются по мере необходимости для масштабирования или устранения ошибок. Не самый лучший пользовательский опыт.
 
-You can easily simulate this problem. Here’s a stock Fastify web application example, with an inherent delayed response of 60 seconds for an endpoint:
+Вы можете легко смоделировать эту проблему. Вот пример стандартного веб-приложения Fastify, в котором конечная точка реагирует с задержкой в 60 секунд:
 
     fastify.get('/delayed', async (request, reply) => {
      const SECONDS_DELAY = 60000
@@ -242,21 +242,21 @@ You can easily simulate this problem. Here’s a stock Fastify web application e
      
     start()
 
-Run this application and once it’s running send a simple HTTP request to this endpoint:
+Запустите это приложение и, как только оно запустится, отправьте простой HTTP-запрос на эту конечную точку:
 
 `$ time curl https://localhost:3000/delayed`
 
-Hit `CTRL+C` in the running Node.js console window and you’ll see that the curl request exited abruptly. This simulates the same experience your users would receive when containers tear down.
+Нажмите `CTRL+C` в запущенном окне консоли Node.js, и вы увидите, что запрос curl внезапно завершился. Это имитирует тот же опыт, который ваши пользователи получили бы при демонтаже контейнеров.
 
-To provide a better experience, we can do the following:
+Чтобы обеспечить лучший опыт, мы можем сделать следующее:
 
-1. Set an event handler for the various termination signals like `SIGINT` and `SIGTERM`.
-2. The handler waits for clean up operations like database connections, ongoing HTTP requests and others.
-3. The handler then terminates the Node.js process.
+1. Установить обработчик событий для различных сигналов завершения, таких как `SIGINT` и `SIGTERM`.
+2. Обработчик ожидает операций очистки, таких как подключения к базе данных, текущие HTTP-запросы и другие.
+3. Затем обработчик завершает процесс Node.js.
 
-Specifically with Fastify, we can have our handler call on [fastify.close()](https://www.fastify.io/docs/latest/Server/) which returns a promise that we will await, and Fastify will also take care to respond to every new connection with the HTTP status code 503 to signal that the application is unavailable.
+В частности, с помощью Fastify мы можем вызвать обработчик [fastify.close()](https://www.fastify.io/docs/latest/Server/), который возвращает обещание, которое мы будем ожидать, и Fastify также позаботится о том, чтобы отвечать на каждое новое соединение с кодом состояния HTTP 503, сигнализируя о том, что приложение недоступно.
 
-Let’s add our event handler:
+Давайте добавим наш обработчик событий:
 
     async function closeGracefully(signal) {
        console.log(`*^!@4=> Received signal to terminate: ${signal}`)
@@ -269,23 +269,23 @@ Let’s add our event handler:
     process.on('SIGINT', closeGracefully)
     process.on('SIGTERM', closeGracefully)
 
-Admittedly, this is more of a generic web application concern than Dockerfile related, but is even more important in orchestrated environments.
+По общему признанию, это скорее относится к общим веб-приложениям, чем к Dockerfile, но еще более важно в организованных средах.
 
-## 7) Find and fix security vulnerabilities in your Node.js docker image
+## 7) Поиск и устранение уязвимостей безопасности в докер-образе Node.js
 
-See [Docker Security Cheat Sheet - Use static analysis tools](https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html#rule-9-use-static-analysis-tools)
+Смотрите [Шпаргалку по безопасности Docker - Использование статического анализа tools](https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html#rule-9-use-static-analysis-tools)
 
-## 8) Use multi-stage builds
+## 8) Используйте многоступенчатые сборки
 
-Multi-stage builds are a great way to move from a simple, yet potentially erroneous Dockerfile, into separated steps of building a Docker image, so we can avoid leaking sensitive information. Not only that, but we can also use a bigger Docker base image to install our dependencies, compile any native npm packages if needed, and then copy all these artifacts into a small production base image, like our alpine example.
+Многоступенчатая сборка - отличный способ перейти от простого, но потенциально ошибочного файла Dockerfile к отдельным этапам создания образа Docker, чтобы избежать утечки конфиденциальной информации. Кроме того, мы также можем использовать более крупный базовый образ Docker для установки наших зависимостей, при необходимости скомпилировать любые собственные пакеты npm, а затем скопировать все эти артефакты в небольшой производственный базовый образ, как в нашем примере с alpine.
 
-### Prevent sensitive information leak
+### Предотвращение утечки конфиденциальной информации
 
-The use-case here to avoid sensitive information leakage is more common than you think.
+Приведенный здесь пример использования для предотвращения утечки конфиденциальной информации встречается чаще, чем вы думаете.
 
-If you’re building Docker images for work, there’s a high chance that you also maintain private npm packages. If that’s the case, then you probably needed to find some way to make that secret `NPM_TOKEN` available to the npm install.
+Если вы создаете образы Docker для работы, велика вероятность, что вы также поддерживаете частные пакеты npm. Если это так, то вам, вероятно, нужно было найти какой-то способ сделать этот секретный `NPM_TOKEN` доступным для установки npm.
 
-Here’s an example for what I’m talking about:
+Вот пример того, о чем я говорю:
 
     FROM node:lts-alpine@sha256:b2da3316acdc2bec442190a1fe10dc094e7ba4121d029cb32075ff59bb27390a
     RUN apk add dumb-init
@@ -299,40 +299,40 @@ Here’s an example for what I’m talking about:
     USER node
     CMD ["dumb-init", "node", "server.js"]
 
-Doing this, however, leaves the `.npmrc` file with the secret npm token inside the Docker image. You could attempt to improve it by deleting it afterwards, like this:
+Однако при этом файл `.npmrc` с секретным токеном npm остается внутри образа Docker. Вы можете попытаться улучшить его, удалив его впоследствии, вот так:
 
     RUN echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc && \
        npm ci --omit=dev
     RUN rm -rf .npmrc
 
-However, now the `.npmrc` file is available in a different layer of the Docker image. If this Docker image is public, or someone is able to access it somehow, then your token is compromised. A better improvement would be as follows:
+Однако теперь файл `.npmrc` доступен на другом уровне образа Docker. Если этот образ Docker является общедоступным или кто-то может каким-либо образом получить к нему доступ, то ваш токен скомпрометирован. Лучшим улучшением было бы следующее:
 
     RUN echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc && \
        npm ci --omit=dev; \
        rm -rf .npmrc
 
-The problem now is that the Dockerfile itself needs to be treated as a secret asset, because it contains the secret npm token inside it.
+Проблема сейчас в том, что сам файл Dockerfile должен рассматриваться как секретный ресурс, поскольку внутри него содержится секретный токен npm.
 
-Luckily, Docker supports a way to pass arguments into the build process:
+К счастью, Docker поддерживает способ передачи аргументов в процесс сборки:
 
     ARG NPM_TOKEN
     RUN echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc && \
        npm ci --omit=dev; \
        rm -rf .npmrc
 
-And then we build it as follows:
+И затем мы собираем его следующим образом:
 
 **`$ docker build . -t nodejs-tutorial --build-arg NPM_TOKEN=1234`**
 
-I know you were thinking that we’re all done at this point but, sorry to disappoint 🙂
+Я знаю, вы думали, что на данный момент мы все закончили, но, извините, что разочаровываю 🙂
 
-That’s how it is with security—sometimes the obvious things are yet just another pitfall.
+Вот как обстоит дело с безопасностью — иногда очевидные вещи становятся еще одной ловушкой.
 
-What’s the problem now, you ponder? Build arguments passed like that to Docker are kept in the history log. Let’s see with our own eyes. Run this command:
+В чем проблема, как вы думаете? Аргументы сборки, переданные таким образом в Docker, сохраняются в журнале истории. Давайте посмотрим своими глазами. Запустите эту команду:
 
 **`$ docker history nodejs-tutorial`**
 
-which prints the following:
+который выводит следующее:
 
     IMAGE          CREATED              CREATED BY                                      SIZE      COMMENT
     b4c2c78acaba   About a minute ago   CMD ["dumb-init" "node" "server.js"]            0B        buildkit.dockerfile.v0
@@ -344,17 +344,17 @@ which prints the following:
     <missing>      About a minute ago   ENV NODE_ENV=production                         0B        buildkit.dockerfile.v0
     <missing>      About a minute ago   RUN /bin/sh -c apk add dumb-init # buildkit     1.65MB    buildkit.dockerfile.v0
 
-Did you spot the secret npm token there? That’s what I mean.
+Вы заметили там секретный токен npm? Вот что я имею в виду.
 
-There’s a great way to manage secrets for the container image, but this is the time to introduce multi-stage builds as a mitigation for this issue, as well as showing how we can build minimal images.
+Есть отличный способ управлять секретами для образа контейнера, но сейчас самое время представить многоступенчатую сборку в качестве решения этой проблемы, а также показать, как мы можем создавать минимальные образы.
 
-### Introducing multi-stage builds for Node.js Docker images
+### Внедрение многоступенчатых сборок для Docker-образов Node.js
 
-Just like that principle in software development of Separation of Concerns, we’ll apply the same ideas in order to build our Node.js Docker images. We’ll have one image that we use to build everything that we need for the Node.js application to run, which in a Node.js world, means installing npm packages, and compiling native npm modules if necessary. That will be our first stage.
+Как этот принцип в разработке программного обеспечения разделения, мы будем применять те же идеи, для того, чтобы строить свою Node.js Docker изображений. У нас будет один образ, который мы будем использовать для создания всего, что нам нужно для запуска приложения Node.js, что в мире Node.js означает установку пакетов npm и, при необходимости, компиляцию собственных модулей npm. Это будет нашим первым этапом.
 
-The second Docker image, representing the second stage of the Docker build, will be the production Docker image. This second and last stage is the image that we actually optimize for and publish to a registry, if we have one. That first image that we’ll refer to as the `build` image, gets discarded and is left as a dangling image in the Docker host that built it, until it gets cleaned.
+Вторым образом Docker, представляющим второй этап сборки Docker, будет рабочий образ Docker. Этот второй и последний этап - это образ, который мы фактически оптимизируем и публикуем в реестре, если он у нас есть. Этот первый образ, который мы будем называть образом `build`, будет удален и останется незавершенным на хосте Docker, который его создал, до тех пор, пока он не будет очищен.
 
-Here is the update to our Dockerfile that represents our progress so far, but separated into two stages:
+Вот обновление нашего файла Dockerfile, которое отражает наш прогресс на данный момент, но разделено на два этапа:
 
     # --------------> The build image
     FROM node:latest AS build
@@ -375,17 +375,17 @@ Here is the update to our Dockerfile that represents our progress so far, but se
     COPY --chown=node:node . /usr/src/app
     CMD ["dumb-init", "node", "server.js"]
 
-As you can see, I chose a bigger image for the `build` stage because I might need tooling like `gcc` (the GNU Compiler Collection) to compile native npm packages, or for other needs.
+Как вы можете видеть, я выбрал изображение большего размера для этапа `build`, потому что мне могут понадобиться инструменты, такие как `gcc` (коллекция компиляторов GNU), для компиляции собственных пакетов npm или для других нужд.
 
-In the second stage, there’s a special notation for the `COPY` directive that copies the `node_modules/` folder from the build Docker image into this new production base image.
+На втором этапе существует специальное обозначение для директивы `COPY`, которая копирует папку `node_modules/` из образа средства настройки сборки в этот новый производственный базовый образ.
 
-Also, now, do you see that `NPM_TOKEN` passed as build argument to the `build` intermediary Docker image? It’s not visible anymore in the `docker history nodejs-tutorial` command output because it doesn’t exist in our production docker image.
+Кроме того, теперь вы видите, что `NPM_TOKEN` передается в качестве аргумента сборки промежуточному образу Docker `build`? Он больше не отображается в выходных данных команды `docker history nodejs-tutorial`, потому что его нет в нашем рабочем образе docker.
 
-## 9) Keeping unnecessary files out of your Node.js Docker images
+## 9) Не допускайте попадания ненужных файлов в Docker-образы Node.js
 
-You have a `.gitignore` file to avoid polluting the git repository with unnecessary files, and potentially sensitive files too, right? The same applies to Docker images.
+У вас есть файл `.gitignore`, чтобы не засорять репозиторий git ненужными файлами, а также потенциально конфиденциальными файлами, верно? То же самое относится и к изображениям Docker.
 
-Docker has a `.dockerignore` which will ensure it skips sending any glob pattern matches inside it to the Docker daemon. Here is a list of files to give you an idea of what you might be putting into your Docker image that we’d ideally want to avoid:
+В Docker есть параметр `.dockerignore`, который гарантирует, что он не будет отправлять демону Docker любые совпадения с шаблоном glob внутри него. Вот список файлов, который даст вам представление о том, что вы могли бы поместить в свой образ Docker, чего мы в идеале хотели бы избежать:
 
     .dockerignore
     node_modules
@@ -394,7 +394,7 @@ Docker has a `.dockerignore` which will ensure it skips sending any glob pattern
     .git
     .gitignore
 
-As you can see, the `node_modules/` is actually quite important to skip because if we hadn’t ignored it, then the simplistic Dockerfile version that we started with would have caused the local `node_modules/` folder to be copied over to the container as-is.
+Как вы можете видеть, `node_modules/` на самом деле очень важно пропустить, потому что если бы мы не проигнорировали его, то упрощенная версия Dockerfile, с которой мы начали, привела бы к тому, что локальная папка `node_modules/` была бы скопирована в контейнер как есть.
 
     FROM node@sha256:b2da3316acdc2bec442190a1fe10dc094e7ba4121d029cb32075ff59bb27390a
     WORKDIR /usr/src/app
@@ -402,7 +402,7 @@ As you can see, the `node_modules/` is actually quite important to skip because 
     RUN npm install
     CMD "npm" "start"
 
-In fact, it’s even more important to have a `.dockerignore` file when you are practicing multi-stage Docker builds. To refresh your memory on how the 2nd stage Docker build looks like:
+На самом деле, еще важнее иметь файл `.dockerignore`, когда вы практикуете многоэтапные сборки Docker. Чтобы освежить в памяти, как выглядит сборка Docker на 2-м этапе:
 
     # --------------> The production image
     FROM node:lts-alpine
@@ -414,34 +414,34 @@ In fact, it’s even more important to have a `.dockerignore` file when you are 
     COPY --chown=node:node . /usr/src/app
     CMD ["dumb-init", "node", "server.js"]
 
-The importance of having a `.dockerignore` is that when we do a `COPY . /usr/src/app` from the 2nd Dockerfile stage, we’re also copying over any local node\_modules/ to the Docker image. That’s a big no-no as we may be copying over modified source code inside `node_modules/`.
+Важность наличия `.dockerignore` заключается в том, что когда мы выполняем `COPY . /usr/src/app` со 2-го этапа Dockerfile, мы также копируем любой локальный node\_modules/ в образ Docker. Это большой запрет, так как мы, возможно, копируем измененный исходный код внутри `node_modules/`.
 
-On top of that, since we’re using the wildcard `COPY .` we may also be copying into the Docker image sensitive files that include credentials or local configuration.
+Кроме того, поскольку мы используем подстановочный знак `COPY .`, мы также можем скопировать в образ Docker конфиденциальные файлы, содержащие учетные данные или локальную конфигурацию.
 
-The take-away here for a `.dockerignore` file is:
+Вывод из этого для файла `.dockerignore` таков::
 
-- Skip potentially modified copies of `node_modules/` in the Docker image.
-- Saves you from secrets exposure such as credentials in the contents of `.env` or `aws.json` files making their way into the Node.js Docker image.
-- It helps speed up Docker builds because it ignores files that would have otherwise caused a cache invalidation. For example, if a log file was modified, or a local environment configuration file, all would’ve caused the Docker image cache to invalidate at that layer of copying over the local directory.
+- Пропустить потенциально измененные копии `node_modules/` в образе Docker.
+- Защищает вас от раскрытия секретов, таких как учетные данные в содержимом файлов `.env` или `aws.json`, которые попадают в Node.js Изображение Docker.
+- Это помогает ускорить сборку в Docker, поскольку игнорирует файлы, которые в противном случае привели бы к аннулированию кэша. Например, если бы был изменен файл журнала или файл конфигурации локальной среды, все это привело бы к недействительности кэша изображений Docker на этом уровне копирования через локальный каталог.
 
-## 10) Mounting secrets into the Docker build image
+## 10) Встраивание секретов в образ сборки Docker
 
-One thing to note about the `.dockerignore` file is that it is an all or nothing approach and can’t be turned on or off per build stages in a Docker multi-stage build.
+Следует отметить, что файл `.dockerignore` - это подход «все или ничего», и его нельзя включать или выключать на каждом этапе сборки в многоэтапной сборке Docker.
 
-Why is it important? Ideally, we would want to use the `.npmrc` file in the build stage, as we may need it because it includes a secret npm token to access private npm packages. Perhaps it also needs a specific proxy or registry configuration to pull packages from.
+Почему это важно? В идеале, мы хотели бы использовать файл `.npmrc` на этапе сборки, поскольку он может нам понадобиться, поскольку он содержит секретный токен npm для доступа к закрытым пакетам npm. Возможно, для извлечения пакетов также требуется определенная конфигурация прокси-сервера или реестра.
 
-This means that it makes sense to have the `.npmrc` file available to the `build` stage—however, we don’t need it at all in the second stage for the production image, nor do we want it there as it may include sensitive information, like the secret npm token.
+Это означает, что имеет смысл иметь файл `.npmrc` доступным на этапе `build`, однако на втором этапе он нам вообще не нужен для создания рабочего образа, и мы не хотим его там, поскольку он может содержать конфиденциальную информацию, например, секретный токен npm.
 
-One way to mitigate this `.dockerignore` caveat is to mount a local file system that will be available for the build stage, but there’s a better way.
+Один из способов устранить эту проблему с `.dockerignore` - смонтировать локальную файловую систему, которая будет доступна на этапе сборки, но есть способ получше.
 
-Docker supports a relatively new capability referred to as Docker secrets, and is a natural fit for the case we need with `.npmrc`. Here is how it works:
+Docker поддерживает относительно новую функцию, называемую Docker secrets, и она идеально подходит для того случая, когда нам нужен `.npmrc`. Вот как это работает:
 
-- When we run the `docker build` command we will specify command-line arguments that define a new secret ID and reference a file as the source of the secret.
-- In the Dockerfile, we will add flags to the `RUN` directive to install the production npm, which mounts the file referred by the secret ID into the target location—the local directory `.npmrc` file which is where we want it available.
-- The `.npmrc` file is mounted as a secret and is never copied into the Docker image.
-- Lastly, let’s not forget to add the `.npmrc` file to the contents of the `.dockerignore` file so it doesn’t make it into the image at all, for either the build nor production images.
+- Когда мы запустим команду `docker build`, мы укажем аргументы командной строки, которые определяют новый секретный идентификатор и ссылаются на файл в качестве источника секрета.
+- В Dockerfile мы добавим флаги к директиве `RUN` для установки рабочего npm, который монтирует файл, на который ссылается секретный идентификатор, в целевое местоположение — локальный каталог с файлом `.npmrc`, который находится там, где мы хотим, чтобы он был доступен.
+- Файл `.npmrc` монтируется как секретный и никогда не копируется в образ Docker.
+- Наконец, давайте не забудем добавить файл ".npmrc" к содержимому файла `.dockerignore`, чтобы он вообще не попал в образ ни для сборки, ни для рабочих образов.
 
-Let’s see how all of it works together. First the updated `.dockerignore` file:
+Давайте посмотрим, как все это работает вместе. Сначала обновленный файл `.dockerignore`:
 
     .dockerignore
     node_modules
@@ -451,7 +451,7 @@ Let’s see how all of it works together. First the updated `.dockerignore` file
     .gitignore
     .npmrc
 
-Then, the complete Dockerfile, with the updated RUN directive to install npm packages while specifying the `.npmrc` mount point:
+Затем полный файл Dockerfile с обновленной директивой RUN для установки пакетов npm с указанием точки монтирования `.npmrc`:
 
     # --------------> The build image
     FROM node:latest AS build
@@ -469,10 +469,10 @@ Then, the complete Dockerfile, with the updated RUN directive to install npm pac
     COPY --chown=node:node . /usr/src/app
     CMD ["dumb-init", "node", "server.js"]
 
-And finally, the command that builds the Node.js Docker image:
+И, наконец, команда, которая создает Node.js Образ Docker:
 
     docker build . -t nodejs-tutorial --secret id=npmrc,src=.npmrc
 
-**Note:** Secrets are a new feature in Docker and if you’re using an older version, you might need to enable it Buildkit as follows:
+**Примечание:** Секреты - это новая функция в Docker, и если вы используете более старую версию, вам может потребоваться включить ее в Buildkit следующим образом:
 
     DOCKER_BUILDKIT=1 docker build . -t nodejs-tutorial --build-arg NPM_TOKEN=1234 --secret id=npmrc,src=.npmrc
