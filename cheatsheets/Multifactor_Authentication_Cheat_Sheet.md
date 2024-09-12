@@ -1,423 +1,423 @@
-# Multifactor Authentication Cheat Sheet
+# Шпаргалка для многофакторной аутентификации
 
-## Introduction
+## Вступление
 
-Multifactor Authentication (MFA) or Two-Factor Authentication (2FA) is when a user is required to present more than one type of evidence in order to authenticate on a system. There are five different types of evidence (or factors) and any combination of these can be used, however in practice only the first three are common in web applications. The five types are as follows:
+Многофакторная аутентификация (MFA) или двухфакторная аутентификация (2FA) - это когда пользователю требуется предоставить более одного типа доказательств для аутентификации в системе. Существует пять различных типов доказательств (или факторов), и можно использовать любую их комбинацию, однако на практике в веб-приложениях распространены только первые три. Ниже приведены пять типов:
 
-| Factor | Examples |
+| Фактор | Примеры |
 |--------|----------|
-| [Something You Know](#something-you-know) | [Passwords and PINs](#passwords-and-pins), [Security Questions](#security-questions) |
-| [Something You Have](#something-you-have) | [OTP Tokens](#one-time-password-tokens), [U2F Tokens](#universal-second-factor), [Certificates](#certificates),[Smart Cards](#smart-cards), [Email](#email), [SMS and Phone Calls](#sms-messages-and-phone-calls) |
-| [Something You Are](#something-you-are) | [Fingerprints, Facial Recognition, Iris Scans](#biometrics) |
-| [Somewhere You Are](#somewhere-you-are) | [Source IP Address](#source-ip-address), [Geolocation](#geolocation), [Geofencing](#geofencing) |
-| [Something You Do](#something-you-do) | [Behavioral Profiling](#behavioral-profiling), [Keystroke & Mouse Dynamics](#keystroke--mouse-dynamics), [Gait Analysis](#gait-analysis) |
+| [Что-то, что ты знаешь](#что-то-что-ты-знаешь)| [Пароли и пин-коды](#пароли-и-pin-коды), [Секретные вопросы](#секретные-вопросы) |
+| [Что-то, что у тебя есть](#что-то-что-у-тебя-есть) | [Токены OTP](#токены-с-одноразовым-паролем), [Токены U2F](#универсальный-второй-фактор), [Сертификаты](#сертификаты),[Смарт-карты](#смарт-карты), [Email](#email), [SMS и телефонные звонки](#sms-сообщения-и-телефонные-звонки) |
+| [То-чем-ты-являешься](#то-чем-ты-являешься) | [Отпечатки пальцев, Распознавание лиц, Сканирование радужной оболочки глаза](#биометрические-данные) |
+| [Где ты есть](#где-ты-есть) | [Исходный IP-адрес](#исходный-ip-адрес), [Геолокация](#геолокация), [Геозона](#геозона) |
+| [Что-то, что ты делаешь](#что-то-что-ты-делаешь) | [Поведенческое профилирование](#behavioral-profiling), [Динамика нажатия клавиш и мыши](#динамика-нажатия-клавиш-и-мыши), [Анализ походки](#анализ-походки) |
 
-It should be noted that requiring multiple instances of the same authentication factor (such as needing both a password and a PIN) **does not constitute MFA** and offers minimal additional security. The factors used should be independent of each other and should not be able to be compromised by the same attack. While the following sections discuss the disadvantage and weaknesses of various different types of MFA, in many cases these are only relevant against targeted attacks. **Any MFA is better than no MFA**.
+Следует отметить, что требование использования нескольких экземпляров одного и того же фактора аутентификации (например, для ввода пароля и PIN-кода) **не является MFA** и обеспечивает минимальную дополнительную безопасность. Используемые факторы должны быть независимыми друг от друга и не должны быть скомпрометированы одной и той же атакой. Хотя в следующих разделах обсуждаются недостатки и уязвимые места различных типов MFA, во многих случаях они применимы только для защиты от целенаправленных атак. **Любое MFA лучше, чем отсутствие MFA**.
 
-## Advantages
+## Преимущества
 
-The most common way that user accounts get compromised on applications is through weak, re-used or stolen passwords. Despite any technical security controls implemented on the application, users are liable to choose weak passwords, or to use the same password on different applications. As developers or system administrators, it should be assumed that users' passwords will be compromised at some point, and the system should be designed in order to defend against this.
+Наиболее распространенным способом взлома учетных записей пользователей в приложениях является использование слабых, повторно используемых или украденных паролей. Несмотря на все технические средства защиты, реализованные в приложении, пользователи могут выбирать слабые пароли или использовать один и тот же пароль в разных приложениях. Как разработчики или системные администраторы, мы должны исходить из того, что пароли пользователей в какой-то момент будут скомпрометированы, и система должна быть спроектирована таким образом, чтобы защититься от этого.
 
-MFA is by far the best defense against the majority of password-related attacks, including brute-force, [credential stuffing](Credential_Stuffing_Prevention_Cheat_Sheet.md) and password spraying, with analysis by Microsoft suggesting that it would have stopped [99.9% of account compromises](https://techcommunity.microsoft.com/t5/Azure-Active-Directory-Identity/Your-Pa-word-doesn-t-matter/ba-p/731984).
+MFA на сегодняшний день является лучшей защитой от большинства атак, связанных с использованием паролей, включая брутфорс, [утечку учетных данных](Credential_Stuffing_Prevention_Cheat_Sheet.md) и разбазаривание паролей. Анализ, проведенный Microsoft, показывает, что это остановило бы [99,9% атак на учетную запись compromises](https://techcommunity.microsoft.com/t5/Azure-Active-Directory-Identity/Your-Pa-word-doesn-t-matter/ba-p/731984).
 
-## Disadvantages
+## Недостатки
 
-The biggest disadvantage of MFA is the increase in management complexity for both administrators and end users. Many less technical users may find it difficult to configure and use MFA. Additionally, there are a number of other common issues encountered:
+Самым большим недостатком MFA является усложнение управления как для администраторов, так и для конечных пользователей. Многим менее подготовленным пользователям может быть сложно настроить и использовать MFA. Кроме того, возникает ряд других распространенных проблем:
 
-- Types of MFA that require users to have specific hardware can introduce significant costs and administrative overheads.
-- Users may become locked out of their accounts if they lose or are unable to use their other factors.
-- MFA introduces additional complexity into the application.
-- Many MFA solutions add external dependencies to systems, which can introduce security vulnerabilities or single points of failure.
-- Processes implemented to allow users to bypass or reset MFA may be exploitable by attackers.
-- Requiring MFA may prevent some users from accessing the application.
+- Типы MFA, которые требуют от пользователей наличия определенного оборудования, могут привести к значительным затратам и административным накладным расходам.
+- Пользователи могут лишиться доступа к своим учетным записям, если они потеряют или не смогут использовать другие свои учетные записи.
+- MFA вносит дополнительную сложность в приложение.
+- Многие решения MFA добавляют к системам внешние зависимости, которые могут создавать уязвимости в системе безопасности или отдельные точки сбоя.
+- Процессы, реализованные для обхода или сброса MFA, могут быть использованы злоумышленниками.
+- Требование MFA может помешать некоторым пользователям получить доступ к приложению.
 
-## Quick Recommendations
+## Краткие рекомендации
 
-Exactly when and how MFA is implemented in an application will vary on a number of different factors, including the threat model of the application, the technical level of the users, and the level of administrative control over the users. These need to be considered on a per-application basis.
+Точное время и способ реализации MFA в приложении зависит от ряда различных факторов, включая модель угроз приложения, технический уровень пользователей и уровень административного контроля над пользователями. Это необходимо учитывать в зависимости от конкретного приложения.
 
-However, the following recommendations are generally appropriate for most applications, and provide an initial starting point to consider.
+Тем не менее, приведенные ниже рекомендации, как правило, подходят для большинства приложений и являются отправной точкой для рассмотрения.
 
-- Require some form of MFA for all users.
-- Provide the option for users to enable MFA on their accounts using [TOTP](#software-otp-tokens).
-- Require MFA for administrative or other high privileged users.
-- Implement a secure procedure to allow users to reset their MFA.
-- Consider [MFA as a service](#consider-using-a-third-party-service).
+- Для всех пользователей требуется определенная форма MFA.
+- Предоставьте пользователям возможность включить MFA в своих учетных записях с помощью [TOTP] (#программное обеспечение-otp-токены).
+- Требовать MFA для пользователей с правами администратора или других пользователей с высокими привилегиями.
+- Внедрить безопасную процедуру, позволяющую пользователям сбрасывать настройки MFA.
+- Рассматривать [MFA как сервис] (#рассмотреть возможность использования стороннего сервиса).
 
-## Implementing MFA
+## Реализация MFA
 
-MFA is a critical security control, and is recommended for all applications. The following sections provide guidance on how to implement MFA, and the considerations that should be taken into account.
+MFA является критически важным элементом управления безопасностью и рекомендуется для всех приложений. В следующих разделах приведены рекомендации по внедрению MFA и соображения, которые следует принимать во внимание.
 
-### Regulatory and Compliance Requirements
+### Нормативные требования и соответствие требованиям
 
-Many industries and countries have regulations that require the use of MFA. This is particularly common in the finance and healthcare sectors, and is often required in order to comply with the General Data Protection Regulation (GDPR) in the European Union. It is important to consider these requirements when implementing MFA.
+Во многих отраслях и странах действуют нормативные акты, требующие использования MFA. Это особенно распространено в финансовом секторе и секторе здравоохранения и часто требуется для соблюдения Общего регламента по защите данных (GDPR) в Европейском союзе. Важно учитывать эти требования при внедрении MFA.
 
-### When to Require MFA
+### Когда требуется MFA
 
-The most important place to require MFA on an application is when the user logs in. However, depending on the functionality available, it may also be appropriate to require MFA for performing sensitive actions, such as:
+Наиболее важным моментом для запроса MFA в приложении является вход пользователя в систему. Однако, в зависимости от доступных функций, может также потребоваться запрос MFA для выполнения конфиденциальных действий, таких как:
 
-- Changing passwords or security questions.
-- Changing the email address associated with the account.
-- Disabling MFA.
-- Elevating a user session to an administrative session.
+- Изменение паролей или секретных вопросов.
+- Изменение адреса электронной почты, связанного с учетной записью.
+- Отключение MFA.
+- Повышение статуса сеанса пользователя до административного сеанса.
 
-If the application provides multiple ways for a user to authenticate these should all require MFA, or have other protections implemented. A common area that is missed is if the application provides a separate API that can be used to login, or has an associated mobile application.
+Если приложение предоставляет пользователю несколько способов аутентификации, все они должны требовать MFA или иметь другие средства защиты. Часто упускается из виду, что приложение предоставляет отдельный API, который можно использовать для входа в систему, или имеет связанное с ним мобильное приложение.
 
-### Improving User Experience
+### Улучшение взаимодействия с пользователем
 
-#### Risk Based Authentication
+#### Аутентификация на основе рисков
 
-Having to frequently login with MFA creates an additional burden for users, and may cause them to disable MFA on the application. Risk based authentication can be used to reduce the frequency of MFA prompts, by only requiring MFA when the user is performing an action that is considered to be high risk. Some examples of this include:
+Необходимость частого входа в систему с помощью MFA создает дополнительную нагрузку для пользователей и может привести к отключению MFA в приложении. Аутентификация на основе рисков может быть использована для уменьшения частоты запросов MFA, поскольку MFA требуется только тогда, когда пользователь выполняет действие, которое считается опасным. Некоторые примеры этого включают в себя:
 
-- Requiring MFA when the user logs in from a new device or location.
-- Requiring MFA when the user logs in from a location that is considered to be high risk.
-- Allowing corporate IP ranges (or using [geolocation](#geolocation) as an additional factor).
+- Требование MFA при входе пользователя в систему с нового устройства или местоположения.
+- Требование MFA при входе пользователя в систему из местоположения, которое считается опасным.
+- Разрешение диапазонов корпоративных IP-адресов (или использование [геолокации] (#geolocation) в качестве дополнительного фактора).
 
-#### Passkeys
+#### Ключи доступа
 
-[Passkeys](https://passkeys.dev/) based on the FIDO2 standard are a new form of MFA that combines characteristics of [possession-based](#something-you-have) and either [knowledge-based](#something-you-know) or [inherence-based](#something-you-are) authentication. The user is required to have a physical device (such as a mobile phone) and to enter a [PIN](#passwords-and-pins) or use [biometric authentication](#biometrics) in order to authenticate. The user's device then generates a cryptographic key that is used to authenticate with the server. This is a very secure form of MFA and is resistant to phishing attacks while also being frictionless for the user.
+[Ключи доступа](https://passkeys.dev /), основанные на стандарте FIDO2, представляют собой новую форму MFA, которая сочетает в себе характеристики [основанного на владении](#что-то-у-вас-есть) и либо [основанного на знаниях](#что-то-вы-знаете), либо [основанного на наследственности](#что-то-вы-есть) аутентификация. Пользователь должен иметь физическое устройство (например, мобильный телефон) и ввести [PIN-код](#пароли и pin-коды) или использовать [биометрическую аутентификацию](#биометрические данные) для аутентификации. Затем устройство пользователя генерирует криптографический ключ, который используется для аутентификации на сервере. Это очень безопасная форма MFA, устойчивая к фишинговым атакам и в то же время не вызывающая затруднений у пользователя.
 
-### Failed Login Attempts
+### Неудачные попытки входа в систему
 
-When a user enters their password, but fails to authenticate using a second factor, this could mean one of two things:
+Когда пользователь вводит свой пароль, но не может пройти аутентификацию с использованием второго фактора, это может означать одно из двух::
 
-- The user has lost their second factor, or doesn't have it available (for example, they don't have their mobile phone, or have no signal).
-- The user's password has been compromised.
+- Пользователь потерял свой второй фактор или не имеет его в наличии (например, у него нет мобильного телефона или отсутствует сигнал).
+- Пароль пользователя был взломан.
 
-There are a number of steps that should be taken when this occurs:
+В этом случае необходимо предпринять ряд шагов:
 
-- Prompt the user to try another form of MFA.
-- Allow the user to attempt to [reset their MFA](#resetting-mfa).
-- Notify the user of the failed login attempt, and encourage them to change their password if they don't recognize it.
-    - The notification should include the time, browser and geographic location of the login attempt.
-    - This should be displayed next time they login, and optionally emailed to them as well.
+- Предложить пользователю попробовать другую форму MFA.
+- Разрешить пользователю попытаться [сбросить настройки MFA](#сброс-настроек-mfa).
+- Уведомлять пользователя о неудачной попытке входа в систему и рекомендовать ему сменить пароль, если он его не распознает.
+    - В уведомлении должно быть указано время, браузер и географическое местоположение попытки входа в систему.
+    - Это должно отображаться при следующем входе в систему и, при необходимости, отправляться по электронной почте.
 
-### Resetting MFA
+### Сброс настроек MFA
 
-One of the biggest challenges with implementing MFA is handling users who forget or lose their additional factors. There are many ways this could happen, such as:
+Сброс MFA Одна из самых больших проблем при внедрении MFA - это работа с пользователями, которые забывают или теряют свои дополнительные сертификаты. Существует множество способов, которыми это может произойти, например,:
 
-- Re-installing a workstation without backing up digital certificates.
-- Wiping or losing a phone without backing up OTP codes.
-- Changing mobile numbers.
+- Переустановка рабочей станции без резервного копирования цифровых сертификатов.
+- Удаление или потеря телефона без резервного копирования OTP-кодов.
+- Смена номера мобильного телефона.
 
-In order to prevent users from being locked out of the application, there needs to be a mechanism for them to regain access to their account if they can't use their existing MFA; however it is also crucial that this doesn't provide an attacker with a way to bypass MFA and hijack their account.
+Чтобы предотвратить блокировку доступа пользователей к приложению, необходим механизм, позволяющий им восстановить доступ к своей учетной записи, если они не могут использовать существующий MFA; однако также важно, чтобы это не давало злоумышленнику возможности обойти MFA и захватить их учетную запись.
 
-There is no definitive "best way" to do this, and what is appropriate will vary hugely based on the security of the application, and also the level of control over the users. Solutions that work for a corporate application where all the staff know each other are unlikely to be feasible for a publicly available application with thousands of users all over the world. Every recovery method has its own advantages and disadvantages, and these need to be evaluated in the context of the application.
+Однозначного "наилучшего способа" сделать это не существует, и то, что является подходящим, будет сильно варьироваться в зависимости от безопасности приложения, а также уровня контроля над пользователями. Решения, которые подходят для корпоративного приложения, где все сотрудники знают друг друга, вряд ли будут применимы для общедоступного приложения с тысячами пользователей по всему миру. Каждый метод восстановления имеет свои преимущества и недостатки, и их необходимо оценивать в контексте конкретного приложения.
 
-Some suggestions of possible methods include:
+Некоторые рекомендации по возможным методам включают в себя:
 
-- Providing the user with a number of single-use recovery codes when they first setup MFA.
-- Requiring the user to setup multiple types of MFA (such as a digital certificate, OTP core and phone number for SMS), so that they are unlikely to lose access to all of them at once.
-- Mailing a one-use recovery code (or new hardware token) to the user's registered address.
-- Requiring the user contact the support team and having a rigorous process in place to verify their identity.
-- Requiring another trusted user to vouch for them.
+- Предоставление пользователю нескольких одноразовых кодов восстановления при первой настройке MFA.
+- Требуется, чтобы пользователь настраивал несколько типов MFA (например, цифровой сертификат, ядро OTP и номер телефона для SMS), так что маловероятно, что он потеряет доступ ко всем из них сразу.
+- Отправка одноразового кода восстановления (или нового аппаратного токена) по почте на зарегистрированный адрес пользователя.
+- От пользователя требуется связаться со службой поддержки и провести тщательную проверку его личности.
+- Требуется, чтобы другой доверенный пользователь поручился за него.
 
-### Consider Using a Third Party Service
+### Рассмотрите возможность использования стороннего сервиса
 
-There are a number of third party services that provide MFA as a service. These can be a good option for applications that don't have the resources to implement MFA themselves, or for applications that require a high level of assurance in their MFA. However, it is important to consider the security of the third party service, and the implications of using it. For example, if the third party service is compromised, it could allow an attacker to bypass MFA on all of the applications that use it.
+Существует ряд сторонних сервисов, которые предоставляют MFA как услугу. Они могут быть хорошим вариантом для приложений, у которых нет ресурсов для самостоятельной реализации MFA, или для приложений, которым требуется высокий уровень надежности MFA. Однако важно учитывать безопасность стороннего сервиса и последствия его использования. Например, если сторонний сервис скомпрометирован, это может позволить злоумышленнику обойти MFA во всех приложениях, которые его используют.
 
-## Something You Know
+## Что-то, что ты знаешь
 
-Knowledge-based, the most common type of authentication is based on something the users knows - typically a password. The biggest advantage of this factor is that it has very low requirements for both the developers and the end user, as it does not require any special hardware, or integration with other services.
+Наиболее распространенный тип аутентификации, основанный на знаниях, основан на том, что известно пользователям - обычно это пароль. Самым большим преимуществом этого метода является то, что он предъявляет очень низкие требования как к разработчикам, так и к конечному пользователю, поскольку не требует какого-либо специального оборудования или интеграции с другими сервисами.
 
-### Passwords and PINs
+### Пароли и PIN-коды
 
-Passwords and PINs are the most common form of authentication due to the simplicity of implementing them. The [Authentication Cheat Sheet](Authentication_Cheat_Sheet.md#implement-proper-password-strength-controls) has guidance on how to implement a strong password policy, and the [Password Storage Cheat Sheet](Password_Storage_Cheat_Sheet.md) has guidance on how to securely store passwords. Most multifactor authentication systems make use of a password, as well as at least one other factor.
+Пароли и PIN-коды являются наиболее распространенной формой аутентификации из-за простоты их реализации. В [Шпаргалке для проверки подлинности](Authentication_Cheat_Sheet.md#implement-proper-password-strength-controls) содержатся рекомендации по внедрению политики надежной защиты паролей, а в [Шпаргалке для хранения паролей](Password_Storage_Cheat_Sheet.md) содержатся рекомендации по безопасному хранению паролей. Большинство систем многофакторной аутентификации используют пароль, а также, по крайней мере, еще один фактор.
 
-#### Pros
+#### Плюсы
 
-- Simple and well understood.
-- Native support in every authentication framework.
-- Easy to implement.
+- Простой и понятный.
+- Встроенная поддержка во всех системах аутентификации.
+- Простота в реализации.
 
-#### Cons
+#### Минусы
 
-- Users are prone to choosing weak passwords.
-- Passwords are commonly re-used between systems.
-- Susceptible to phishing.
+- Пользователи склонны выбирать ненадежные пароли.
+- Пароли часто используются повторно в разных системах.
+- Уязвимы для фишинга.
 
-### Security Questions
+### Секретные вопросы
 
-**Security questions are no longer recognized as an acceptable authentication factor** per [NIST SP 800-63](https://pages.nist.gov/800-63-3/sp800-63b.html). Account recovery is just an alternate way to authenticate so it should be no weaker than regular authentication.
+**Секретные вопросы больше не рассматриваются как приемлемый фактор аутентификации** согласно [NIST SP 800-63](https://pages.nist.gov/800-63-3/sp800-63b.html). Восстановление учетной записи - это всего лишь альтернативный способ аутентификации, поэтому он должен быть не слабее обычной аутентификации.
 
-#### Pros
+#### Плюсы
 
-- None that are not also present in passwords.
+- Ничего такого, чего бы также не было в паролях.
 
-#### Cons
+#### Минусы
 
-- No longer recognized as an acceptable authentication factor.
-- Questions often have easily guessable answers.
-- Answers to questions can often be obtained from social media or other sources.
-- Questions must be carefully chosen so that users will remember answers years later.
-- Susceptible to phishing.
+- Больше не считается приемлемым фактором аутентификации.
+- Ответы на вопросы часто легко угадываются.
+- Ответы на вопросы часто можно получить из социальных сетей или других источников.
+- Вопросы должны быть тщательно подобраны, чтобы пользователи помнили ответы спустя годы.
+- Уязвимы для фишинга.
 
-## Something You Have
+## Что-то, что У Тебя есть
 
-Possession-based authentication is based on the user having a physical or digital item that is required to authenticate. This is the most common form of MFA, and is often used in conjunction with passwords. The most common types of possession-based authentication are hardware and software tokens, and digital certificates. If properly implemented then this can be significantly more difficult for a remote attacker to compromise; however it also creates an additional administrative burden on the user, as they must keep the authentication factor with them whenever they wish to use it.
+Аутентификация на основе владения основана на наличии у пользователя физического или цифрового объекта, необходимого для аутентификации. Это наиболее распространенная форма MFA, которая часто используется в сочетании с паролями. Наиболее распространенными типами аутентификации на основе владения являются аппаратные и программные токены, а также цифровые сертификаты. При правильной реализации удаленному злоумышленнику может быть значительно сложнее скомпрометировать систему; однако это также создает дополнительную административную нагрузку на пользователя, поскольку он должен иметь при себе средство аутентификации всякий раз, когда захочет его использовать.
 
-### One Time Password Tokens
+### Токены с одноразовым паролем
 
-One Time Password (OTP) tokens are a form of possession-based authentication, where the user is required to submit a constantly changing numeric code in order to authenticate. The most common of which is Time-based One Time Password (TOTP) tokens, which can be both hardware and software based.
+Токены с одноразовым паролем (OTP) - это форма аутентификации на основе владения, при которой пользователь должен ввести постоянно меняющийся цифровой код для аутентификации. Наиболее распространенным из них являются токены одноразового пароля (OTP), основанные на времени, которые могут быть как аппаратными, так и программными.
 
-#### Hardware OTP Tokens
+#### Аппаратные OTP-токены
 
-Hardware OTP Tokens generate a constantly changing numeric codes, which must be submitted when authenticating. Most well-known of these is the [RSA SecureID](https://en.wikipedia.org/wiki/RSA_SecurID), which generates a six digit number that changes every 60 seconds.
+Аппаратные OTP-токены генерируют постоянно меняющиеся цифровые коды, которые необходимо вводить при аутентификации. Наиболее известным из них является [RSA SecureID](https://en.wikipedia.org/wiki/RSA_SecurID), который генерирует шестизначное число, меняющееся каждые 60 секунд.
 
-##### Pros
+##### Плюсы
 
-- As the tokens are separate physical devices, they are almost impossible for an attacker to compromise remotely.
-- Tokens can be used without requiring the user to have a mobile phone or other device.
+- Поскольку токены представляют собой отдельные физические устройства, злоумышленнику практически невозможно взломать их удаленно.
+- Токены можно использовать, не требуя от пользователя наличия мобильного телефона или другого устройства.
 
-##### Cons
+##### Минусы
 
-- Deploying physical tokens to users is expensive and complicated.
-- If a user loses their token it could take a significant amount of time to purchase and ship them a new one.
-- Some implementations require a backend server, which can introduce new vulnerabilities as well as a single point of failure.
-- Stolen tokens can be used without a PIN or device unlock code.
-- Susceptible to phishing (although short-lived).
+- Предоставление физических токенов пользователям является дорогостоящим и сложным процессом.
+- Если пользователь потеряет свой токен, на покупку и отправку нового может потребоваться значительное количество времени.
+- Для некоторых реализаций требуется внутренний сервер, что может привести к появлению новых уязвимостей, а также к единой точке отказа.
+- Украденные токены можно использовать без PIN-кода или кода разблокировки устройства.
+- Уязвимы для фишинга (хотя и недолговечны).
 
-#### Software OTP Tokens
+#### Программные OTP-токены
 
-A cheaper and easier alternative to hardware tokens is using software to generate Time-based One Time Password (TOTP) codes. This would typically involve the user installing a TOTP application on their mobile phone, and then scanning a QR code provided by the web application which provides the initial seed. The authenticator app then generates a six digit number every 60 seconds, in much the same way as a hardware token.
+Более дешевой и простой альтернативой аппаратным токенам является использование программного обеспечения для генерации одноразовых паролей на основе времени (TOTP). Обычно для этого пользователь устанавливает приложение TOTP на свой мобильный телефон, а затем сканирует QR-код, предоставляемый веб-приложением, которое предоставляет исходные данные. Затем приложение authenticator генерирует шестизначный номер каждые 60 секунд, почти так же, как аппаратный токен.
 
-Most websites use standardized TOTP tokens, allowing the user to install any authenticator app that supports TOTP. However, a small number of applications use their own variants of this (such as Symantec), which requires the users to install a specific app in order to use the service. This should be avoided in favour of a standards-based approach.
+Большинство веб-сайтов используют стандартные токены TOTP, позволяющие пользователю установить любое приложение для проверки подлинности, поддерживающее TOTP. Однако небольшое количество приложений используют свои собственные варианты этого (например, Symantec), которые требуют от пользователей установки определенного приложения для использования сервиса. Этого следует избегать в пользу подхода, основанного на стандартах.
 
-##### Pros
+##### Плюсы
 
-- The absence of physical tokens greatly reduces the cost and administrative overhead of implementing the system.
-- When users lose access to their TOTP app, a new one can be configured without needing to ship a physical token to them.
-- TOTP is widely used, and many users will already have at least one TOTP app installed.
-- As long as the user has a screen lock on their phone, an attacker will be unable to use the code if they steal the phone.
+- Отсутствие физических токенов значительно снижает стоимость и административные издержки внедрения системы.
+- Когда пользователи теряют доступ к своему приложению TOTP, можно настроить новое приложение без необходимости отправлять им физический токен.
+- TOTP широко используется, и у многих пользователей уже установлено по крайней мере одно приложение TOTP.
+- Пока у пользователя есть блокировка экрана на телефоне, злоумышленник не сможет использовать код в случае кражи телефона.
 
-##### Cons
+##### Минусы
 
-- TOTP apps are usually installed on mobile devices, which are vulnerable to compromise.
-- The TOTP app may be installed on the same mobile device (or workstation) that is used to authenticate.
-- Users may store the backup seeds insecurely.
-- Not all users have mobile devices to use with TOTP.
-- If the user's mobile device is lost, stolen or out of battery, they will be unable to authenticate.
-- Susceptible to phishing (although short-lived).
+- Приложения TOTP обычно устанавливаются на мобильные устройства, которые уязвимы для взлома.
+- Приложение TOTP может быть установлено на том же мобильном устройстве (или рабочей станции), которое используется для аутентификации.
+- Пользователи могут ненадежно хранить исходные файлы резервных копий.
+- Не у всех пользователей есть мобильные устройства для использования с TOP.
+- Если мобильное устройство пользователя потеряно, украдено или на нем разрядился аккумулятор, он не сможет пройти аутентификацию.
+- Подвержен фишингу (хотя и недолговечен).
 
-### Universal Second Factor
+### Универсальный второй фактор
 
-Hardware U2F tokens
+Аппаратные токены U2F
 
-Universal Second Factor (U2F) is a standard for USB/NFC hardware tokens that  implement challenge-response based authentication, rather than requiring the user to manually enter the code. This would typically be done by the user pressing a button on the token, or tapping it against their NFC reader. The most common U2F token is the [YubiKey](https://www.yubico.com/products/yubikey-hardware/).
+Universal Second Factor (U2F) - это стандарт для аппаратных токенов USB/NFC, который реализует аутентификацию на основе запроса-ответа, а не требует от пользователя ручного ввода кода. Обычно это делается нажатием кнопки на токене или касанием его к считывающему устройству NFC. Наиболее распространенным токеном U2F является [YubiKey](https://www.yubico.com/products/yubikey-hardware/).
 
-#### Pros
+#### Плюсы
 
-- U2F tokens are resistant to phishing since the private key never leaves the token.
-- Users can simply press a button rather than typing in a code.
-- As the tokens are separate physical devices, they are almost impossible for an attacker to compromise remotely.
-- U2F is natively supported by a number of major web browsers.
-- U2F tokens can be used without requiring the user to have a mobile phone or other device.
+- Токены U2F устойчивы к фишингу, поскольку закрытый ключ никогда не покидает токен.
+- Пользователи могут просто нажать кнопку, а не вводить код.
+- Поскольку токены представляют собой отдельные физические устройства, злоумышленнику практически невозможно взломать их удаленно.
+- U2F изначально поддерживается рядом основных веб-браузеров.
+- Токены U2F можно использовать, не требуя от пользователя наличия мобильного телефона или другого устройства.
 
-#### Cons
+#### Минусы
 
-- As with hardware OTP tokens, the use of physical tokens introduces significant costs and administrative overheads.
-- Stolen tokens can be used without a PIN or device unlock code.
-- As the tokens are usually connected to the workstation via USB, users are more likely to forget them.
+- Как и в случае с аппаратными OTP-токенами, использование физических токенов сопряжено со значительными затратами и административными накладными расходами.
+- Украденные токены можно использовать без PIN-кода или кода разблокировки устройства.
+- Поскольку токены обычно подключаются к рабочей станции через USB, пользователи, скорее всего, забудут их.
 
-### Certificates
+### Сертификаты
 
-Digital certificates are files that are stored on the user's device which are automatically provided alongside the user's password when authenticating. The most common type is X.509 certificates more commonly known as [client certificates](Transport_Layer_Security_Cheat_Sheet.md#client-certificates-and-mutual-tls). Certificates are supported by all major web browsers, and once installed require no further interaction from the user. The certificates should be linked to an individual's user account in order to prevent users from trying to authenticate against other accounts.
+Цифровые сертификаты - это файлы, хранящиеся на устройстве пользователя, которые автоматически предоставляются вместе с паролем пользователя при аутентификации. Наиболее распространенным типом являются сертификаты X.509, более известные как [клиентские сертификаты](Transport_Layer_Security_Cheat_Sheet.md#клиентские-сертификаты-и-взаимный-протокол-tls). Сертификаты поддерживаются всеми основными веб-браузерами и после установки не требуют дополнительного взаимодействия с пользователем. Сертификаты должны быть привязаны к учетной записи пользователя, чтобы пользователи не пытались пройти аутентификацию с помощью других учетных записей.
 
-#### Pros
+#### Плюсы
 
-- There is no need to purchase and manage hardware tokens.
-- Once installed, certificates are very simple for users.
-- Certificates can be centrally managed and revoked.
-- Resistant to phishing.
+- Нет необходимости приобретать аппаратные токены и управлять ими.
+- После установки сертификаты становятся очень простыми для пользователей.
+- Сертификатами можно централизованно управлять и отзывать их.
+- Они устойчивы к фишингу.
 
-#### Cons
+#### Минусы
 
-- Using digital certificates requires a backend Private Key Infrastructure (PKI).
-- Installing certificates can be difficult for users, particularly in a highly restricted environment.
-- Enterprise proxy servers which perform SSL decryption will prevent the use of certificates.
-- The certificates are stored on the user's workstation, and as such can be stolen if their system is compromised.
+- Для использования цифровых сертификатов требуется внутренняя инфраструктура закрытых ключей (PKI).
+- Установка сертификатов может быть сложной для пользователей, особенно в среде с высоким уровнем доступа.
+- Корпоративные прокси-серверы, которые выполняют расшифровку SSL, не позволят использовать сертификаты.
+- Сертификаты хранятся на рабочей станции пользователя и, как таковые, могут быть украдены в случае взлома его системы.
 
-### Smart Cards
+### Смарт-карты
 
-Smartcards are credit-card size cards with a chip containing a digital certificate for the user, which is unlocked with a PIN. They are commonly used for operating system authentication, but are rarely used in web applications.
+Смарт-карты - это карты размером с кредитную карту с чипом, содержащим цифровой сертификат пользователя, который разблокируется с помощью PIN-кода. Они обычно используются для аутентификации в операционной системе, но редко используются в веб-приложениях.
 
-#### Pros
+#### Плюсы
 
-- Stolen smartcards cannot be used without the PIN.
-- Smartcards can be used across multiple applications and systems.
-- Resistant to phishing.
+- Украденные смарт-карты нельзя использовать без PIN-кода.
+- Смарт-карты можно использовать в нескольких приложениях и системах.
+- Они устойчивы к фишингу.
 
-#### Cons
+#### Минусы
 
-- Managing and distributing smartcards has the same costs and overheads as hardware tokens.
-- Smartcards are not natively supported by modern browsers, so require third party software.
-- Although most business-class laptops have smartcard readers built in, home systems often do not.
-- The use of smartcards requires backend PKIs.
+- Управление смарт-картами и их распространение сопряжено с теми же затратами, что и аппаратные токены.
+- Смарт-карты изначально не поддерживаются современными браузерами, поэтому требуется программное обеспечение сторонних производителей.
+- Хотя в большинство ноутбуков бизнес-класса встроены считыватели смарт-карт, в домашних системах их часто нет.
+- Для использования смарт-карт требуется серверная часть PK Is.
 
-### SMS Messages and Phone Calls
+### SMS-сообщения и телефонные звонки
 
-SMS messages or phone calls can be used to provide users with a single-use code that they must submit as an additional factor. Due to the risks posed by these methods, they should not be used to protect applications that hold Personally Identifiable Information (PII) or where there is financial risk. e.g. healthcare and banking. [NIST SP 800-63](https://pages.nist.gov/800-63-3/sp800-63b.html) does not allow these factors for applications containing PII.
+SMS-сообщения или телефонные звонки могут быть использованы для предоставления пользователям одноразового кода, который они должны ввести в качестве дополнительного фактора. Из-за рисков, связанных с этими методами, их не следует использовать для защиты приложений, хранящих личную информацию (PII), или там, где существует финансовый риск, например, в сфере здравоохранения и банковского дела. [NIST SP 800-63](https://pages.nist.gov/800-63-3/sp800-63b.html) не учитывает эти коэффициенты для приложений, содержащих личные данные.
 
-#### Pros
+#### Плюсы
 
-- Relatively simple to implement.
-- Requires user to link their account to a mobile number.
+- Относительно проста в реализации.
+- Требуется, чтобы пользователь привязал свою учетную запись к номеру мобильного телефона.
 
-#### Cons
+#### Минусы
 
-- Requires the user to have a mobile device or landline.
-- Require user to have signal or internet access to receive the call or message.
-- Calls and SMS messages may cost money to send need to protect against attackers requesting a large number of messages to exhaust funds.
-- Susceptible to SIM swapping attacks.
-- SMS messages may be received on the same device the user is authenticating from.
-- Susceptible to phishing.
-- SMS may be previewed when the device is locked.
-- SMS may be read by malicious or insecure applications.
+- Требуется, чтобы у пользователя было мобильное устройство или стационарный телефон.
+- Требуется, чтобы у пользователя был сигнал или доступ в Интернет для приема вызова или сообщения.
+- Отправка звонков и SMS-сообщений может стоить денег, что необходимо для защиты от злоумышленников, запрашивающих большое количество сообщений для исчерпания средств.
+- Уязвимы для атак с подменой SIM-карты.
+- SMS-сообщения могут быть получены на том же устройстве, с которого пользователь проходит аутентификацию.
+- Подвержены фишингу.
+- SMS-сообщения могут быть предварительно просмотрены, когда устройство заблокировано.
+- SMS-сообщения могут быть прочитаны вредоносными или небезопасными приложениями.
 
 ### Email
 
-Email verification requires that the user enters a code or clicks a link sent to their email address. There is some debate as to whether email constitutes a form of MFA, because if the user does not have MFA configured on their email account, it simply requires knowledge of the user's email password (which is often the same as their application password). However, it is included here for completeness.
+Проверка по электронной почте требует, чтобы пользователь ввел код или перешел по ссылке, отправленной на его адрес электронной почты. Существуют некоторые споры о том, является ли электронная почта формой MFA, поскольку если у пользователя не настроена MFA на его учетной записи электронной почты, то для этого просто требуется знать пароль пользователя к электронной почте (который часто совпадает с паролем приложения). Однако для полноты картины она включена сюда.
 
-#### Pros
+#### Плюсы
 
-- Very easy to implement.
-- No requirements for separate hardware or a mobile device.
+- Очень проста в реализации.
+- Нет требований к отдельному оборудованию или мобильному устройству.
 
-#### Cons
+#### Минусы
 
-- Relies entirely on the security of the email account, which often lacks MFA.
-- Email passwords are commonly the same as application passwords.
-- Provides no protection if the user's email is compromised first.
-- Email may be received by the same device the user is authenticating from.
-- Susceptible to phishing.
+- Полностью зависит от безопасности учетной записи электронной почты, в которой часто отсутствует MFA.
+- Пароли электронной почты обычно совпадают с паролями приложений.
+- Не обеспечивает защиты, если электронная почта пользователя была взломана первой.
+- Электронная почта может быть получена с того же устройства, с которого пользователь проходит аутентификацию.
+- Подвержен фишингу.
 
-## Something You Are
+## То, чем Ты являешься
 
-Inherence-based authentication is based on the physical attributes of the user. This is less common for web applications as it requires the user to have specific hardware, and is often considered to be the most invasive in terms of privacy. However, it is commonly used for operating system authentication, and is also used in some mobile applications.
+Аутентификация на основе наследственности основана на физических атрибутах пользователя. Это менее распространено в веб-приложениях, поскольку требует от пользователя наличия определенного оборудования и часто считается наиболее агрессивным с точки зрения конфиденциальности. Однако он обычно используется для аутентификации в операционной системе, а также в некоторых мобильных приложениях.
 
-### Biometrics
+### Биометрические данные
 
-The are a number of common types of biometrics that are used, including:
+Используется несколько распространенных типов биометрических данных, в том числе:
 
-- Fingerprint scans
-- Facial recognition
-- Iris scans
-- Voice recognition
+- Сканирование отпечатков пальцев
+- Распознавание лиц
+- Сканирование радужной оболочки глаза
+- Распознавание голоса
 
-#### Pros
+#### Плюсы
 
-- Well-implemented biometrics are hard to spoof, and require a targeted attack.
-- Fast and convenient for users.
+- Хорошо реализованные биометрические данные трудно подделать, и они требуют целенаправленной атаки.
+- Быстро и удобно для пользователей.
 
-#### Cons
+#### Минусы
 
-- Manual enrollment is required for the user.
-- Custom (sometimes expensive) hardware is often required to read biometrics.
-- Privacy concerns: Sensitive physical information must be stored about users.
-- If compromised, biometric data can be difficult to change.
-- Hardware may be vulnerable to additional attack vectors.
+- Пользователь должен зарегистрироваться вручную.
+- Для считывания биометрических данных часто требуется специальное (иногда дорогостоящее) оборудование.
+- Конфиденциальность: необходимо хранить конфиденциальную физическую информацию о пользователях.
+- В случае взлома биометрические данные может быть трудно изменить.
+- Аппаратное обеспечение может быть уязвимо для дополнительных векторов атак.
 
-## Somewhere You Are
+## Где ты есть
 
-Location-based authentication is based on the user's physical location. It is sometimes argued that location is used when deciding whether or not to require MFA (as discussed [above](#when-to-require-mfa)) however this is effectively the same as considering it to be a factor in its own right. Two prominent examples of this are the [Conditional Access Policies](https://docs.microsoft.com/en-us/azure/active-directory/conditional-access/overview) available in Microsoft Azure, and the [Network Unlock](https://docs.microsoft.com/en-us/windows/security/information-protection/bitlocker/bitlocker-how-to-enable-network-unlock) functionality in BitLocker.
+Аутентификация на основе местоположения основана на физическом местоположении пользователя. Иногда утверждается, что местоположение используется при принятии решения о том, требовать или не требовать MFA (как обсуждалось [выше](#когда-требуется-mfa)), однако это фактически то же самое, что рассматривать его как самостоятельный фактор. Двумя яркими примерами этого являются [Политики условного доступа] (https://docs.microsoft.com/en-us/azure/active-directory/conditional-access/overview), доступные в Microsoft Azure, и функциональность [Сеть Unlock](https://docs.microsoft.com/en-us/windows/security/information-protection/bitlocker/bitlocker-how-to-enable-network-unlock) в BitLocker.
 
-### Source IP Address
+### Исходный IP-адрес
 
-The source IP address the user is connecting from can be used as a factor, typically in an allow-list based approach. This could either be based on a static list (such as corporate office ranges) or a dynamic list (such as previous IP addresses the user has authenticated from).
+Исходный IP-адрес, с которого подключается пользователь, может использоваться в качестве фактора, обычно при использовании подхода, основанного на списке разрешений. Это может быть либо статический список (например, диапазоны офисов компании), либо динамический список (например, предыдущие IP-адреса, с которых пользователь проходил аутентификацию).
 
-#### Pros
+#### Плюсы
 
-- Very easy for users.
-- Requires minimal configuration and management from administrative staff.
+- Очень прост для пользователей.
+- Требует минимальной настройки и управления со стороны административного персонала.
 
-#### Cons
+#### Минусы
 
-- Doesn't provide any protection if the user's system is compromised.
-- Doesn't provide any protection against rogue insiders.
-- Trusted IP addresses must be carefully restricted (for example, if the open guest Wi-Fi uses the main corporate IP range).
+- Не обеспечивает никакой защиты в случае взлома системы пользователя.
+- Не обеспечивает никакой защиты от несанкционированного доступа.
+- Надежные IP-адреса должны быть строго ограничены (например, если открытый гостевой Wi-Fi использует основной корпоративный IP-диапазон).
 
-### Geolocation
+### Геолокация
 
-Rather than using the exact IP address of the user, the geographic location that the IP address is registered to can be used. This is less precise, but may be more feasible to implement in environments where IP addresses are not static. A common usage would be to require additional authentication factors when an authentication attempt is made from outside of the user's normal country.
+Вместо того, чтобы использовать точный IP-адрес пользователя, можно использовать географическое местоположение, в котором зарегистрирован IP-адрес. Это менее точно, но может оказаться более целесообразным для реализации в средах, где IP-адреса не являются статичными. Обычно при попытке аутентификации из-за пределов обычной страны пользователя требуются дополнительные факторы аутентификации.
 
-#### Pros
+#### Плюсы
 
-- Very easy for users.
+- Очень прост для пользователей.
 
-#### Cons
+#### Минусы
 
-- Doesn't provide any protection if the user's system is compromised.
-- Doesn't provide any protection against rogue insiders.
-- Easy for an attacker to bypass by obtaining IP addresses in the trusted country or location.
-- Privacy features such as Apple's [iCloud Private Relay](https://support.apple.com/en-us/102602) and VPNs can make this less accurate.
+- Не обеспечивает никакой защиты в случае взлома системы пользователя.
+- Не обеспечивает никакой защиты от несанкционированного доступа.
+- Злоумышленнику легко обойти защиту, получив IP-адреса в стране или местоположении, которым он доверяет.
+- Функции конфиденциальности, такие как [iCloud Private Relay] от Apple (https://support.apple.com/en-us/102602) и VPN, могут сделать это менее точным.
 
-### Geofencing
+### Геозона
 
-Geofencing is a more precise version of geolocation, which allows the user to define a specific area in which they are allowed to authenticate. This is often used in mobile applications, where the user's location can be determined with a high degree of accuracy using geopositioning hardware like GPS.
+Геозона - это более точная версия геолокации, которая позволяет пользователю определить конкретную область, в которой ему разрешено проходить аутентификацию. Это часто используется в мобильных приложениях, где местоположение пользователя может быть определено с высокой степенью точности с помощью аппаратных средств геопозиционирования, таких как GPS.
 
-#### Pros
+#### Плюсы
 
-- Very easy for users.
-- Provides a high level of protection against remote attackers.
+- Очень прост для пользователей.
+- Обеспечивает высокий уровень защиты от удаленных злоумышленников.
 
-#### Cons
+#### Минусы
 
-- Doesn't provide any protection if the user's system is compromised.
-- Doesn't provide any protection against rogue insiders.
-- Doesn't provide any protection against attackers who are physically close to the trusted location.
+- Не обеспечивает никакой защиты в случае взлома системы пользователя.
+- Не обеспечивает никакой защиты от несанкционированного доступа.
+- - Не обеспечивает никакой защиты от злоумышленников, которые находятся физически близко к надежному местоположению.on.
 
-## Something You Do
+## Что-то, что Ты делаешь
 
-Behavior-based authentication is based on the user's behavior, such as the way they type, move their mouse, or use their mobile device. This is the least common form of MFA and is combined with other factors to increase the level of assurance in the user's identity. It is also the most difficult to implement and may require specific hardware along with a significant amount of data and processing power to analyze the user's behavior.
+Аутентификация на основе поведения основана на поведении пользователя, например, на том, как он печатает, двигает мышью или использует мобильное устройство. Это наименее распространенная форма MFA, которая в сочетании с другими факторами повышает уровень надежности идентификации пользователя. Он также является наиболее сложным в реализации и может потребовать специального оборудования, а также значительного объема данных и вычислительной мощности для анализа поведения пользователя.
 
-### Behavioral Profiling
+### Поведенческое профилирование
 
-Behavioral profiling is based on the way the user interacts with the application, such as the time of day they log in, the devices they use, and the way they navigate the application. This is rapidly becoming more common in web applications when combined with [Risk Based Authentication](#risk-based-authentication) and [User and Entity Behavior Analytics](https://learn.microsoft.com/en-us/azure/sentinel/identify-threats-with-entity-behavior-analytics) (UEBA) systems.
+Поведенческое профилирование основано на том, как пользователь взаимодействует с приложением, например, в какое время суток он входит в систему, какие устройства он использует и как он перемещается по приложению. Это быстро становится все более распространенным в веб-приложениях в сочетании с системами [Аутентификации на основе рисков] (#risk-based-authentication) и [Поведения пользователей и сущностей Analytics](https://learn.microsoft.com/en-us/azure/sentinel/identify-threats-with-entity-behavior-analytics) (UEBA).
 
-#### Pros
+#### Плюсы
 
-- Doesn't require user interaction.
-- Can be used to continuously authenticate the user.
-- Combines well with other factors to increase the level of assurance in the user's identity.
+- Не требует взаимодействия с пользователем.
+- Может использоваться для постоянной аутентификации пользователя.
+- Хорошо сочетается с другими факторами для повышения уровня надежности идентификации пользователя.
 
-#### Cons
+#### Минусы
 
-- Early implementations of behavioral profiling were often inaccurate and caused a significant number of false positives.
-- Requires large amounts of data and processing power to analyze the user's behavior.
-- May be difficult to implement in environments where the user's behavior is likely to change frequently.
+- Ранние реализации поведенческого профилирования часто были неточными и приводили к значительному количеству ложных срабатываний.
+- Для анализа поведения пользователя требуются большие объемы данных и вычислительная мощность.
+- Может быть сложно реализовать в средах, где поведение пользователя, вероятно, часто меняется.
 
-### Keystroke & Mouse Dynamics
+### Динамика нажатия клавиш и мыши
 
-Keystroke and mouse dynamics are based on the way the user types and moves their mouse. For example, the time between key presses, the time between key presses and releases, and the speed and acceleration of the mouse. Largely theoretical, and not widely used in practice.
+Динамика нажатия клавиш и мыши зависит от того, как пользователь вводит текст и перемещает мышь. Например, время между нажатиями клавиш, время между нажатием и отпусканием клавиш, а также скорость и ускорение мыши. В основном это теоретические данные, которые не находят широкого применения на практике.
 
-#### Pros
+#### Плюсы
 
-- Can be used without requiring any additional hardware.
-- Can be used without requiring any additional interaction from the user.
-- Can be used to continuously authenticate the user.
-- Can be used to detect when the user is not the one using the system.
-- Can be used to detect when the user is under duress.
-- Can be used to detect when the user is not in a fit state to use the system.
+- Может использоваться без использования какого-либо дополнительного оборудования.
+- Может использоваться без какого-либо дополнительного взаимодействия с пользователем.
+- Может использоваться для постоянной аутентификации пользователя.
+- Может использоваться для определения того, использует ли систему не пользователь.
+- Может использоваться для определения того, когда пользователь находится под давлением.
+- Может использоваться для определения того, когда пользователь не в состоянии использовать систему.
 
-#### Cons
+#### Минусы
 
-- Unlikely to be accurate enough to be used as a standalone factor.
-- May be spoofed by AI or other advanced attacks.
+- Вряд ли он будет достаточно точным, чтобы использовать его как самостоятельный фактор.
+- Может быть подделан искусственным интеллектом или другими продвинутыми атаками.
 
-### Gait Analysis
+### Анализ походки
 
-Gait analysis is based on the way the user walks using cameras and sensors. They are often used in physical security systems, but are not widely used in web applications. Mobile device applications may be able to use the accelerometer to detect the user's gait and use this as an additional factor, however this is still largely theoretical.
+Анализ походки основан на том, как ходит пользователь, с помощью камер и датчиков. Они часто используются в системах физической безопасности, но не находят широкого применения в веб-приложениях. Приложения для мобильных устройств могут использовать акселерометр для определения походки пользователя и использовать это как дополнительный фактор, однако это все еще в значительной степени теоретически.
 
-#### Pros
+#### Плюсы
 
-- Very difficult to spoof.
-- May be used without requiring any additional interaction from the user.
+- Очень трудно подделать.
+- Может использоваться без каких-либо дополнительных действий со стороны пользователя.
 
-#### Cons
+#### Минусы
 
-- Requires specific hardware to implement.
-- Use outside of physical security systems is not widely tested.
+- Для реализации требуется специальное оборудование.
+- Использование вне систем физической безопасности широко не тестировалось.
 
-## References and Further Reading
+## Ссылки и дальнейшее чтение
 
 - [NIST SP 800-63](https://pages.nist.gov/800-63-3/sp800-63b.html)
 - [Your Pa$$word doesn't matter](https://techcommunity.microsoft.com/t5/Azure-Active-Directory-Identity/Your-Pa-word-doesn-t-matter/ba-p/731984)
