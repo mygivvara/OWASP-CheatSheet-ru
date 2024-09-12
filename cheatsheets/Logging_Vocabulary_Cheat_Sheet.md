@@ -1,55 +1,55 @@
-# Application Logging Vocabulary Cheat Sheet
+# Шпаргалка по лексике для ведения журнала приложений
 
-This document proposes a standard vocabulary for logging security events. The intent is to simplify monitoring and alerting such that, assuming developers trap errors and log them using this vocabulary, monitoring and alerting would be improved by simply keying on these terms.
+В этом документе предлагается стандартный словарь для регистрации событий безопасности. Цель состоит в том, чтобы упростить мониторинг и оповещение таким образом, чтобы, если предположить, что разработчики отслеживают ошибки и регистрируют их, используя этот словарь, мониторинг и оповещение можно было бы улучшить, просто используя эти термины.
 
-## Overview
+## Обзор
 
-Each year IBM Security commissions the Ponemon Institute to survey companies around the world for information related to security breaches, mitigation, and the associated costs; the result is called the Cost of a Data Breach Report.
+Каждый год IBM Security поручает Ponemon Institute опросить компании по всему миру на предмет информации о нарушениях безопасности, мерах по их устранению и связанных с этим затратах; результат называется стоимостью отчета о нарушениях данных.
 
-In addition to the millions of dollars lost due to breaches the report finds that the **mean time to identify** a breach continues to hover around **200 days**. Clearly our ability to monitor applications and alert on anomalous behavior would improve our time to identify and mitigate an attack against our applications.
+В дополнение к миллионам долларов, потерянных из-за утечек, в отчете говорится, что **среднее время обнаружения** утечки по-прежнему составляет около **200 дней**. Очевидно, что возможность мониторинга приложений и оповещения об аномальном поведении улучшит время выявления и смягчения последствий атаки на наши приложения.
 
-![IBM Cost of Data Breach Report 2020](../assets/cost-of-breach-2020.png)
+![Отчет IBM о затратах на утечку данных за 2020 год](../assets/cost-of-breach-2020.png)
 
-> IBM Cost of a Data Breach Study 2020, Fig.34, pg.52, [https://www.ibm.com/security/data-breach]
+> Исследование IBM "Затраты на утечку данных", 2020, рис.34, стр.52, [https://www.ibm.com/security/data-breach]
 
-This logging standard would seek to define specific keywords which, when applied consistently across software, would allow groups to simply monitor for these events terms across all applications and respond quickly in the event of attack.
+Этот стандарт ведения журнала будет направлен на определение конкретных ключевых слов, которые при последовательном применении ко всему программному обеспечению позволят группам просто отслеживать эти события во всех приложениях и быстро реагировать в случае атаки.
 
-## Assumptions
+## Допущения
 
-- Observability/SRE groups must support the use of this standard and encourage developers to use it
-- Incident Response must either ingest this data OR provide a means by which other monitoring teams can send a notification of alert, preferably programmatically.
-- Architects must support, adopt, and contribute to this standard
-- Developers must embrace this standard and begin to implement (requires knowledge and intent to understand potential attacks and trap those errors in code).
+- Группы по наблюдению/SRE должны поддерживать использование этого стандарта и поощрять разработчиков к его использованию
+- Система реагирования на инциденты должна либо использовать эти данные, либо предоставлять средства, с помощью которых другие группы мониторинга могут отправлять уведомления о тревоге, предпочтительно программно.
+- Архитекторы должны поддерживать, внедрять и вносить свой вклад в этот стандарт
+- Разработчики должны принять этот стандарт и приступить к его внедрению (требуются знания и намерение для понимания потенциальных атак и устранения этих ошибок в коде).
 
-## Getting Started
+## Приступаем к работе
 
-As a reminder, the goal of logging is to be able to alert on specific security events. Of course, the first step to logging these events is good error handling, if you're not trapping the events, you don't have an event to log.
+Напоминаю, что цель ведения журнала - иметь возможность оповещать о конкретных событиях безопасности. Конечно, первым шагом к ведению журнала этих событий является хорошая обработка ошибок, если вы не отслеживаете события, вам не нужно регистрировать событие.
 
-### Identifying Events
+### Идентификация событий
 
-In order to better understand security event logging a good high-level understanding of threat modeling would be helpful, even if it's a simple approach of:
+Для лучшего понимания ведения журнала событий системы безопасности было бы полезно получить хорошее представление о моделировании угроз на высоком уровне, даже если это простой подход:
 
-1. **What could go wrong?**
+1. **Что может пойти не так?**
 
-- Orders: could someone order on behalf of another?
-- Authentication: could I log in as someone else?
-- Authorization: could I see someone else' account?
+- Заказы: может ли кто-то сделать заказ от имени другого лица?
+- Аутентификация: могу ли я войти в систему от имени другого лица?
+- Авторизация: могу ли я просмотреть чужую учетную запись?
 
-2. **What would happen if it did?**
+2. **Что произойдет, если это произойдет?**
 
-- Orders: I've placed an order on behalf of another... to an abandoned warehouse in New Jersey. Oops.
-- Then I bragged about it on 4Chan.
-- Then I told the New York Times about it.
+- Заказы: Я разместил заказ от имени другого лица... на заброшенный склад в Нью-Джерси. Ой.
+- Потом я похвастался этим на 4Chan.
+- Потом я рассказал об этом New York Times.
 
-3. **Who might intend to do this?**
+3. **Кто мог намереваться это сделать?**
 
-- Intentional attacks by hackers.
-- An employee "testing" how things work.
-- An API coded incorrectly doing things the author did not intend.
+- Преднамеренные атаки хакеров.
+- Сотрудник, "тестирующий", как все работает.
+- Неправильно запрограммированный API, который делает то, чего автор не планировал.
 
-## Format
+## Формат
 
-_NOTE: All dates should be logged in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format **WITH** UTC offset to ensure maximum portability_
+_ПРИМЕЧАНИЕ: Все даты должны быть записаны в формате [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) **СО смещением** по UTC для обеспечения максимальной переносимости_
 
 ```
 {
@@ -71,25 +71,25 @@ _NOTE: All dates should be logged in [ISO 8601](https://en.wikipedia.org/wiki/IS
 }
 ```
 
-## The Vocabulary
+## Словарь
 
-What follows are the various event types that should be captured. For each event type there is a prefix like "authn" and additional data that should be included for that event.
+Ниже приведены различные типы событий, которые должны быть зафиксированы. Для каждого типа события есть префикс типа "authn" и дополнительные данные, которые должны быть включены для этого события.
 
-Portions of the full logging format are included for example, but a complete event log should follow the format above.
+Например, включены фрагменты полного формата ведения журнала, но полный журнал событий должен соответствовать приведенному выше формату.
 
 ---
 
-## Authentication [AUTHN]
+## Аутентификация [AUTHN]
 
-### authn_login_success[:userid]
+### ### auth_login_success[:идентификатор пользователя]
 
-**Description**
-All login events should be recorded including success.
+**Описание**
+Все события входа в систему должны быть записаны, включая успешный результат.
 
-**Level:**
-INFO
+**Уровень:**
+информация
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -104,15 +104,15 @@ INFO
 
 ---
 
-### authn_login_successafterfail[:userid,retries]
+ ### auth_login_success после неудачи[:user id,retries]
 
-**Description**
-The user successfully logged in after previously failing.
+**Описание**
+Пользователь успешно вошел в систему после предыдущей ошибки.
 
-**Level:**
-INFO
+**Уровень:**
+информация
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -127,15 +127,15 @@ INFO
 
 ---
 
-### authn_login_fail[:userid]
+### ### auth_login_fail[:userid]
 
-**Description**
-All login events should be recorded including failure.
+**Описание**
+Все события входа в систему, включая сбой, должны быть записаны.
 
-**Level:**
-WARN
+**Уровень:**
+предупреждать
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -152,13 +152,13 @@ WARN
 
 ### authn_login_fail_max[:userid,maxlimit(int)]
 
-**Description**
-All login events should be recorded including failure.
+**Описание**
+Все события входа в систему, включая сбой, должны быть записаны.
 
-**Level:**
-WARN
+**Уровень:**
+предупреждать
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -175,20 +175,20 @@ WARN
 
 ### authn_login_lock[:userid,reason]
 
-**Description**
-When the feature exists to lock an account after x retries or other condition, the lock should be logged with relevant data.
+**Описание**
+Если существует функция блокировки учетной записи после x повторных попыток или при других обстоятельствах, блокировка должна быть зарегистрирована с соответствующими данными.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Reasons:**
+**Причины:**
 
-- maxretries: The maximum number of retries was reached
-- suspicious: Suspicious activity was observed on the account
-- customer: The customer requested their account be locked
-- other: Other
+- максимальное количество попыток: Достигнуто максимальное количество повторных попыток
+- подозрительный: В учетной записи наблюдалась подозрительная активность
+- клиент: Клиент запросил блокировку своей учетной записи
+- другое: Другое
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -205,13 +205,13 @@ WARN
 
 ### authn_password_change[:userid]
 
-**Description**
-Every password change should be logged, including the userid that it was for.
+**Описание**
+Каждое изменение пароля должно регистрироваться, включая идентификатор пользователя, для которого оно было произведено.
 
-**Level:**
-INFO
+**Уровень:**
+Информация
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -228,13 +228,13 @@ INFO
 
 ### authn_password_change_fail[:userid]
 
-**Description**
-An attempt to change a password that failed. May also trigger other events such as `authn_login_lock`.
+**Описание**
+Неудачная попытка сменить пароль. Также могут возникать другие события, такие как "authn_login_lock`.
 
-**Level:**
-INFO
+**Уровень:**
+Информация
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -251,12 +251,12 @@ INFO
 
 ### authn_impossible_travel[:userid,region1,region2]
 
-**Description**
-When a user is logged in from one city and suddenly appears in another, too far away to have traveled in a reasonable timeframe, this often indicates a potential account takeover.
+**Описание**
+Когда пользователь входит в систему из одного города и внезапно появляется в другом, который находится слишком далеко, чтобы добраться туда за разумное время, это часто указывает на возможный захват учетной записи.
 
-**Level:**: CRITICAL
+**Уровень:**: КРИТИЧЕСКИЙ
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -271,14 +271,14 @@ When a user is logged in from one city and suddenly appears in another, too far 
 
 ---
 
-### authn_token_created[:userid, entitlement(s)]
+### auth_token_created[:идентификатор пользователя, права доступа]
 
-**Description**
-When a token is created for service access it should be recorded
+**Описание**
+Когда токен создается для доступа к сервису, он должен быть записан
 
-**Level:**: INFO
+**Уровень:**: ИНФОРМАЦИЯ
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -295,12 +295,12 @@ When a token is created for service access it should be recorded
 
 ### authn_token_revoked[:userid,tokenid]
 
-**Description**
-A token has been revoked for the given account.
+**Описание**
+Токен был отозван для данной учетной записи.
 
-**Level:**: INFO
+**Уровень:**: ИНФОРМАЦИЯ
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -317,12 +317,12 @@ A token has been revoked for the given account.
 
 ### authn_token_reuse[:userid,tokenid]
 
-**Description**
-A previously revoked token was attempted to be reused.
+**Описание**
+Была предпринята попытка повторно использовать ранее отозванный токен.
 
-**Level:**: CRITICAL
+**Уровень:**: КРИТИЧЕСКИЙ
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -339,12 +339,12 @@ A previously revoked token was attempted to be reused.
 
 ### authn_token_delete[:appid]
 
-**Description**
-When a token is deleted it should be recorded
+**Описание**
+Когда токен удаляется, он должен быть записан
 
-**Level:**: WARN
+**Уровень:**: ПРЕДУПРЕЖДЕНИЕ
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -365,12 +365,12 @@ When a token is deleted it should be recorded
 
 ### authz_fail[:userid,resource]
 
-**Description**
-An attempt was made to access a resource which was unauthorized
+**Описание**
+Была предпринята попытка несанкционированного доступа к ресурсу
 
-**Level:**: CRITICAL
+**Уровень:**: КРИТИЧЕСКИЙ
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -387,12 +387,12 @@ An attempt was made to access a resource which was unauthorized
 
 ### authz_change[:userid,from,to]
 
-**Description**
-The user or entity entitlements was changed
+**Описание**
+Права пользователя или организации были изменены
 
-**Level:**: WARN
+**Уровень:**: ПРЕДУПРЕЖДЕНИЕ
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -409,12 +409,12 @@ The user or entity entitlements was changed
 
 ### authz_admin[:userid,event]
 
-**Description**
-All activity by privileged users such as admin should be recorded.
+**Описание**
+Все действия привилегированных пользователей, таких как администратор, должны записываться.
 
-**Level:**: WARN
+**Уровень:**: ПРЕДУПРЕЖДЕНИЕ
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -429,16 +429,16 @@ All activity by privileged users such as admin should be recorded.
 
 ---
 
-## Excessive Use [EXCESS]
+## Чрезмерное употребление [EXCESS]
 
 ### excess_rate_limit_exceeded[userid,max]
 
-**Description**
-Expected service limit ceilings should be established and alerted when exceeded, even if simply for managing costs and scaling.
+**Описание**
+Следует установить ожидаемые предельные значения обслуживания и предупреждать о превышении, даже если это просто для управления затратами и масштабирования.
 
-**Level:**: WARN
+**Уровень:**: ПРЕДУПРЕЖДЕНИЕ
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -457,12 +457,12 @@ Expected service limit ceilings should be established and alerted when exceeded,
 
 ### upload_complete[userid,filename,type]
 
-**Description**
-On successful file upload the first step in the validation process is that the upload has completed.
+**Описание**
+При успешной загрузке файла первым шагом в процессе проверки является подтверждение того, что загрузка завершена.
 
-**Level:**: INFO
+**Уровень:**: ИНФОРМАЦИЯ
 
-**Example:**
+**Пример:**
 
 ```
     {
@@ -479,12 +479,12 @@ On successful file upload the first step in the validation process is that the u
 
 ### upload_stored[filename,from,to]
 
-**Description**
-One step in good file upload validation is to move/rename the file and when providing the content back to end users, never reference the original filename in the download. This is true both when storing in a filesystem as well as in block storage.
+**Описание**
+Одним из этапов проверки правильности загрузки файла является перемещение/переименование файла, а при возврате содержимого конечным пользователям никогда не указывайте исходное имя файла при загрузке. Это справедливо как при хранении в файловой системе, так и в блочном хранилище.
 
-**Level:**: INFO
+**Уровень:**: ИНФОРМАЦИЯ
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -501,12 +501,12 @@ One step in good file upload validation is to move/rename the file and when prov
 
 ### upload_validation[filename,(virusscan|imagemagick|...):(FAILED|incomplete|passed)]
 
-**Description**
-All file uploads should have some validation performed, both for correctness (is in fact of file type x), and for safety (does not contain a virus).
+**Описание**
+Все загружаемые файлы должны быть проверены как на корректность (действительно относятся к типу файлов x), так и на безопасность (не содержат вирусов).
 
-**Level:**: INFO|CRITICAL
+**Уровень:**: ИНФОРМАЦИОННЫЙ|КРИТИЧЕСКИЙ
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -523,12 +523,12 @@ All file uploads should have some validation performed, both for correctness (is
 
 ### upload_delete[userid,fileid]
 
-**Description**
-When a file is deleted for normal reasons it should be recorded.
+**Описание**
+Когда файл удаляется по обычным причинам, он должен быть записан.
 
-**Level:**: INFO
+**Уровень:**: ИНФОРМАЦИЯ
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -547,13 +547,13 @@ When a file is deleted for normal reasons it should be recorded.
 
 ### input_validation_fail[:field,userid]
 
-**Description**
-When input validation fails on the server-side it must either be because a) sufficient validation was not provided on the client, or b) client-side validation was bypassed. In either case it's an opportunity for attack and should be mitigated quickly.
+**Описание**
+Сбой проверки введенных данных на стороне сервера может быть вызван либо тем, что: а) на клиенте не была предоставлена достаточная проверка, либо б) проверка на стороне клиента была пропущена. В любом случае это возможность для атаки, и ее следует быстро устранить.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -572,13 +572,13 @@ WARN
 
 ### malicious_excess_404:[userid|IP,useragent]
 
-**Description**
-When a user makes numerous requests for files that don't exist it often is an indicator of attempts to "force-browse" for files that could exist and is often behavior indicating malicious intent.
+**Описание**
+Когда пользователь делает многочисленные запросы на несуществующие файлы, это часто указывает на попытки "принудительного просмотра" файлов, которые могли бы существовать, и часто является поведением, указывающим на злой умысел.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -595,13 +595,13 @@ WARN
 
 ### malicious_extraneous:[userid|IP,inputname,useragent]
 
-**Description**
-When a user submits data to a backend handler that was not expected it can indicate probing for input validation errors. If your backend service receives data it does not handle or have an input for this is an indication of likely malicious abuse.
+**Описание**
+Когда пользователь отправляет данные серверному обработчику, которые не ожидались, это может указывать на поиск ошибок проверки ввода. Если ваша серверная служба получает данные, которые она не обрабатывает, или для которых нет входных данных, это указывает на вероятное злонамеренное использование.
 
-**Level:**
-CRITICAL
+**Уровень:**
+критический
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -618,15 +618,15 @@ CRITICAL
 
 ### malicious_attack_tool:[userid|IP,toolname,useragent]
 
-**Description**
-When obvious attack tools are identified either by signature or by user agent they should be logged.
+**Описание**
+Когда очевидные средства атаки идентифицируются либо по сигнатуре, либо с помощью агента пользователя, их следует регистрировать.
 
-**TODO:** A future version of this standard should link to known attack tools, signatures and user-agent strings. For instance, the tool "Nikto" leaves behind its user agent by default with a string like **_"Mozilla/5.00 (Nikto/2.1.6) (Evasions:None) (Test:Port Check)"_**
+**ЧТО НУЖНО СДЕЛАТЬ:** В будущей версии этого стандарта должны быть ссылки на известные средства атаки, сигнатуры и строки агента пользователя. Например, инструмент "Nikto" по умолчанию оставляет свой пользовательский агент со строкой типа **_"Mozilla/5.00 (Nikto/2.1.6) (Отклонения: Нет) (Тест: Проверка порта)"_**
 
-**Level:**
-CRITICAL
+**Уровень:**
+критический
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -643,15 +643,15 @@ CRITICAL
 
 ### malicious_cors:[userid|IP,useragent,referer]
 
-**Description**
-When attempts are made from unauthorized origins they should of course be blocked, but also logged whenever possible. Even if we block an illegal cross-origin request the fact that the request is being made could be an indication of attack.
+**Описание**
+Попытки, совершаемые из несанкционированных источников, должны, конечно, блокироваться, но по возможности также регистрироваться. Даже если мы заблокируем незаконный запрос из разных источников, сам факт отправки запроса может свидетельствовать об атаке.
 
-_NOTE: Did you know that the word "referer" is misspelled in the original HTTP specification? The correct spelling should be "referrer" but the original typo persists to this day and is used here intentionally._
+_ПРИМЕЧАНИЕ: Знаете ли вы, что в исходной спецификации HTTP слово "referer" написано с ошибкой? Правильным написанием должно быть "referrer", но исходная опечатка сохраняется по сей день и используется здесь намеренно._
 
-**Level:**
-CRITICAL
+**Уровень:**
+критический
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -668,13 +668,13 @@ CRITICAL
 
 ### malicious_direct_reference:[userid|IP, useragent]
 
-**Description**
-A common attack against authentication and authorization is to directly access an object without credentials or appropriate access authority. Failing to prevent this flaw used to be one of the OWASP Top Ten called **Insecure Direct Object Reference**. Assuming you've correctly prevented this attack, logging the attempt is valuable to identify malicious users.
+**Описание**
+Распространенной атакой против аутентификации и авторизации является прямой доступ к объекту без учетных данных или соответствующих полномочий доступа. Неспособность предотвратить этот недостаток раньше входила в десятку OWASP под названием **Небезопасная прямая ссылка на объект**. Если предположить, что вы правильно предотвратили эту атаку, регистрация попытки будет полезна для выявления злоумышленников.
 
-**Level:**
-CRITICAL
+**Уровень:**
+КРИТИЧЕСКИЙ
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -689,23 +689,23 @@ CRITICAL
 
 ---
 
-## Privilege Changes [PRIVILEGE]
+## Изменения привилегий [PRIVILEGE]
 
-This section focuses on object privilege changes such as read/write/execute permissions or objects in a database having authorization meta-information changed.
+Этот раздел посвящен изменениям привилегий объектов, таким как разрешения на чтение/запись/выполнение, или объектам в базе данных, для которых изменена метаинформация авторизации.
 
-Changes to user/account are covered in the User Management section.
+Изменения пользователя/учетной записи рассматриваются в разделе "Управление пользователями".
 
 ---
 
 ### privilege_permissions_changed:[userid,file|object,fromlevel,tolevel]
 
-**Description**
-Tracking changes to objects to which there are access control restrictions can uncover attempt to escalate privilege on those files by unauthorized users.
+**Описание**
+Отслеживание изменений в объектах, доступ к которым ограничен, может выявить попытки повышения прав доступа к этим файлам со стороны неавторизованных пользователей.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -720,21 +720,21 @@ WARN
 
 ---
 
-## Sensitive Data Changes [DATA]
+## Изменения в конфиденциальных данных [DATA]
 
-It's not necessary to log or alert on changes to all files, but in the case of highly sensitive files or data it is important that we monitor and alert on changes.
+Необязательно регистрировать или оповещать об изменениях во всех файлах, но в случае особо важных файлов или данных важно, чтобы мы отслеживали изменения и оповещали об изменениях.
 
 ---
 
 ### sensitive_create:[userid,file|object]
 
-**Description**
-When a new piece of data is created and marked as sensitive or placed into a directory/table/repository where sensitive data is stored, that creation should be logged and reviewed periodically.
+**Описание**
+Когда создается новый фрагмент данных, который помечается как конфиденциальный или помещается в каталог/таблицу/хранилище, где хранятся конфиденциальные данные, это создание должно периодически регистрироваться и проверяться.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -751,13 +751,13 @@ WARN
 
 ### sensitive_read:[userid,file|object]
 
-**Description**
-All data marked as sensitive or placed into a directory/table/repository where sensitive data is stored should be have access logged and reviewed periodically.
+**Описание**
+Все данные, помеченные как конфиденциальные или помещенные в каталог/таблицу/хранилище, где хранятся конфиденциальные данные, должны регистрироваться и периодически проверяться.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -774,13 +774,13 @@ WARN
 
 ### sensitive_update:[userid,file|object]
 
-**Description**
-All data marked as sensitive or placed into a directory/table/repository where sensitive data is stored should be have updates to the data logged and reviewed periodically.
+**Описание**
+Все данные, помеченные как конфиденциальные или помещенные в каталог/таблицу/хранилище, где хранятся конфиденциальные данные, должны периодически обновляться и проверяться.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -797,13 +797,13 @@ WARN
 
 ### sensitive_delete:[userid,file|object]
 
-**Description**
-All data marked as sensitive or placed into a directory/table/repository where sensitive data is stored should have deletions of the data logged and reviewed periodically. The file should not be immediately deleted but marked for deletion and an archive of the file should be maintained according to legal/privacy requirements.
+**Описание**
+Все данные, помеченные как конфиденциальные или помещенные в каталог/таблицу/хранилище, где хранятся конфиденциальные данные, должны периодически регистрироваться и проверяться при удалении. Файл не должен быть немедленно удален, но должен быть помечен для удаления, и архив файла должен храниться в соответствии с требованиями законодательства / конфиденциальности.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -818,21 +818,21 @@ WARN
 
 ---
 
-## Sequence Errors [SEQUENCE]
+## Ошибки в последовательности [SEQUENCE]
 
-Also called a **_business logic attack_**, if a specific path is expected through a system and an attempt is made to skip or change the order of that path it could indicate malicious intent.
+Также называемая **_атакой бизнес-логики_**, если в системе ожидается определенный путь, а попытка пропустить его или изменить порядок следования может указывать на злой умысел.
 
 ---
 
 ### sequence_fail:[userid]
 
-**Description**
-When a user reaches a part of the application out of sequence it may indicate intentional abuse of the business logic and should be tracked.
+**Описание**
+Когда пользователь переходит к какой-либо части приложения не по порядку, это может свидетельствовать о намеренном нарушении бизнес-логики и должно отслеживаться.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -851,13 +851,13 @@ WARN
 
 ### session_created:[userid]
 
-**Description**
-When a new authenticated session is created that session may be logged and activity monitored.
+**Описание**
+Когда создается новый аутентифицированный сеанс, этот сеанс может регистрироваться и отслеживаться активность.
 
-**Level:**
-INFO
+**Уровень:**
+Информация
 
-**Example:**
+**Пример:**
 
 ```
     {
@@ -874,13 +874,13 @@ INFO
 
 ### session_renewed:[userid]
 
-**Description**
-When a user is warned of session to be expired/revoked and chooses to extend their session that activity should be logged. Also, if the system in question contains highly confidential data then extending a session may require additional verification.
+**Описание**
+Когда пользователь получает предупреждение об истечении срока действия сеанса и решает продлить его, это действие должно быть зарегистрировано. Кроме того, если рассматриваемая система содержит строго конфиденциальные данные, для продления сеанса может потребоваться дополнительная проверка.
 
-**Level:**
-INFO
+**Уровень:**
+Информация
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -897,13 +897,13 @@ INFO
 
 ### session_expired:[userid,reason]
 
-**Description**
-When a session expires, especially in the case of an authenticated session or with sensitive data, then that session expiry may be logged and clarifying data included. The reason code may be any such as: logout, timeout, revoked, etc. Sessions should never be deleted but rather expired in the case of revocation requirement.
+**Описание**
+По истечении срока действия сеанса, особенно в случае аутентифицированного сеанса или с конфиденциальными данными, этот сеанс может быть запротоколирован и в него могут быть включены уточняющие данные. Код причины может быть любым, например: выход из системы, тайм-аут, отменен и т.д. Сессии ни в коем случае не должны удаляться, а должны быть с истекшим сроком действия в случае требования об отзыве.
 
-**Level:**
-INFO
+**Уровень:**
+Информация
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -920,13 +920,13 @@ INFO
 
 ### session_use_after_expire:[userid]
 
-**Description**
-In the case a user attempts to access systems with an expire session it may be helpful to log, especially if combined with subsequent login failure. This could identify a case where a malicious user is attempting a session hijack or directly accessing another person's machine/browser.
+**Описание**
+В случае, если пользователь пытается получить доступ к системам с истекшим сеансом, может оказаться полезным войти в систему, особенно в сочетании с последующим сбоем при входе. Это может указывать на случай, когда злоумышленник пытается перехватить сеанс или получить прямой доступ к компьютеру/браузеру другого человека.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -941,17 +941,17 @@ WARN
 
 ---
 
-## System Events [SYS]
+## Системные события [SYS]
 
 ### sys_startup:[userid]
 
-**Description**
-When a system is first started it can be valuable to log the startup, even if the system is serverless or a container, especially if possible to log the user that initiated the system.
+**Описание**
+При первом запуске системы может оказаться полезным зарегистрировать запуск, даже если система является бессерверной или контейнерной, особенно если это возможно для регистрации пользователя, запустившего систему.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -968,13 +968,13 @@ WARN
 
 ### sys_shutdown:[userid]
 
-**Description**
-When a system is shut down it can be valuable to log the event, even if the system is serverless or a container, especially if possible to log the user that initiated the system.
+**Описание**
+При завершении работы системы может оказаться полезным зарегистрировать событие, даже если система является бессерверной или контейнерной, особенно если это возможно для регистрации пользователя, который инициировал запуск системы.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -991,13 +991,13 @@ WARN
 
 ### sys_restart:[userid]
 
-**Description**
-When a system is restarted it can be valuable to log the event, even if the system is serverless or a container, especially if possible to log the user that initiated the system.
+**Описание**
+При перезапуске системы может оказаться полезным зарегистрировать событие, даже если система является бессерверной или контейнерной, особенно если это возможно для регистрации пользователя, запустившего систему.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -1014,13 +1014,13 @@ WARN
 
 ### sys_crash[:reason]
 
-**Description**
-If possible to catch an unstable condition resulting in the crash of a system, logging that event could be helpful, especially if the event is triggered by an attack.
+**Описание**
+Если есть возможность зафиксировать нестабильное состояние, приводящее к сбою системы, может быть полезно зарегистрировать это событие, особенно если оно вызвано атакой.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -1037,13 +1037,13 @@ WARN
 
 ### sys_monitor_disabled:[userid,monitor]
 
-**Description**
-If your systems contain agents responsible for file integrity, resources, logging, virus, etc. it is especially valuable to know if they are halted and by whom.
+**Описание**
+Если в вашей системе есть агенты, отвечающие за целостность файлов, ресурсы, ведение журнала, защиту от вирусов и т.д. особенно важно знать, были ли они остановлены и кем.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -1060,13 +1060,13 @@ WARN
 
 ### sys_monitor_enabled:[userid,monitor]
 
-**Description**
-If your systems contain agents responsible for file integrity, resources, logging, virus, etc. it is especially valuable to know if they are started again after being stopped, and by whom.
+**Описание**
+Если в вашей системе есть агенты, отвечающие за целостность файлов, ресурсы, ведение журнала, защиту от вирусов и т.д. особенно важно знать, запускаются ли они снова после остановки и кем.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -1085,13 +1085,13 @@ WARN
 
 ### user_created:[userid,newuserid,attributes[one,two,three]]
 
-**Description**
-When creating new users, logging the specifics of the user creation event is helpful, especially if new users can be created with administration privileges.
+**Описание**
+При создании новых пользователей полезно регистрировать особенности события создания пользователя, особенно если новые пользователи могут быть созданы с правами администратора.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -1108,13 +1108,13 @@ WARN
 
 ### user_updated:[userid,onuserid,attributes[one,two,three]]
 
-**Description**
-When updating users, logging the specifics of the user update event is helpful, especially if users can be updated with administration privileges.
+**Описание**
+При обновлении пользователей полезно записывать в журнал информацию о событии обновления пользователя, особенно если пользователи могут обновляться с правами администратора.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -1131,13 +1131,13 @@ WARN
 
 ### user_archived:[userid,onuserid]
 
-**Description**
-It is always best to archive users rather than deleting, except where required. When archiving users, logging the specifics of the user archive event is helpful. A malicious user could use this feature to deny service to legitimate users.
+**Описание**
+Всегда лучше архивировать пользователей, а не удалять, за исключением случаев, когда это необходимо. При архивировании пользователей полезно записывать в журнал информацию о событии архивации пользователей. Злоумышленник может использовать эту функцию, чтобы отказать в обслуживании законным пользователям.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -1154,13 +1154,13 @@ WARN
 
 ### user_deleted:[userid,onuserid]
 
-**Description**
-It is always best to archive users rather than deleting, except where required. When deleting users, logging the specifics of the user delete event is helpful. A malicious user could use this feature to deny service to legitimate users.
+**Описание**
+Всегда лучше архивировать пользователей, а не удалять, за исключением случаев, когда это необходимо. При удалении пользователей полезно записывать в журнал информацию о событии удаления пользователя. Злоумышленник может использовать эту функцию, чтобы отказать в обслуживании законным пользователям.
 
-**Level:**
-WARN
+**Уровень:**
+Предупреждение
 
-**Example:**
+**Пример:**
 
 ```
 {
@@ -1175,8 +1175,8 @@ WARN
 
 ---
 
-## Exclusions
+## Исключения
 
-As important as what you DO log is what you DON'T log. Private or secret information, source code, keys, certs, etc. should never be logged.
+Важно не только то, что вы регистрируете, но и то, чего вы НЕ регистрируете. Личная или секретная информация, исходный код, ключи, сертификаты и т.д. никогда не должны регистрироваться.
 
-For comprehensive overview of items that should be excluded from logging, please see the [OWASP Logging Cheat Sheet](../cheatsheets/Logging_Cheat_Sheet.md#data-to-exclude).
+Для получения подробного обзора элементов, которые следует исключить из ведения журнала, пожалуйста, ознакомьтесь с [инструкцией по ведению журнала OWASP](../cheatsheets/Logging_Cheat_Sheet.md#данные-для-исключения).
