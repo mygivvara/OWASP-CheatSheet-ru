@@ -1,26 +1,26 @@
-# Mass Assignment Cheat Sheet
+# Шпаргалка по массовому присвоению
 
-## Introduction
+## Введение
 
-### Definition
+### Определение
 
-Software frameworks sometime allow developers to automatically bind HTTP request parameters into program code variables or objects to make using that framework easier on developers. This can sometimes cause harm.
+Программные платформы иногда позволяют разработчикам автоматически привязывать параметры HTTP-запросов к переменным или объектам программного кода, чтобы упростить использование этой платформы разработчиками. Иногда это может нанести вред.
 
-Attackers can sometimes use this methodology to create new parameters that the developer never intended which in turn creates or overwrites new variable or objects in program code that was not intended.
+Злоумышленники иногда могут использовать эту методологию для создания новых параметров, которые разработчик никогда не планировал, что, в свою очередь, создает или перезаписывает новые переменные или объекты в программном коде, которые не были предусмотрены.
 
-This is called a **Mass Assignment** vulnerability.
+Это называется уязвимостью массового присвоения.
 
-### Alternative Names
+### Альтернативные названия
 
-Depending on the language/framework in question, this vulnerability can have several [alternative names](https://cwe.mitre.org/data/definitions/915.html):
+В зависимости от языка/фреймворка, о котором идет речь, у этой уязвимости может быть несколько [альтернативных названий](https://cwe.mitre.org/data/definitions/915.html):
 
-- **Mass Assignment:** Ruby on Rails, NodeJS.
-- **Autobinding:** Spring MVC, ASP NET MVC.
-- **Object injection:** PHP.
+- **Массовое присвоение:** Ruby on Rails, Node JS.
+- **Автоматическое привязывание:** Spring MVC, ASP NET MVC.
+- **Внедрение объектов:** PHP.
 
-### Example
+### Пример
 
-Suppose there is a form for editing a user's account information:
+Предположим, что существует форма для редактирования информации об учетной записи пользователя:
 
 ```html
 <form>
@@ -31,7 +31,7 @@ Suppose there is a form for editing a user's account information:
 </form>  
 ```
 
-Here is the object that the form is binding to:
+Вот объект, к которому привязана форма:
 
 ```java
 public class User {
@@ -44,7 +44,7 @@ public class User {
 }
 ```
 
-Here is the controller handling the request:
+Вот контроллер, обрабатывающий запрос:
 
 ```java
 @RequestMapping(value = "/addUser", method = RequestMethod.POST)
@@ -54,7 +54,7 @@ public String submit(User user) {
 }
 ```
 
-Here is the typical request:
+Вот типичный запрос:
 
 ```text
 POST /addUser
@@ -62,7 +62,7 @@ POST /addUser
 userid=bobbytables&password=hashedpass&email=bobby@tables.com
 ```
 
-And here is the exploit in which we set the value of the attribute `isAdmin` of the instance of the class `User`:
+А вот эксплойт, в котором мы устанавливаем значение атрибута `is Admin` экземпляра класса `User`:
 
 ```text
 POST /addUser
@@ -70,27 +70,27 @@ POST /addUser
 userid=bobbytables&password=hashedpass&email=bobby@tables.com&isAdmin=true
 ```
 
-### Exploitability
+### Возможность использования
 
-This functionality becomes exploitable when:
+Эта функциональность становится доступной, когда:
 
-- Attacker can guess common sensitive fields.
-- Attacker has access to source code and can review the models for sensitive fields.
-- AND the object with sensitive fields has an empty constructor.
+- Злоумышленник может угадать общие конфиденциальные поля.
+- Злоумышленник имеет доступ к исходному коду и может просматривать модели для конфиденциальных полей.
+- И объект с конфиденциальными полями имеет пустой конструктор.
 
-### GitHub case study
+### Практический пример GitHub
 
-In 2012, GitHub was hacked using mass assignment. A user was able to upload his public key to any organization and thus make any subsequent changes in their repositories. [GitHub's Blog Post](https://blog.github.com/2012-03-04-public-key-security-vulnerability-and-mitigation/).
+В 2012 году GitHub был взломан с помощью массового присвоения. Пользователь мог загрузить свой открытый ключ в любую организацию и, таким образом, вносить любые последующие изменения в свои репозитории. [Сообщение в блоге GitHub](https://blog.github.com/2012-03-04-public-key-security-vulnerability-and-mitigation/).
 
-### Solutions
+### Решения
 
-- Allow-list the bindable, non-sensitive fields.
-- Block-list the non-bindable, sensitive fields.
-- Use [Data Transfer Objects](https://martinfowler.com/eaaCatalog/dataTransferObject.html) (DTOs).
+- Разрешить - вывести список обязательных, конфиденциальных полей.
+- Заблокировать - вывести список обязательных, конфиденциальных полей.
+- Использовать [Объекты передачи данных](https://martinfowler.com/eaaCatalog/dataTransferObject.html) (DTO).
 
-## General Solutions
+## Общие решения
 
-An architectural approach is to create Data Transfer Objects and avoid binding input directly to domain objects. Only the fields that are meant to be editable by the user are included in the DTO.
+Архитектурный подход заключается в создании объектов передачи данных и отказе от привязки вводимых данных непосредственно к объектам домена. В DTO включены только те поля, которые предназначены для редактирования пользователем.
 
 ```java
 public class UserRegistrationFormDTO {
@@ -98,17 +98,17 @@ public class UserRegistrationFormDTO {
  private String password;
  private String email;
 
- //NOTE: isAdmin field is not present
+ //NOTE: isAdmin поле отсутствует
 
  //Getters & Setters
 }
 ```
 
-## Language & Framework specific solutions
+## Решения, зависящие от языка и фреймворка
 
 ### Spring MVC
 
-#### Allow-listing
+#### Список разрешений
 
 ```java
 @Controller
@@ -123,9 +123,9 @@ public class UserController
 }
 ```
 
-Take a look [here](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/validation/DataBinder.html#setAllowedFields-java.lang.String...-) for the documentation.
+Взгляните [here](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/validation/DataBinder.html#setAllowedFields-java.lang.Строка...-) для документации.
 
-#### Block-listing
+#### Блок-листинг
 
 ```java
 @Controller
@@ -140,7 +140,7 @@ public class UserController
 }
 ```
 
-Take a look [here](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/validation/DataBinder.html#setDisallowedFields-java.lang.String...-) for the documentation.
+Взгляните [here](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/validation/DataBinder.html#setDisallowedFields-java.lang.Строка...-) для документации.
 
 ### NodeJS + Mongoose
 
@@ -164,7 +164,7 @@ _ = require('underscore');
 var user = new User(_.pick(req.body, User.userCreateSafeFields));
 ```
 
-Take a look [here](http://underscorejs.org/#pick) for the documentation.
+Ознакомьтесь с документацией [здесь](http://underscorejs.org/#pick).
 
 #### Block-listing
 
@@ -194,19 +194,19 @@ var input = { userid: 'bhelx', isAdmin: 'true' };
 User.update({ '_id': someId }, { $set: User.massUpdate(input) }, console.log);
 ```
 
-Take a look [here](https://www.npmjs.com/package/mongoose-mass-assign) for the documentation.
+Ознакомьтесь с документацией [здесь](https://www.npmjs.com/package/mongoose-mass-assign).
 
 ### Ruby On Rails
 
-Take a look [here](https://guides.rubyonrails.org/v3.2.9/security.html#mass-assignment) for the documentation.
+Ознакомьтесь с документацией [здесь](https://guides.rubyonrails.org/v3.2.9/security.html#mass-assignment).
 
 ### Django
 
-Take a look [here](https://coffeeonthekeyboard.com/mass-assignment-security-part-10-855/) for the documentation.
+Ознакомьтесь с документацией [здесь](https://coffeeonthekeyboard.com/massassignmentsecurity-part-10-855/).
 
 ### ASP NET
 
-Take a look [here](https://odetocode.com/Blogs/scott/archive/2012/03/11/complete-guide-to-mass-assignment-in-asp-net-mvc.aspx) for the documentation.
+Ознакомьтесь с документацией [here](https://odetocode.com/Blogs/scott/archive/2012/03/11/complete-guide-to-mass-assignment-in-asp-net-mvc.aspx).
 
 ### PHP Laravel + Eloquent
 
@@ -230,7 +230,7 @@ class User extends Model
 }
 ```
 
-Take a look [here](https://laravel.com/docs/5.2/eloquent#mass-assignment) for the documentation.
+Ознакомьтесь с документацией [здесь](https://laravel.com/docs/5.2/eloquent#mass-assignment).
 
 #### Block-listing
 
@@ -252,32 +252,32 @@ class User extends Model
 }
 ```
 
-Take a look [here](https://laravel.com/docs/5.2/eloquent#mass-assignment) for the documentation.
+Ознакомьтесь с документацией [здесь](https://laravel.com/docs/5.2/eloquent#mass-assignment).
 
 ### Grails
 
-Take a look [here](http://spring.io/blog/2012/03/28/secure-data-binding-with-grails/) for the documentation.
+Ознакомьтесь с документацией [здесь](http://spring.io/blog/2012/03/28/secure-data-binding-with-grails/).
 
 ### Play
 
-Take a look [here](https://www.playframework.com/documentation/1.4.x/controllers#nobinding) for the documentation.
+Ознакомьтесь с документацией [здесь](https://www.playframework.com/documentation/1.4.x/controllers#nobinding).
 
-### Jackson (JSON Object Mapper)
+### Jackson (средство отображения объектов в формате JSON)
 
-Take a look [here](https://www.baeldung.com/jackson-field-serializable-deserializable-or-not) and [here](http://lifelongprogrammer.blogspot.com/2015/09/using-jackson-view-to-protect-mass-assignment.html) for the documentation.
+Взгляните [здесь](https://www.baeldung.com/jackson-field-serializable-deserializable-or-not ) и [here](http://lifelongprogrammer.blogspot.com/2015/09/using-jackson-view-to-protect-mass-assignment.html ) для получения документации.
 
-### GSON (JSON Object Mapper)
+### GSON (средство отображения объектов в формате JSON)
 
-Take a look [here](https://sites.google.com/site/gson/gson-user-guide#TOC-Excluding-Fields-From-Serialization-and-Deserialization) and [here](https://stackoverflow.com/a/27986860) for the document.
+Взгляните [here](https://sites.google.com/site/gson/gson-user-guide#TOC-Excluding-Fields-From-Serialization-and-Deserialization ) и [здесь](https://stackoverflow.com/a/27986860 ) для документации.
 
 ### JSON-Lib (JSON Object Mapper)
 
-Take a look [here](http://json-lib.sourceforge.net/advanced.html) for the documentation.
+Ознакомьтесь с документацией [здесь](http://json-lib.sourceforge.net/advanced.html).
 
 ### Flexjson (JSON Object Mapper)
 
-Take a look [here](http://flexjson.sourceforge.net/#Serialization) for the documentation.
+Ознакомьтесь с документацией [здесь](http://flexjson.sourceforge.net/#Serialization).
 
-## References and future reading
+## Ссылки и дальнейшее чтение
 
-- [Mass Assignment, Rails and You](https://code.tutsplus.com/tutorials/mass-assignment-rails-and-you--net-31695)
+- [Массовое присвоение, Rails и вы](https://code.tutsplus.com/tutorials/mass-assignment-rails-and-you--net-31695)
