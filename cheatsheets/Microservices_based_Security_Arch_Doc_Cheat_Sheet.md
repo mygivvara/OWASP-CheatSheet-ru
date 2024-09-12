@@ -1,250 +1,250 @@
-# Microservices based Security Arch Doc Cheat Sheet
+# Шпаргалка по безопасности Arch Doc на основе микросервисов
 
-## Introduction
+## Вступление
 
-The microservice architecture is being increasingly used for designing and implementing application systems in both cloud-based and on-premise infrastructures. There are many security challenges need to be addressed in the application design and implementation phases. In order to address some security challenges it is necessity to collect security-specific information on application architecture.
-The goal of this article is to provide a concrete proposal of approach to collect microservice-based architecture information to securing application.
+Архитектура микросервисов все чаще используется для проектирования и внедрения прикладных систем как в облачных, так и в локальных инфраструктурах. На этапах разработки и внедрения приложений необходимо решить множество проблем безопасности. Для решения некоторых проблем безопасности необходимо собирать информацию об архитектуре приложения, связанную с безопасностью.
+Цель этой статьи - предоставить конкретное предложение о подходе к сбору информации об архитектуре на основе микросервисов для обеспечения безопасности приложения.
 
-## Context
+## Контекст
 
-During securing applications based on microservices architecture, security architects/engineers usually face with the following questions (mostly referenced in the [OWASP Application Security Verification Standard Project](https://github.com/OWASP/ASVS) under the section [V1 "Architecture, Design and Threat Modeling Requirements"](https://github.com/OWASP/ASVS/blob/master/4.0/en/0x10-V1-Architecture.md#v1-architecture-design-and-threat-modeling-requirements)):
+При обеспечении безопасности приложений на основе архитектуры микросервисов архитекторы/инженеры по безопасности обычно сталкиваются со следующими вопросами (на которые в основном ссылаются в [Стандартном проекте проверки безопасности приложений OWASP](https://github.com/OWASP/ASVS) в разделе [Версия 1 "Архитектура, проектирование и моделирование угроз Requirements"](https://github.com/OWASP/ASVS/blob/master/4.0/en/0x10-V1-Architecture.md#v1-architecture-design-and-threat-modeling-requirements)):
 
-1. Threat modeling and enforcement of the principle of least privilege:
-    - What scopes or API keys does microservice minimally need to access other microservice APIs?
-    - What grants does microservice minimally need to access database or message queue?
-2. Data leakage analysis:
-    - What storages or message queues do contain sensitive data?
-    - Does microservice read/write date from/to specific database or message queue?
-    - What microservices are invoked by dedicated microservice? What data is passed between microservices?
-3. Attack surface analysis:
-    - What microservices endpoints need to be tested during security testing?
+1. Моделирование угроз и применение принципа наименьших привилегий:
+    - Какие области или ключи API минимально необходимы микросервису для доступа к другим API микросервиса?
+    - Какие разрешения минимально необходимы микросервису для доступа к базе данных или очереди сообщений?
+2. Анализ утечки данных:
+    - Какие хранилища или очереди сообщений содержат конфиденциальные данные?
+    - Выполняет ли микросервис чтение/запись из определенной базы данных или очереди сообщений?
+    - Какие микросервисы вызываются выделенным микросервисом? Какие данные передаются между микросервисами?
+3. Анализ поверхности атаки:
+    - Какие конечные точки микросервисов необходимо проверить во время тестирования безопасности?
 
-In most cases, existing application architecture documentation is not suitable to answer those questions. Next sections propose what architecture security-specific information can be collected to answer the questions above.
+В большинстве случаев существующая документация по архитектуре приложений не подходит для ответа на эти вопросы. В следующих разделах предлагается информация о безопасности конкретной архитектуры, которая может быть собрана для ответа на вышеуказанные вопросы.
 
-## Objective
+## Цель
 
-The objectives of the cheat sheet are to explain what architecture security-specific information can be collected to answer the questions above and provide concrete proposal of approach to collect microservice-based architecture information to securing application.
+Цель шпаргалки - объяснить, какую информацию о безопасности конкретной архитектуры можно собрать, чтобы ответить на вышеприведенные вопросы, и предложить конкретный подход к сбору информации об архитектуре на основе микросервисов для обеспечения безопасности приложения.
 
-## Proposition
+## Предложение
 
-### Collect information on the building blocks
+### Сбор информации о базовых элементах
 
-#### Identify and describe application-functionality services
+#### Определение и описание сервисов, связанных с функциональностью приложений
 
-Application-functionality services implement one or several business process or functionality (e.g., storing customer details, storing and displaying product catalog). Collect information on the parameters listed below related to each application-functionality service.
+Сервисы, связанные с функциональностью приложений, реализуют один или несколько бизнес-процессов или функциональных возможностей (например, хранение сведений о клиентах, хранение и отображение каталога продуктов). Соберите информацию о перечисленных ниже параметрах, относящихся к каждой функциональной службе приложения.
 
-| Parameter name | Description |
+| Имя параметра | Описание |
 | :--- | :--- |
-| Service name (ID) | Unique service name or ID
-| Short description | Short description of business process or functionality implemented by the microservice
-| Link to source code repository | Specify a link to service source code repository
-| Development Team | Specify development team which develops the microservice
-| API definition | If microservice exposes external interface specify a link to the interface description (e.g., OpenAPI specification). It is advisable to define used security scheme, e.g. define scopes or API keys needed to invoke dedicated endpoint (e.g., [see](https://swagger.io/docs/specification/authentication/)).
-| The microservice architecture description | Specify a link to the microservice architecture diagram, description (if available)|
-| Link to runbook | Specify a link to the microservice runbook |
+| Service name (ID) | Уникальное имя или идентификатор службы (ID)
+| Short description | Краткое описание бизнес-процесса или функционала, реализованного микросервисом
+| Link to source code repository | Укажите ссылку на репозиторий исходного кода сервиса
+| Development Team | Укажите ссылку на репозиторий исходного кода сервиса
+| API definition | Если микросервис предоставляет доступ к внешнему интерфейсу, укажите ссылку на описание интерфейса (например, спецификацию открытого API). Рекомендуется определить используемую схему безопасности, например, определить области или ключи API, необходимые для вызова выделенной конечной точки (например, [см.](https://swagger.io/docs/specification/authentication/)).
+| The microservice architecture description | Укажите ссылку на схему архитектуры микросервиса, описание (если таковое имеется).|
+| Link to runbook | Укажите ссылку на runbook с микросервисом |
 
-#### Identify and describe infrastructure services
+#### Идентифицировать и описать инфраструктурные сервисы
 
-Infrastructure services including remote services may implement authentication, authorization, service registration and discovery, security monitoring, logging etc. Collect information on the parameters listed below related to each infrastructure service.
+Инфраструктурные сервисы, включая удаленные сервисы, могут реализовывать аутентификацию, авторизацию, регистрацию и обнаружение сервисов, мониторинг безопасности, ведение журнала и т.д. Собирать информацию о параметрах, перечисленных ниже, относящихся к каждому инфраструктурному сервису.
 
-| Parameter name | Description |
+| Имя параметра | Описание |
 | :--- | :--- |
-|Service name (ID) | Unique service name or ID
-|Short description | Short description of functionality implemented by the service (e.g., authentication, authorization, service registration and discovery, logging, security monitoring, API gateway).
-|Link to source code repository | Specify a link to service source code repository (if applicable)
-|Link to the service documentation | Specify a link to the service documentation that includes service API definition, operational guidance/runbook, etc.
+|Service name (ID) | Уникальное имя или идентификатор службы
+|Short description | Краткое описание функциональных возможностей, реализуемых сервисом (например, аутентификация, авторизация, регистрация и обнаружение сервиса, ведение журнала, мониторинг безопасности, API-шлюз).
+|Link to source code repository | Укажите ссылку на репозиторий исходного кода сервиса (если применимо).
+|Link to the service documentation | Укажите ссылку на сервисную документацию, которая включает в себя определение API сервиса, руководство по эксплуатации/runbook и т.д.
 
-#### Identify and describe data storages
+#### Определите и опишите хранилища данных
 
-Collect information on the parameters listed below related to each data storage.
+Соберите информацию о перечисленных ниже параметрах, относящихся к каждому хранилищу данных.
 
-| Parameter name | Description |
+| Имя параметра | Описание |
 | :--- | :--- |
-|Storage name (ID) | Unique storage name or ID
-|Software type | Specify software that implements the data storage (e.g., PostgreSQL, Redis, Apache Cassandra).
+|Storage name (ID) | Уникальное имя или идентификатор хранилища
+|Software type | Укажите программное обеспечение, реализующее хранение данных (например, PostgreSQL, Redis, Apache Cassandra).
 
-#### Identify and describe message queues
+#### Определите и опишите очереди сообщений
 
-Messaging systems (e.g., RabbitMQ or Apache Kafka) are used to implement asynchronous microservices communication mechanism. Collect information on the parameters listed below related to each message queue.
+Системы обмена сообщениями (например, RabbitMQ или Apache Kafka) используются для реализации механизма асинхронного взаимодействия с микросервисами. Соберите информацию о параметрах, перечисленных ниже, относящихся к каждой очереди сообщений.
 
-| Parameter name | Description |
+| Имя параметра | Описание |
 | :--- | :--- |
-|Message queue (ID) | Unique message queue name or ID
-|Software type | Specify software that implements the message queue (e.g., RabbitMQ, Apache Kafka).
+|Message queue (ID) | Уникальное имя или идентификатор очереди сообщений
+|Software type | Укажите программное обеспечение, реализующее очередь сообщений (например, RabbitMQ, Apache Kafka).
 
-#### Identify and describe data assets
+#### Идентифицируйте и описывайте активы данных
 
-Identify and describe data assets that processed by system microservices/services. It is advisable firstly to identify assets, which are valuable from a security perspective (e.g., "User information", "Payment"). Collect information on the parameters listed below related to each asset.
+Идентифицируйте и описывайте активы данных, которые обрабатываются системными микросервисами/службами. Рекомендуется сначала идентифицировать активы, которые представляют ценность с точки зрения безопасности (например, "Информация о пользователе", "Платеж"). Соберите информацию о перечисленных ниже параметрах, относящихся к каждому активу.
 
-| Parameter name | Description |
+| Имя параметра | Описание|
 | :--- | :--- |
-| Asset name (ID) | Unique asset name or ID
-| Protection level | Specify asset protection level (e.g., PII, confidential)
-| Additional info | Add clarifying information
+| Asset name (ID) | Уникальное имя или идентификатор актива
+| Protection level | Укажите уровень защиты активов (например, личные данные, конфиденциальность).
+| Additional info | Добавьте уточняющую информацию
 
-### Collect information on relations between building blocks
+### Соберите информацию о связях между компоновочными блоками
 
-#### Identify "service-to-storage" relations
+#### Определите отношения "обслуживание-хранение"
 
-Collect information on the parameters listed below related to each "service-to-storage" relation.
+Соберите информацию о перечисленных ниже параметрах, относящихся к каждому отношению "обслуживание-хранение".
 
-| Parameter name | Description |
+| Имя параметра | Описание |
 | :--- | :--- |
-| Service name (ID) | Specify service name (ID) defined above
-| Storage name (ID) | Specify storage name (ID) defined above
-| Access type | Specify access type, e.g. "Read" or "Read/Write"
+| Service name (ID) | Укажите имя службы (ID), указанное выше
+| Storage name (ID) | Укажите имя хранилища (ID), указанное выше
+| Access type | Укажите тип доступа, например "Чтение" или "Чтение/запись".
 
-#### Identify "service-to-service" synchronous communications
+#### Идентификация синхронных коммуникаций "от службы к службе"
 
-Collect information on the parameters listed below related to each "service-to-service" synchronous communication.
+Соберите информацию о перечисленных ниже параметрах, относящихся к каждой синхронной связи "сервис-сервис".
 
-| Parameter name | Description |
+| Имя параметра | Описание |
 | :--- | :--- |
-| Caller service name (ID) | Specify caller service name (ID) defined above
-| Called service name (ID) | Specify called service name (ID) defined above
-| Protocol/framework used| Specify protocol/framework used for communication, e.g. HTTP (REST, SOAP), Apache Thrift, gRPC
-| Short description | Shortly describe the purpose of communication (requests for query of information or request/commands for a state-changing business function) and data passed between services (if possible, in therms of assets defined above)
+| Caller service name (ID) | Укажите имя вызывающей службы (ID), указанное выше
+| Called service name (ID) | Укажите имя вызываемой службы (ID), определенное выше
+| Protocol/framework used| Укажите протокол/фреймворк, используемый для связи, например HTTP (REST, SOAP), Apache Thrift, rpc
+| Short description | Кратко опишите цель обмена данными (запросы на запрос информации или запросы/команды для бизнес-функции, изменяющей состояние) и данные, передаваемые между службами (если возможно, в терминах активов, определенных выше).
 
-#### Identify "service-to-service" asynchronous communications
+#### Определите асинхронную связь "сервис-сервис"
 
-Collect information on the parameters listed below related to each "service-to-service" asynchronous communication.
+Соберите информацию о перечисленных ниже параметрах, относящихся к каждой асинхронной связи "сервис-сервис".
 
-| Parameter name | Description |
+| Имя параметра | Описание |
 | :--- | :--- |
-| Publisher service name (ID) | Specify publisher service name (ID) defined above
-| Subscriber service name (ID) | Specify subscriber service name (ID) defined above
-| Message queue (ID) | Specify message queue (ID) defined above
-| Short description | Shortly describe the purpose of communication (receiving of information or commands for a state-changing business function) and data passed between services (if possible, in therms of assets defined above)
+| Publisher service name (ID) | Укажите имя (ID) службы издателя, указанное выше
+| Subscriber service name (ID) | Укажите имя (ID) абонентской службы, указанное выше
+| Message queue (ID) | Укажите очередь сообщений (ID), определенную выше
+| Short description | Кратко опишите цель обмена данными (получение информации или команд для бизнес-функции, изменяющей состояние) и данные, передаваемые между службами (если возможно, в терминах активов, определенных выше).
 
-#### Identify "asset-to-storage" relations
+#### Определите отношения "актив-хранилище"
 
-Collect information on the parameters listed below related to each "asset-to-storage" relation.
+Соберите информацию о перечисленных ниже параметрах, относящихся к каждому отношению "актив-хранилище".
 
-| Parameter name | Description |
+| Имя параметра | Описание |
 | :--- | :--- |
-| Asset name (ID) | Asset name (ID) defined above
-| Storage name (ID) | Specify storage name (ID) defined above
-| Storage type | Specify storage type for the asset, e.g. "golden source" or "cache"
+| Asset name (ID) | Имя актива (ID), определенное выше
+| Storage name (ID) | Укажите имя хранилища (ID), указанное выше
+| Storage type | Укажите тип хранилища для ресурса, например "золотой источник" или "кэш".
 
-### Create a graphical presentation of application architecture
+### Создайте графическое представление архитектуры приложения
 
-It is advisable to create graphical presentation of application architecture (building blocks and relations defined above) in form of services call graph or data flow diagram. In order to do that one can use special software tools (e.g. Enterprise Architect) or [DOT language](https://en.wikipedia.org/wiki/DOT_%28graph_description_language%29). See example of using DOT language [here](https://gist.github.com/vladgolubev/80c5523336ddec3859c0e90d9a070882).
+Желательно создать графическое представление архитектуры приложения (структурных блоков и взаимосвязей, определенных выше) в виде графика вызовов служб или диаграммы потоков данных. Для этого можно использовать специальные программные средства (например, Enterprise Architect) или [язык DOT](https://en.wikipedia.org/wiki/DOT_%28graph_description_language%29). Смотрите пример использования языка ТОЧЕК [здесь](https://gist.github.com/vladgolubev/80c5523336ddec3859c0e90d9a070882).
 
-### Use collected information in secure software development practices
+### Используйте собранную информацию при разработке безопасного программного обеспечения
 
-Collected information may be useful for doing application security practices, e.g. during defining security requirements, threat modeling or security testing. Sections below contains examples of activities related to securing application architecture (as well as its mapping to OWASP projects) and tips for their implementation using information collected above.
+Собранная информация может быть полезна для обеспечения безопасности приложений, например, при определении требований к безопасности, моделировании угроз или тестировании безопасности. В разделах ниже приведены примеры действий, связанных с защитой архитектуры приложения (а также ее привязкой к проектам OWASP), и советы по их реализации с использованием информации, собранной выше.
 
-#### Attack surface analysis
+#### Анализ поверхности атаки
 
-##### Implementation tips
+##### Советы по внедрению
 
-To enumerate microservices endpoints that need to be tested during security testing and analyzed during threat modeling analyze data collected under the following sections:
+Чтобы перечислить конечные точки микросервисов, которые необходимо протестировать во время тестирования безопасности и проанализировать во время моделирования угроз, проанализируйте данные, собранные в следующих разделах:
 
-- Identify and describe application-functionality services (parameter "API definition")
-- Identify and describe infrastructure services (parameter "Link to the service documentation")
+- Определите и опишите службы, связанные с функциональностью приложения (параметр "Определение API").
+- Идентифицировать и описать инфраструктурные сервисы (параметр "Ссылка на сервисную документацию")
 
-##### Mapping to OWASP projects
+##### Сопоставление с проектами OWASP
 
-- [OWASP ASVS, V1 "Architecture, Design and Threat Modeling Requirements", #1.1.2](https://github.com/OWASP/ASVS/blob/master/4.0/en/0x10-V1-Architecture.md#v1-architecture-design-and-threat-modeling-requirements)
-- [OWASP Attack Surface Analysis Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Attack_Surface_Analysis_Cheat_Sheet.md)
+- [OWASP ASVS, версия 1 "Требования к архитектуре, проектированию и моделированию угроз", #1.1.2](https://github.com/OWASP/ASVS/blob/master/4.0/en/0x10-V1-Architecture.md#v1-architecture-design-and-threat-modeling-requirements)
+- [Чит для анализа поверхности атаки OWASP Sheet](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Attack_Surface_Analysis_Cheat_Sheet.md)
 
-#### Data leakage analysis
+#### Анализ утечки данных
 
-##### Implementation tips
+##### Советы по внедрению
 
-To analyze possible data leakage analyze data collected under the following sections:
+Для анализа возможной утечки данных проанализируйте данные, собранные в следующих разделах:
 
-- Identify and describe data assets
-- Identify "service-to-storage" relations
-- Identify "service-to-service" synchronous communications
-- Identify "service-to-service" asynchronous communications
-- Identify "asset-to-storage" relations
+- Определите и опишите ресурсы данных
+- Определите отношения "сервис-хранилище"
+- Определите синхронную связь "сервис-сервис"
+- Определить асинхронные связи "сервис-сервис"
+- Определить отношения "актив-хранилище"
 
-##### Mapping to OWASP projects
+##### Сопоставление с проектами OWASP
 
-- [OWASP ASVS, V1 "Architecture, Design and Threat Modeling Requirements", #1.1.2](https://github.com/OWASP/ASVS/blob/master/4.0/en/0x10-V1-Architecture.md#v1-architecture-design-and-threat-modeling-requirements)
-- [OWASP Top 10-2017 A3-Sensitive Data Exposure](https://owasp.org/www-project-top-ten/OWASP_Top_Ten_2017/Top_10-2017_A3-Sensitive_Data_Exposure)
+- [OWASP ASVS, версия 1 "Требования к архитектуре, проектированию и моделированию угроз", #1.1.2](https://github.com/OWASP/ASVS/blob/master/4.0/en/0x10-V1-Architecture.md#v1-architecture-design-and-threat-modeling-requirements)
+- [OWASP Top 10-2017: 3-Конфиденциальный доступ к данным](https://owasp.org/www-project-top-ten/OWASP_Top_Ten_2017/Top_10-2017_A 3-Конфиденциальный доступ к данным)
 
-#### Application's trust boundaries, components, and significant data flows justification
+#### Обоснование границ доверия приложения, компонентов и значимых потоков данных
 
-##### Implementation tips
+##### Советы по внедрению
 
-To verify documentation and justification of all the application's trust boundaries, components, and significant data flows analyze data collected under the following sections:
+Для проверки документации и обоснования всех границ доверия приложения, компонентов и важных потоков данных проанализируйте данные, собранные в следующих разделах:
 
-- Identify and describe application-functionality services
-- Identify and describe infrastructure services
-- Identify and describe data storages
-- Identify and describe message queues
-- Identify "service-to-storage" relations
-- Identify "service-to-service" synchronous communications
-- Identify "service-to-service" asynchronous communications
+- Определите и опишите функциональные службы приложения
+- Определите и опишите инфраструктурные службы
+- Определите и опишите хранилища данных
+- Определите и опишите очереди сообщений
+- Определить отношения "сервис-хранилище"
+- Определить синхронные связи "сервис-сервис"
+- Определить асинхронные связи "сервис-сервис"
 
-##### Mapping to OWASP projects
+##### Сопоставление с проектами OWASP
 
-- [OWASP ASVS, V1 "Architecture, Design and Threat Modeling Requirements", #1.1.4](https://github.com/OWASP/ASVS/blob/master/4.0/en/0x10-V1-Architecture.md#v1-architecture-design-and-threat-modeling-requirements)
+- [OWASP ASVS, версия 1 "Требования к архитектуре, проектированию и моделированию угроз", #1.1.4](https://github.com/OWASP/ASVS/blob/master/4.0/en/0x10-V1-Architecture.md#v1-architecture-design-and-threat-modeling-requirements)
 
-#### Analysis of the application's high-level architecture
+#### Анализ высокоуровневой архитектуры приложения
 
-##### Implementation tips
+##### Советы по внедрению
 
-To verify definition and security analysis of the application's high-level architecture and all connected remote services analyze data collected under the following sections:
+Для проверки определения и анализа безопасности высокоуровневой архитектуры приложения и всех подключенных удаленных служб проанализируйте данные, собранные в следующих разделах:
 
-- Identify and describe application-functionality services
-- Identify and describe infrastructure services
-- Identify and describe data storages
-- Identify and describe message queues
+- Определите и опишите функциональные службы приложения
+- Определите и опишите инфраструктурные службы.
+- Идентифицировать и описывать хранилища данных
+- Идентифицировать и описывать очереди сообщений
 
-##### Mapping to OWASP projects
+##### Соответствие проектам OWASP
 
-- [OWASP ASVS, V1 "Architecture, Design and Threat Modeling Requirements", #1.1.5](https://github.com/OWASP/ASVS/blob/master/4.0/en/0x10-V1-Architecture.md#v1-architecture-design-and-threat-modeling-requirements)
+- [OWASP ASVS, версия 1 "Требования к архитектуре, проектированию и моделированию угроз", #1.1.5](https://github.com/OWASP/ASVS/blob/master/4.0/en/0x10-V1-Architecture.md#v1-architecture-design-and-threat-modeling-requirements)
 
-#### Implementation of centralized security controls verification
+#### Внедрение централизованной проверки средств контроля безопасности
 
-##### Implementation tips
+##### Советы по внедрению
 
-To verify implementation of centralized, simple (economy of design), vetted, secure, and reusable security controls to avoid duplicate, missing, ineffective, or insecure controls analyze data collected under the section "Identify and describe infrastructure services".
+Чтобы проверить внедрение централизованных, простых (экономичных по дизайну), проверенных, безопасных и многократно используемых средств контроля безопасности, чтобы избежать дублирования, отсутствия, неэффективности или небезопасности средств контроля, проанализируйте данные, собранные в разделе "Идентификация и описание инфраструктурных служб".
 
-##### Mapping to OWASP projects
+##### Соответствие проектам OWASP
 
-- [OWASP ASVS, V1 "Architecture, Design and Threat Modeling Requirements", #1.1.6](https://github.com/OWASP/ASVS/blob/master/4.0/en/0x10-V1-Architecture.md#v1-architecture-design-and-threat-modeling-requirements)
+- [OWASP ASVS, V1 "Требования к архитектуре, проектированию и моделированию угроз", #1.1.6](https://github.com/OWASP/ASVS/blob/master/4.0/en/0x10-V1-Architecture.md#v1-architecture-design-and-threat-modeling-requirements)
 
-#### Enforcement of the principle of least privilege
+#### Применение принципа наименьших привилегий
 
-##### Implementation tips
+##### Советы по внедрению
 
-To define minimally needed microservice permissions analyze data collected under the following sections:
+Чтобы определить минимально необходимые разрешения для микросервисов, проанализируйте данные, собранные в следующих разделах:
 
-- Identify and describe application-functionality services (parameter "API definition")
-- Identify "service-to-storage" relations
-- Identify "service-to-service" synchronous communications
-- Identify "service-to-service" asynchronous communications
+- Определите и опишите сервисы, связанные с функциональностью приложения (параметр "Определение API")
+- Определите отношения "сервис-хранилище"
+- Определите синхронную связь "от службы к службе"
+- Определите асинхронную связь "от службы к службе"
 
-##### Mapping to OWASP projects
+##### Соответствие проектам OWASP
 
-- [OWASP ASVS, V1 "Architecture, Design and Threat Modeling Requirements", #1.4.3](https://github.com/OWASP/ASVS/blob/master/4.0/en/0x10-V1-Architecture.md#v1-architecture-design-and-threat-modeling-requirements)
+- [OWASP ASVS, версия 1 "Требования к архитектуре, проектированию и моделированию угроз", #1.4.3](https://github.com/OWASP/ASVS/blob/master/4.0/en/0x10-V1-Architecture.md#v1-architecture-design-and-threat-modeling-requirements)
 
-#### Sensitive data identification and classification
+#### Идентификация и классификация конфиденциальных данных
 
-##### Implementation tips
+##### Советы по внедрению
 
-To verify that all sensitive data is identified and classified into protection levels analyze data collected under the following sections:
+Чтобы убедиться, что все конфиденциальные данные идентифицированы и классифицированы по уровням защиты, проанализируйте данные, собранные в следующих разделах:
 
-- Identify and describe data assets
-- Identify "asset-to-storage" relations
+- Идентифицируйте и опишите ресурсы данных
+- Определите отношения "активы-хранилище".
 
-##### Mapping to OWASP projects
+##### Соответствие проектам OWASP
 
-- [OWASP ASVS, V1 "Architecture, Design and Threat Modeling Requirements", #1.8.1](https://github.com/OWASP/ASVS/blob/master/4.0/en/0x10-V1-Architecture.md#v1-architecture-design-and-threat-modeling-requirements)
+- [OWASP ASVS, V1 "Требования к архитектуре, проектированию и моделированию угроз", #1.8.1](https://github.com/OWASP/ASVS/blob/master/4.0/en/0x10-V1-Architecture.md#v1-architecture-design-and-threat-modeling-requirements)
 
-#### Application components business/security functions verification
+#### Проверка бизнес-функций компонентов приложений и функций безопасности
 
-##### Implementation tips
+##### Советы по внедрению
 
-To verify the definition and documentation of all application components in terms of the business or security functions they provide analyze data collected under the following sections (parameter "Short description"):
+Чтобы проверить определение и документацию всех компонентов приложения с точки зрения бизнес-функций или функций безопасности, которые они предоставляют, проанализируйте данные, собранные в следующих разделах (параметр "Краткое описание"):
 
-- Identify and describe application-functionality services
-- Identify and describe infrastructure services
+- Идентифицируйте и опишите сервисы, связанные с функциональностью приложений
+- Идентифицируйте и опишите инфраструктурные сервисы
 
-##### Mapping to OWASP projects
+##### Сопоставление с проектами OWASP
 
-- [OWASP ASVS, V1 "Architecture, Design and Threat Modeling Requirements", #1.11.1](https://github.com/OWASP/ASVS/blob/master/4.0/en/0x10-V1-Architecture.md#v1-architecture-design-and-threat-modeling-requirements)
+- [OWASP ASVS, версия 1 "Требования к архитектуре, проектированию и моделированию угроз", #1.11.1](https://github.com/OWASP/ASVS/blob/master/4.0/en/0x10-V1-Architecture.md#v1-architecture-design-and-threat-modeling-requirements)
